@@ -1,0 +1,31 @@
+{
+  "name": "photoshare-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "dev:mock": "vite --mode mock"
+  },
+  "dependencies": {
+    "@fontsource/montserrat": "^5.2.8",
+    "@fontsource/poppins": "^5.2.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "eslint": "^9.39.0",
+    "globals": "^16.5.0",
+    "prettier": "^3.6.2",
+    "qrcode": "^1.5.4",
+    "vite": "^7.1.12",
+    "vitest": "^3.2.4"
+  }
+}
