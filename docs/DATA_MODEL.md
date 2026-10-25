@@ -1,6 +1,8 @@
 # Модель даних (Data Model) — PhotoShare
 
-Документ описує структуру бази даних PostgreSQL для проєкту PhotoShare: таблиці, поля, типи даних, обмеження, зв'язки, індекси та ER-діаграму.
+Документ описує проєктну структуру бази даних PostgreSQL для PhotoShare: таблиці, поля, типи даних, обмеження, зв’язки, індекси та ER-діаграму.
+
+Модель охоплює сутності, визначені в TASK-004. Структуру `users` звірено з наявною Prisma-схемою. Інші сутності є проєктним описом і мають бути узгоджені з реалізацією перед застосуванням міграцій.
 
 ## ER-діаграма (Mermaid)
 
@@ -16,19 +18,20 @@ erDiagram
     Tag ||--o{ PhotoTag : has
 
     User {
-        uuid id PK
-        string email UK
+        int id PK
         string username UK
+        string email UK
+        string name
         string password_hash
-        string role
-        boolean is_banned
+        Role role
+        boolean is_active
         timestamp created_at
         timestamp updated_at
     }
 
     Photo {
-        uuid id PK
-        uuid user_id FK
+        int id PK
+        int user_id FK
         string url
         string public_id
         text description
@@ -37,36 +40,36 @@ erDiagram
     }
 
     Tag {
-        uuid id PK
+        int id PK
         string name UK
         timestamp created_at
     }
 
     PhotoTag {
-        uuid photo_id PK, FK
-        uuid tag_id PK, FK
+        int photo_id PK, FK
+        int tag_id PK, FK
     }
 
     Comment {
-        uuid id PK
-        uuid photo_id FK
-        uuid user_id FK
+        int id PK
+        int photo_id FK
+        int user_id FK
         text content
         timestamp created_at
         timestamp updated_at
     }
 
     Rating {
-        uuid id PK
-        uuid photo_id FK
-        uuid user_id FK
-        integer value
+        int id PK
+        int photo_id FK
+        int user_id FK
+        int value
         timestamp created_at
     }
 
     TransformedLink {
-        uuid id PK
-        uuid photo_id FK
+        int id PK
+        int photo_id FK
         string url
         string qr_code_url
         json transformation_params
@@ -74,7 +77,7 @@ erDiagram
     }
 
     TokenBlacklist {
-        uuid id PK
+        int id PK
         string token_jti UK
         timestamp expires_at
         timestamp created_at
@@ -83,55 +86,152 @@ erDiagram
 
 ## Опис таблиць
 
-| Таблиця | Призначення | Основні поля |
+### 1. `users` — користувачі
+
+Зберігає облікові записи користувачів. Структуру звірено з наявною моделлю Prisma `User`.
+
+| Поле | Тип | Обмеження |
 |---|---|---|
-| `users` | Облікові записи користувачів | `id`, `email`, `username`, `password_hash`, `role`, `is_banned`, `created_at`, `updated_at` |
-| `photos` | Опубліковані світлини | `id`, `user_id`, `url`, `public_id`, `description`, `created_at`, `updated_at` |
-| `tags` | Теги для категоризації світлин | `id`, `name`, `created_at` |
-| `photo_tags` | Зв'язок між світлинами й тегами | `photo_id`, `tag_id` |
-| `comments` | Коментарі до світлин | `id`, `photo_id`, `user_id`, `content`, `created_at`, `updated_at` |
-| `ratings` | Оцінки світлин | `id`, `photo_id`, `user_id`, `value`, `created_at` |
-| `transformed_links` | Посилання на перетворені світлини | `id`, `photo_id`, `url`, `qr_code_url`, `transformation_params`, `created_at` |
-| `token_blacklist` | Недійсні токени автентифікації | `id`, `token_jti`, `expires_at`, `created_at` |
+| `id` | `SERIAL` / `Int` | Первинний ключ, автоінкремент |
+| `username` | `TEXT` | `NOT NULL`, `UNIQUE` |
+| `email` | `TEXT` | `NOT NULL`, `UNIQUE` |
+| `name` | `TEXT` | `NOT NULL` |
+| `password_hash` | `TEXT` | `NOT NULL` |
+| `role` | `Role` | `NOT NULL`, за замовчуванням `USER` |
+| `is_active` | `BOOLEAN` | `NOT NULL`, за замовчуванням `true` |
+| `created_at` | `TIMESTAMP(3)` | `NOT NULL`, за замовчуванням поточний час |
+| `updated_at` | `TIMESTAMP(3)` | `NOT NULL`, оновлюється Prisma |
 
-## Типи даних та обмеження
+Enum `Role` містить значення `USER`, `MODERATOR` та `ADMIN`.
 
-- Ідентифікатори сутностей — `UUID`, первинні ключі — `PRIMARY KEY`.
-- `users.email` і `users.username` мають бути унікальними (`UNIQUE`) та обов'язковими (`NOT NULL`).
-- `tags.name` має бути унікальним (`UNIQUE`) та обов'язковим (`NOT NULL`).
-- `token_blacklist.token_jti` має бути унікальним.
-- Зовнішні ключі (`FOREIGN KEY`) забезпечують цілісність зв'язків між таблицями.
-- `photo_tags` використовує складений первинний ключ (`photo_id`, `tag_id`), щоб не допустити дублювання одного й того самого тегу для світлини.
-- `comments.created_at` зберігає час створення коментаря, а `comments.updated_at` — час останнього оновлення.
-- `ratings.value` має бути цілим числом. Допустимий діапазон значень необхідно визначити відповідно до вимог продукту.
-- Для часових полів PostgreSQL рекомендується використовувати `TIMESTAMPTZ`.
+### 2. `photos` — світлини
 
-## Зв'язки між таблицями
+Зберігає опубліковані світлини та їхні метадані.
 
-- Один користувач може створити багато світлин: `users` → `photos` (one-to-many).
+| Поле | Тип | Обмеження |
+|---|---|---|
+| `id` | `INTEGER` | Первинний ключ, автоінкремент |
+| `user_id` | `INTEGER` | Зовнішній ключ на `users.id`, `NOT NULL` |
+| `url` | `TEXT` | `NOT NULL` |
+| `public_id` | `TEXT` | Ідентифікатор у сховищі; унікальність узгодити з вимогами сховища |
+| `description` | `TEXT` | Необов’язковий опис |
+| `created_at` | `TIMESTAMPTZ` | Час створення |
+| `updated_at` | `TIMESTAMPTZ` | Час останнього оновлення |
+
+### 3. `tags` — теги
+
+Зберігає назви тегів для категоризації світлин.
+
+| Поле | Тип | Обмеження |
+|---|---|---|
+| `id` | `INTEGER` | Первинний ключ, автоінкремент |
+| `name` | `TEXT` | `NOT NULL`, `UNIQUE` |
+| `created_at` | `TIMESTAMPTZ` | Час створення |
+
+### 4. `photo_tags` — зв’язок світлин і тегів
+
+Проміжна таблиця для зв’язку багато-до-багатьох між світлинами й тегами.
+
+| Поле | Тип | Обмеження |
+|---|---|---|
+| `photo_id` | `INTEGER` | Зовнішній ключ на `photos.id` |
+| `tag_id` | `INTEGER` | Зовнішній ключ на `tags.id` |
+
+Складений первинний ключ `(photo_id, tag_id)` не дозволяє призначити той самий тег одній світлині повторно.
+
+### 5. `comments` — коментарі
+
+Зберігає коментарі користувачів до світлин.
+
+| Поле | Тип | Обмеження |
+|---|---|---|
+| `id` | `INTEGER` | Первинний ключ, автоінкремент |
+| `photo_id` | `INTEGER` | Зовнішній ключ на `photos.id`, `NOT NULL` |
+| `user_id` | `INTEGER` | Зовнішній ключ на `users.id`, `NOT NULL` |
+| `content` | `TEXT` | `NOT NULL` |
+| `created_at` | `TIMESTAMPTZ` | Час створення коментаря |
+| `updated_at` | `TIMESTAMPTZ` | Час останнього оновлення коментаря |
+
+### 6. `ratings` — оцінки
+
+Зберігає оцінки світлин користувачами.
+
+| Поле | Тип | Обмеження |
+|---|---|---|
+| `id` | `INTEGER` | Первинний ключ, автоінкремент |
+| `photo_id` | `INTEGER` | Зовнішній ключ на `photos.id`, `NOT NULL` |
+| `user_id` | `INTEGER` | Зовнішній ключ на `users.id`, `NOT NULL` |
+| `value` | `INTEGER` | `NOT NULL`; допустимий діапазон визначається вимогами продукту |
+| `created_at` | `TIMESTAMPTZ` | Час створення оцінки |
+
+Якщо кожен користувач може оцінити світлину лише один раз, слід додати обмеження `UNIQUE(photo_id, user_id)`.
+
+### 7. `transformed_links` — перетворені посилання
+
+Зберігає посилання на перетворені версії світлин та параметри перетворення.
+
+| Поле | Тип | Обмеження |
+|---|---|---|
+| `id` | `INTEGER` | Первинний ключ, автоінкремент |
+| `photo_id` | `INTEGER` | Зовнішній ключ на `photos.id`, `NOT NULL` |
+| `url` | `TEXT` | `NOT NULL` |
+| `qr_code_url` | `TEXT` | Посилання на QR-код, якщо він створений |
+| `transformation_params` | `JSONB` | Параметри перетворення |
+| `created_at` | `TIMESTAMPTZ` | Час створення |
+
+### 8. `token_blacklist` — недійсні токени
+
+Зберігає ідентифікатори відкликаних токенів автентифікації.
+
+| Поле | Тип | Обмеження |
+|---|---|---|
+| `id` | `INTEGER` | Первинний ключ, автоінкремент |
+| `token_jti` | `TEXT` | `NOT NULL`, `UNIQUE` |
+| `expires_at` | `TIMESTAMPTZ` | `NOT NULL` |
+| `created_at` | `TIMESTAMPTZ` | Час додавання до чорного списку |
+
+## Зв’язки між таблицями
+
+- Один користувач може мати багато світлин: `users` → `photos` (one-to-many).
 - Одна світлина може мати багато коментарів: `photos` → `comments` (one-to-many).
 - Один користувач може залишати багато коментарів: `users` → `comments` (one-to-many).
-- Світлини й теги мають зв'язок many-to-many через проміжну таблицю `photo_tags`.
-- Одна світлина може мати багато оцінок і перетворених посилань.
-- Кожна оцінка належить одному користувачу й одній світлині.
+- Світлини й теги мають зв’язок many-to-many через `photo_tags`.
+- Одна світлина може мати багато оцінок: `photos` → `ratings` (one-to-many).
+- Один користувач може залишати багато оцінок: `users` → `ratings` (one-to-many).
+- Одна світлина може мати багато перетворених посилань: `photos` → `transformed_links` (one-to-many).
 
-## Індекси
+## Обмеження та індекси
 
-Рекомендовані індекси для пошуку та фільтрації:
+- `users.id` — первинний ключ з автоінкрементом відповідно до наявної Prisma-схеми.
+- `users.username` та `users.email` — унікальні поля.
+- `tags.name` — унікальна назва тегу.
+- Усі зовнішні ключі мають посилатися на наявні записи відповідних таблиць.
+- `photo_tags` має складений первинний ключ `(photo_id, tag_id)`.
+- Для `comments` передбачено `created_at` та `updated_at`.
+- Унікальність `ratings(photo_id, user_id)` варто застосувати, якщо дозволено лише одну оцінку від користувача для однієї світлини.
+- Допустимий діапазон `ratings.value` потрібно визначити за вимогами продукту.
 
-- `users.email` — унікальний індекс для пошуку користувача за email.
-- `users.username` — унікальний індекс для пошуку за username.
-- `tags.name` — унікальний індекс для пошуку тегу за назвою.
-- `photos.user_id` — пошук світлин конкретного користувача.
-- `photos.created_at` — сортування світлин за датою створення.
-- `comments.photo_id` — отримання коментарів до світлини.
-- `comments.user_id` — пошук коментарів користувача.
-- `ratings.photo_id` — отримання оцінок світлини.
-- `photo_tags.tag_id` — пошук світлин за тегом.
-- `token_blacklist.expires_at` — пошук токенів, термін дії яких минув.
+Рекомендовані індекси:
 
-Унікальні обмеження зазвичай автоматично створюють індекси в PostgreSQL. Індекси для зовнішніх ключів слід перевірити та за потреби додати окремо.
+| Індекс | Призначення |
+|---|---|
+| `users.username` (UNIQUE) | Пошук користувача за ім’ям |
+| `users.email` (UNIQUE) | Пошук користувача за email |
+| `photos.user_id` | Пошук світлин користувача |
+| `photos.created_at` | Сортування світлин за датою |
+| `comments.photo_id` | Отримання коментарів до світлини |
+| `comments.user_id` | Пошук коментарів користувача |
+| `ratings.photo_id` | Отримання оцінок світлини |
+| `photo_tags.tag_id` | Пошук світлин за тегом |
+| `transformed_links.photo_id` | Пошук перетворених посилань світлини |
+| `token_blacklist.token_jti` (UNIQUE) | Пошук токена за ідентифікатором |
+| `token_blacklist.expires_at` | Очищення прострочених токенів |
 
-## Примітка
+У PostgreSQL унікальні обмеження автоматично створюють унікальні індекси. Індекси для зовнішніх ключів слід оцінити та додати відповідно до запитів застосунку.
 
-Описані поля, типи даних і зв'язки потрібно звірити з наявною Prisma-схемою та іншою документацією PhotoShare перед затвердженням змін.
+## Примітки щодо реалізації
+
+- Опис `users` відповідає наданій Prisma-моделі та SQL-фрагменту.
+- Решта таблиць є проєктною пропозицією для TASK-004; їхні типи, поля й обмеження потрібно узгодити з командою та іншими вимогами проєкту перед створенням міграцій.
+- Типи ідентифікаторів у всіх таблицях мають бути узгоджені з реальними зовнішніми ключами.
+- Часові поля нових таблиць рекомендовано реалізувати як `TIMESTAMPTZ`, якщо це відповідає загальній домовленості проєкту.
