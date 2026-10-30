@@ -37,4 +37,15 @@ function toPhoto(photo) {
   };
 }
 
-module.exports = { toPublicUser, toAuthor, toPhoto };
+function toComment(comment) {
+  return {
+    id: comment.id,
+    photoId: comment.photoId,
+    text: comment.text,
+    author: toAuthor(comment.author),
+    createdAt: comment.createdAt,
+    updatedAt: comment.updatedAt,
+  };
+}
+
+module.exports = { toPublicUser, toAuthor, toPhoto, toComment };
