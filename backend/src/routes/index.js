@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const users = require('./users');
 const sessions = require('./sessions');
+const photos = require('./photos');
 
 const router = Router();
 
@@ -9,5 +10,6 @@ router.get('/health', (_req, res) => {
 });
 router.use('/users', users);
 router.use('/sessions', sessions);
+router.use('/photos', photos);
 
 module.exports = router;
