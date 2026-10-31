@@ -6,7 +6,8 @@
 
 - Імена таблиць і стовпців у `snake_case`, в Prisma через `@map`. Первинні ключі `SERIAL` (`Int @default(autoincrement())`), як у `users`.
 - Час: `timestamp(3)`, як у першій міграції. `created_at` ставить БД (`DEFAULT CURRENT_TIMESTAMP`), `updated_at` оновлює Prisma (`@updatedAt`).
-- `onDelete: Cascade` скрізь, де дочірній запис не має сенсу без батьківського. Видалення світлини прибирає її коментарі, оцінки, посилання і зв'язки з тегами (вимога API: "Коментарі видаляються разом зі світлиною").
+- Каскад (`ON DELETE CASCADE`) лише від світлини до її дочірніх записів і від тега до `photo_tags`: видалення світлини прибирає її коментарі, оцінки, посилання і зв'язки з тегами (вимога API: "Коментарі видаляються разом зі світлиною").
+- Зовнішні ключі на `users` (автор світлини, автор коментаря, автор оцінки) без каскаду: `ON DELETE RESTRICT` (у Prisma це стандартна поведінка для обов'язкового зв'язку, `onDelete` не вказуємо). Видалення користувачів в API немає, акаунт лише банять через `is_active`, тому каскад від користувача був би небезпечним зайвим ризиком: одне випадкове `DELETE FROM users` стерло б усі його світлини і коментарі. Це узгоджено з моделями в TASK-019 і TASK-021.
 
 ## ER-діаграма
 
@@ -114,7 +115,7 @@ erDiagram
 | url | text | NN | URL оригіналу в Cloudinary |
 | public_id | text | NN, UQ | id у Cloudinary, потрібен для видалення файлу |
 | description | varchar(1000) | NN | 1-1000 символів |
-| author_id | int | NN, FK `users.id`, ON DELETE CASCADE | |
+| author_id | int | NN, FK `users.id`, ON DELETE RESTRICT | |
 | created_at | timestamp(3) | NN, default now | дата додавання, за нею стрічка і фільтр `dateFrom/dateTo` |
 | updated_at | timestamp(3) | NN | |
 
@@ -123,7 +124,7 @@ erDiagram
 | Стовпець | Тип | Обмеження | Опис |
 |---|---|---|---|
 | id | serial | PK | |
-| name | varchar(30) | NN, UQ, CHECK `name = lower(name)` | унікальний у всьому застосунку, нижній регістр ([D-09](DECISIONS.md)) |
+| name | varchar(30) | NN, UQ, CHECK `name = lower(name)` | унікальний у всьому застосунку, нижній регістр ([D-09](DECISIONS.md)); довжина 1-30 символів, правило також у [API.md](API.md), перевіряється zod у TASK-020 |
 | created_at | timestamp(3) | NN, default now | |
 
 Теги не видаляються разом зі світлинами: невикористаний тег лишається і його можна перевикористати. Якщо таких стане багато, їх можна чистити окремою задачею.
@@ -146,7 +147,7 @@ erDiagram
 | id | serial | PK | |
 | text | varchar(1000) | NN | 1-1000 символів після обрізання пробілів |
 | photo_id | int | NN, FK `photos.id`, ON DELETE CASCADE | |
-| author_id | int | NN, FK `users.id`, ON DELETE CASCADE | |
+| author_id | int | NN, FK `users.id`, ON DELETE RESTRICT | |
 | created_at | timestamp(3) | NN, default now | час створення |
 | updated_at | timestamp(3) | NN | час останньої зміни; Prisma ставить його при створенні і оновлює при кожному `PUT` |
 
@@ -171,7 +172,7 @@ erDiagram
 |---|---|---|---|
 | id | serial | PK | |
 | photo_id | int | NN, FK `photos.id`, ON DELETE CASCADE | |
-| user_id | int | NN, FK `users.id`, ON DELETE CASCADE | |
+| user_id | int | NN, FK `users.id`, ON DELETE RESTRICT | |
 | value | smallint | NN, CHECK `value BETWEEN 1 AND 5` | |
 | created_at | timestamp(3) | NN, default now | |
 
@@ -213,8 +214,8 @@ UQ `(photo_id, user_id)`: одна оцінка на користувача, п�
 | `tags` GIN `name gin_trgm_ops` | частковий збіг тега в `q` |
 | `photo_tags(tag_id, photo_id)` | фільтр `tag`: від тега до світлин (PK покриває лише напрямок від світлини до тегів) |
 | `comments(photo_id, created_at DESC, id DESC)` | список коментарів світлини зі сторінками, лічильник `commentsCount` |
-| `comments(author_id)` | швидке каскадне видалення при видаленні користувача |
-| `ratings(user_id)` | `myRating`, каскад при видаленні користувача (пошук за `photo_id` покриває UQ) |
+| `comments(author_id)` | зовнішній ключ на `users`: швидка перевірка зв'язків і вибірка коментарів автора |
+| `ratings(user_id)` | `myRating` і вибірка оцінок користувача (пошук за `photo_id` покриває UQ) |
 | `transformed_links(photo_id)` | `GET /api/photos/:id/links` |
 | `token_blacklist(expires_at)` | чистка прострочених токенів |
 | `users(role)` | фільтр `role` в адмінці |
