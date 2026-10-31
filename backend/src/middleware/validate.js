@@ -13,7 +13,13 @@ function validate(schema, source = 'body') {
       throw new AppError(422, 'VALIDATION_ERROR', 'Помилка валідації', fields);
     }
 
-    req[source] = result.data;
+    // ====== Express 5 exposes req.query as a getter, so plain assignment is ignored ======
+    Object.defineProperty(req, source, {
+      value: result.data,
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    });
     next();
   };
 }
