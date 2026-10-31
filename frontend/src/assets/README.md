@@ -1,8 +1,9 @@
 # Асети
 
-- `icons/sprite.svg` - спрайт іконок (IcoMoon, `<symbol id="icon-назва">`), підключається при старті
-- `images/` - растрові зображення (WebP + fallback), `@1x` і `@2x`
-- Шрифти підключені через `@fontsource` у `src/styles/fonts.css`
+- `icons/sprite.svg` - спрайт іконок (`<symbol id="icon-назва">`), підключається при старті
+- `images/` - зображення: WebP `@1x` і `@2x` + fallback `@1x` (PNG або JPG), логотип і заглушка аватара в SVG
+- `public/favicon.svg` - фавікон (знак з логотипа)
+- Шрифти Poppins і Montserrat 400/500/600 (woff2) підключені через `@fontsource` у `src/styles/fonts.css`
 
 ## Іконки
 
@@ -42,4 +43,29 @@ Icon('send', { size: 32, color: '#fdfdfd', color2: '#24448a' });
 | `trash` | видалити | Vector-5 |
 | `calendar` | логотип календаря | Group-2 |
 | `lock` | замок | material-symbols_edit-outline-1 |
+| `starFilled` | зірка рейтингу (заповнена) | star-filled |
+| `burger` | мобільне меню | burger |
+| `close` | закрити меню | close |
+| `exit` | вхід / вихід з акаунта | exit |
+| `chevrons` | подвійна стрілка (кнопка реєстрації), два кольори | chevrons |
+| `sort` | сортування | sort |
+| `filter` | фільтри | filter |
+| `checkbox` | розблокувати (адмінка) | checkbox |
+| `arrowRight`, `arrowLeft` | стрілки в кнопках | arrow-right, arrow-left |
+| `eye` | пароль показано | eye |
 
+## Зображення
+
+```html
+<picture>
+  <source type="image/webp" srcset="welcome@1x.webp 1x, welcome@2x.webp 2x" />
+  <img src="welcome@1x.jpg" alt="" width="636" height="580" />
+</picture>
+```
+
+| Файл | Де | Розмір @1x |
+|---|---|---|
+| `welcome@1x/@2x.webp`, `welcome@1x.jpg` | WelcomePage | 636x580 |
+| `not-found@1x/@2x.webp`, `not-found@1x.png` | сторінка 404 | 456x464 |
+| `logo.svg` | Header, Footer (світлий текст для темного фону) | 177x38 |
+| `avatar-placeholder.svg` | аватар без фото | 96x96 |

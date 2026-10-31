@@ -116,10 +116,6 @@
   min-height: 56px;
 }
 
-.icon--flip {
-  transform: scaleX(-1);
-}
-
 .icon-btn {
   display: inline-grid;
   place-items: center;

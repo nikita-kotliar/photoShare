@@ -25,7 +25,7 @@ export default function UiKitPage() {
   const title = document.createElement('h1');
   title.textContent = 'UI Kit';
 
-  const sortTrigger = IconButton({ icon: 'selectArrow', label: 'Сортування' });
+  const sortTrigger = IconButton({ icon: 'sort', label: 'Сортування' });
   const sort = Dropdown({
     trigger: sortTrigger,
     label: 'Сортування',
@@ -42,7 +42,7 @@ export default function UiKitPage() {
     selectable: false,
     options: [
       { value: 'settings', label: 'Редагувати профіль', icon: 'pencil' },
-      { value: 'logout', label: 'Вийти з акаунта' },
+      { value: 'logout', label: 'Вийти з акаунта', icon: 'exit' },
     ],
   });
 
@@ -75,7 +75,12 @@ export default function UiKitPage() {
       Button({ text: 'Button', variant: 'secondary', size: 'xxxs', disabled: true }),
       Button({ text: 'Видалити', variant: 'danger', size: 'xxs' }),
     ),
-    block('Кнопки-іконки', IconButton({ icon: 'search', label: 'Пошук' }), sort),
+    block(
+      'Кнопки-іконки',
+      IconButton({ icon: 'calendar', label: 'Календар' }),
+      IconButton({ icon: 'filter', label: 'Фільтри' }),
+      sort,
+    ),
     block(
       'Поля',
       Input({ label: "Ім'я", name: 'default' }),
@@ -84,7 +89,7 @@ export default function UiKitPage() {
       Input({
         label: "Ім'я",
         name: 'icon',
-        icon: 'eyeOff',
+        icon: 'eye',
         iconLabel: 'Показати',
         onIconClick() {},
       }),
