@@ -11,14 +11,12 @@
   font-size: var(--fs-small);
   font-weight: var(--fw-medium);
   line-height: 1.2;
-  color: var(--color-muted);
-}
-
-a.tag:hover {
-  color: var(--color-hover);
+  color: var(--color-text-muted);
 }
 
 .tag--removable {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
@@ -34,7 +32,23 @@ a.tag:hover {
   line-height: 1;
 }
 
-.tag--removable:hover {
+a.tag:active {
+  color: var(--color-pressed);
+}
+
+.tag--removable:active {
   border-color: var(--color-danger);
   color: var(--color-danger);
+}
+
+/* Наведення */
+@media (hover: hover) and (pointer: fine) {
+  a.tag:hover:not(:active) {
+    color: var(--color-hover);
+  }
+
+  .tag--removable:hover:not(:active) {
+    border-color: var(--color-danger);
+    color: var(--color-danger);
+  }
 }
