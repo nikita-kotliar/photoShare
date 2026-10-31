@@ -21,8 +21,116 @@ model User {
   passwordHash String   @map("password_hash")
   role         Role     @default(USER)
   isActive     Boolean  @default(true) @map("is_active")
+  avatarUrl    String?  @map("avatar_url")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
+  photos   Photo[]
+  comments Comment[]
+  ratings  Rating[]
+
+  @@index([role])
+  @@index([createdAt])
+  @@index([name(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@index([email(ops: raw("gin_trgm_ops"))], type: Gin)
   @@map("users")
+}
+
+model Photo {
+  id          Int      @id @default(autoincrement())
+  slug        String   @unique @db.VarChar(12)
+  url         String
+  publicId    String   @unique @map("public_id")
+  description String   @db.VarChar(1000)
+  authorId    Int      @map("author_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  author           User              @relation(fields: [authorId], references: [id])
+  comments         Comment[]
+  ratings          Rating[]
+  tags             PhotoTag[]
+  transformedLinks TransformedLink[]
+
+  @@index([createdAt(sort: Desc), id(sort: Desc)])
+  @@index([authorId, createdAt(sort: Desc)])
+  @@index([description(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@map("photos")
+}
+
+model Tag {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique @db.VarChar(30)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  photos PhotoTag[]
+
+  @@index([name(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@map("tags")
+}
+
+model PhotoTag {
+  photoId Int @map("photo_id")
+  tagId   Int @map("tag_id")
+
+  photo Photo @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  tag   Tag   @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([photoId, tagId])
+  @@index([tagId, photoId])
+  @@map("photo_tags")
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  text      String   @db.VarChar(1000)
+  photoId   Int      @map("photo_id")
+  authorId  Int      @map("author_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  photo  Photo @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  author User  @relation(fields: [authorId], references: [id])
+
+  @@index([photoId, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([authorId])
+  @@map("comments")
+}
+
+model TransformedLink {
+  id              Int      @id @default(autoincrement())
+  photoId         Int      @map("photo_id")
+  url             String
+  qrCode          String   @map("qr_code")
+  transformations Json
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  photo Photo @relation(fields: [photoId], references: [id], onDelete: Cascade)
+
+  @@index([photoId])
+  @@map("transformed_links")
+}
+
+model Rating {
+  id        Int      @id @default(autoincrement())
+  photoId   Int      @map("photo_id")
+  userId    Int      @map("user_id")
+  value     Int      @db.SmallInt
+  createdAt DateTime @default(now()) @map("created_at")
+
+  photo Photo @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@unique([photoId, userId])
+  @@index([userId])
+  @@map("ratings")
+}
+
+model TokenBlacklist {
+  jti       String   @id @db.VarChar(36)
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([expiresAt])
+  @@map("token_blacklist")
 }
