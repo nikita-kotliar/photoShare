@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const controller = require('../controllers/photosController');
+const commentsController = require('../controllers/commentsController');
 const validate = require('../middleware/validate');
 const { authenticate } = require('../middleware/auth');
 const { uploadImage } = require('../middleware/upload');
@@ -9,6 +10,7 @@ const {
   updatePhotoSchema,
   idOrSlugParamsSchema,
 } = require('../validators/photos');
+const { commentSchema } = require('../validators/comments');
 
 const router = Router();
 
@@ -29,5 +31,19 @@ router.put(
   controller.update,
 );
 router.delete('/:id', authenticate, validate(idParamsSchema, 'params'), controller.remove);
+
+router.get(
+  '/:id/comments',
+  validate(idParamsSchema, 'params'),
+  validate(paginationSchema, 'query'),
+  commentsController.list,
+);
+router.post(
+  '/:id/comments',
+  authenticate,
+  validate(idParamsSchema, 'params'),
+  validate(commentSchema),
+  commentsController.create,
+);
 
 module.exports = router;
