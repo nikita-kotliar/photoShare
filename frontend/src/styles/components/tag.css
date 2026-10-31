@@ -1,0 +1,40 @@
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tag {
+  font-size: var(--fs-small);
+  font-weight: var(--fw-medium);
+  line-height: 1.2;
+  color: var(--color-muted);
+}
+
+a.tag:hover {
+  color: var(--color-hover);
+}
+
+.tag--removable {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-muted);
+  border-radius: var(--radius-m);
+  background: var(--color-surface);
+}
+
+.tag--removable::after {
+  content: '×';
+  font-size: var(--fs-body);
+  line-height: 1;
+}
+
+.tag--removable:hover {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
