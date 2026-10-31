@@ -4,9 +4,7 @@ const SIZES = ['xxxs', 'xxs', 'xs', 's', 'm', 'l', 'xl'];
 const VARIANTS = ['primary', 'secondary', 'danger'];
 
 function arrow(direction) {
-  const icon = Icon('backDesktop', { size: 16 });
-  if (direction === 'right') icon.classList.add('icon--flip');
-  return icon;
+  return Icon(direction === 'right' ? 'arrowRight' : 'arrowLeft', { size: 24 });
 }
 
 export function Button({
