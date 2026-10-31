@@ -15,10 +15,10 @@
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
-  transition:
-    background var(--transition),
-    border-color var(--transition),
-    color var(--transition);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .btn__text {
@@ -31,10 +31,6 @@
   background: var(--gradient-button);
 }
 
-.btn--primary:hover {
-  background: var(--color-hover);
-}
-
 .btn--primary:active {
   background: var(--color-pressed);
 }
@@ -44,12 +40,6 @@
   background:
     linear-gradient(var(--color-bg), var(--color-bg)) padding-box,
     var(--gradient-button) border-box;
-}
-
-.btn--secondary:hover {
-  color: var(--color-hover);
-  background: transparent;
-  border-color: var(--color-hover);
 }
 
 .btn--secondary:active {
@@ -64,7 +54,6 @@
   border-color: var(--color-danger);
 }
 
-.btn--danger:hover,
 .btn--danger:active {
   color: var(--color-white);
   background: var(--color-danger);
@@ -127,10 +116,12 @@
   border-radius: var(--radius-m);
   color: var(--color-white);
   background: var(--gradient-field);
-  transition: background var(--transition);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
-.icon-btn:hover,
 .icon-btn[aria-expanded='true'] {
   background: var(--color-hover);
 }
@@ -142,4 +133,26 @@
 .icon-btn:disabled {
   background: var(--color-disabled);
   cursor: not-allowed;
+}
+
+/* Наведення */
+@media (hover: hover) and (pointer: fine) {
+  .btn--primary:hover:not(:active, :disabled, [aria-disabled='true']) {
+    background: var(--color-hover);
+  }
+
+  .btn--secondary:hover:not(:active, :disabled, [aria-disabled='true']) {
+    color: var(--color-hover);
+    background: transparent;
+    border-color: var(--color-hover);
+  }
+
+  .btn--danger:hover:not(:active, :disabled, [aria-disabled='true']) {
+    color: var(--color-white);
+    background: var(--color-danger);
+  }
+
+  .icon-btn:hover:not(:active, :disabled, [aria-disabled='true']) {
+    background: var(--color-hover);
+  }
 }
