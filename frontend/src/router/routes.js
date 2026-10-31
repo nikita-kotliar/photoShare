@@ -59,6 +59,12 @@ export const routes = [
           title: 'Іконки',
           load: () => import('../pages/dev/IconsPage.js'),
         },
+        {
+          path: '/dev/ui',
+          access: 'any',
+          title: 'UI Kit',
+          load: () => import('../pages/dev/UiKitPage.js'),
+        },
       ]
     : []),
   {
