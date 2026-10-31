@@ -3,6 +3,8 @@ import { Input } from '../../components/Input.js';
 import { SearchInput } from '../../components/SearchInput.js';
 import { Dropdown } from '../../components/Dropdown.js';
 import { Tag, TagList } from '../../components/Tag.js';
+import { PhotoCard } from '../../components/PhotoCard.js';
+import sample from '../../assets/images/welcome@1x.jpg';
 
 function block(title, ...children) {
   const section = document.createElement('section');
@@ -59,6 +61,19 @@ export default function UiKitPage() {
     );
   renderEditable();
 
+  const photo = {
+    id: 1,
+    slug: 'sample',
+    url: sample,
+    description: 'Захід сонця над океаном',
+    tags: ['тварини', 'природа', 'ДикаТварина'],
+    author: { id: 2, username: 'ivanka', name: 'Іванка', avatarUrl: null },
+    averageRating: 4.5,
+    ratingsCount: 120,
+    commentsCount: 12,
+    createdAt: '2025-02-10T20:40:00',
+  };
+
   root.append(
     title,
     block(
@@ -101,6 +116,12 @@ export default function UiKitPage() {
       TagList(['Тварини', 'Природа', 'ДикаТварина']),
       Tag('посилання', { href: '#' }),
       editable,
+    ),
+    block(
+      'Картка світлини',
+      PhotoCard(photo),
+      PhotoCard(photo, { user: { id: 2, role: 'USER' } }),
+      PhotoCard(photo, { user: { id: 1, role: 'ADMIN' } }),
     ),
   );
 
