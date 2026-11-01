@@ -2,6 +2,9 @@ jest.mock('../src/config/db', () => require('./helpers/fakeDb'));
 jest.mock('../src/services/cloudinaryService', () => ({
   uploadImage: jest.fn(),
   deleteImage: jest.fn(),
+  transformedUrl: jest.fn(
+    (publicId) => `https://res.cloudinary.com/demo/image/upload/e_sepia/v1/${publicId}`,
+  ),
 }));
 
 const fakeDb = require('./helpers/fakeDb');
@@ -94,6 +97,41 @@ describe('POST /api/photos', () => {
     expect(res.status).toBe(500);
     expect(cloudinaryService.deleteImage).toHaveBeenCalledWith('photoshare/p1');
     spy.mockRestore();
+  });
+
+  it('з трансформаціями зберігає URL трансформованого зображення', async () => {
+    const { owner } = await team();
+    const transformations = { effect: 'sepia', angle: 90, crop: 'square' };
+    const res = await upload(owner.client).field(
+      'transformations',
+      JSON.stringify(transformations),
+    );
+
+    expect(res.status).toBe(201);
+    expect(cloudinaryService.uploadImage).toHaveBeenCalledWith(expect.any(Buffer));
+    expect(cloudinaryService.transformedUrl).toHaveBeenCalledWith('photoshare/p1', transformations);
+    expect(res.body.photo.url).toBe(
+      'https://res.cloudinary.com/demo/image/upload/e_sepia/v1/photoshare/p1',
+    );
+  });
+
+  it('некоректні трансформації повертають 422 і не вантажать файл', async () => {
+    const { owner } = await team();
+    const cases = [
+      ['{"effect":"vintage"}', 'transformations.effect'],
+      ['{"angle":360}', 'transformations.angle'],
+      ['{"angle":12.5}', 'transformations.angle'],
+      ['{"crop":"circle"}', 'transformations.crop'],
+      ['{"width":100}', 'transformations'],
+      ['не json', 'transformations'],
+    ];
+
+    for (const [value, field] of cases) {
+      const res = await upload(owner.client).field('transformations', value);
+      expect(res.status).toBe(422);
+      expect(res.body.error.fields[field]).toBeDefined();
+    }
+    expect(cloudinaryService.uploadImage).not.toHaveBeenCalled();
   });
 });
 

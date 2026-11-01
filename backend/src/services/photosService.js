@@ -50,14 +50,16 @@ function getByIdOrSlug(idOrSlug) {
   return findPhoto(/^\d+$/.test(idOrSlug) ? { id: Number(idOrSlug) } : { slug: idOrSlug });
 }
 
-async function create({ file, description, author }) {
+async function create({ file, description, transformations, author }) {
   const image = await cloudinaryService.uploadImage(file.buffer);
 
   try {
     return await db.photo.create({
       data: {
         slug: createSlug(),
-        url: image.url,
+        url: transformations
+          ? cloudinaryService.transformedUrl(image.publicId, transformations)
+          : image.url,
         publicId: image.publicId,
         description,
         authorId: author.id,

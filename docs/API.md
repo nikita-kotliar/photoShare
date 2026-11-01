@@ -68,7 +68,9 @@
 | POST `/api/photos/:id/links` | owner, ADMIN | `{ transformations: { effect?, angle?, crop? } }` | 201 `{ link: { id, url, qrCode, transformations, createdAt } }` |
 | GET `/api/photos/:id/links` | public | - | 200 `{ items: [link] }` |
 
-Набір трансформацій: `effect` = `grayscale` / `sepia` / `blur`, `angle` = число 0-359, `crop` = `square`. `qrCode` - PNG у форматі data URL, QR відкриває `url` трансформованого зображення. Кожен POST створює окремий збережений запис.
+Набір трансформацій: `effect` = `grayscale` / `sepia` / `blur`, `angle` = ціле число 0-359, `crop` = `square`. Усі поля необов'язкові, інших полів бути не може (422 з `fields["transformations.<поле>"]` або `fields.transformations`). Порядок застосування фіксований: спершу квадратна обрізка, потім поворот, потім ефект ([D-17](DECISIONS.md)).
+
+`transformations` у `POST /api/photos` передається JSON-рядком у form-data. Оригінал у Cloudinary не змінюється, у `photo.url` записується URL з трансформаціями. `qrCode` - PNG у форматі data URL, QR відкриває `url` трансформованого зображення. Кожен POST створює окремий збережений запис.
 
 ## Коментарі
 
