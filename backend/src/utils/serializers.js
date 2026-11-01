@@ -48,4 +48,15 @@ function toComment(comment) {
   };
 }
 
-module.exports = { toPublicUser, toAuthor, toPhoto, toComment };
+function toLink(link) {
+  return {
+    id: link.id,
+    photoId: link.photoId,
+    url: link.url,
+    qrCode: link.qrCode,
+    transformations: link.transformations,
+    createdAt: link.createdAt,
+  };
+}
+
+module.exports = { toPublicUser, toAuthor, toPhoto, toComment, toLink };

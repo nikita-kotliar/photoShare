@@ -1,9 +1,11 @@
 let users = [];
 let photos = [];
 let comments = [];
+let links = [];
 let nextId = 1;
 let nextPhotoId = 1;
 let nextCommentId = 1;
+let nextLinkId = 1;
 
 function clone(user) {
   return user ? { ...user } : null;
@@ -100,6 +102,7 @@ const fakeDb = {
       if (!photo) throw notFound();
       photos = photos.filter((item) => item.id !== photo.id);
       comments = comments.filter((comment) => comment.photoId !== photo.id);
+      links = links.filter((link) => link.photoId !== photo.id);
       return { ...photo };
     },
   },
@@ -131,14 +134,28 @@ const fakeDb = {
       return { ...comment };
     },
   },
+  transformedLink: {
+    findMany: async ({ where }) =>
+      links
+        .filter((link) => link.photoId === where.photoId)
+        .sort(newest)
+        .map((link) => ({ ...link })),
+    create: async ({ data }) => {
+      const link = { id: nextLinkId++, createdAt: new Date(), ...data };
+      links.push(link);
+      return { ...link };
+    },
+  },
   $disconnect: async () => {},
   reset() {
     users = [];
     photos = [];
     comments = [];
+    links = [];
     nextId = 1;
     nextPhotoId = 1;
     nextCommentId = 1;
+    nextLinkId = 1;
   },
 };
 
