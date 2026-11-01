@@ -1,18 +1,12 @@
 jest.mock('../src/config/db', () => require('./helpers/fakeDb'));
-jest.mock('../src/services/cloudinaryService', () => ({
-  uploadImage: jest.fn(),
-  deleteImage: jest.fn(),
-}));
 
 const fakeDb = require('./helpers/fakeDb');
-const cloudinaryService = require('../src/services/cloudinaryService');
 const { agent } = require('./helpers/app');
-const { mockCloudinary, signedIn, team, upload } = require('./helpers/fixtures');
+const { signedIn, team, upload } = require('./helpers/fixtures');
 
 beforeEach(() => {
   fakeDb.reset();
   jest.clearAllMocks();
-  mockCloudinary(cloudinaryService);
 });
 
 async function setup() {

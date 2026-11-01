@@ -1,28 +1,24 @@
 jest.mock('../src/config/db', () => require('./helpers/fakeDb'));
-jest.mock('../src/services/cloudinaryService', () => ({
-  uploadImage: jest.fn(),
-  deleteImage: jest.fn(),
-  transformedUrl: jest.fn(
-    (publicId, { effect = 'none' }) =>
-      `https://res.cloudinary.com/demo/image/upload/e_${effect}/v1/${publicId}`,
-  ),
-}));
 
+const { cloud } = require('cloudinary');
 const fakeDb = require('./helpers/fakeDb');
-const cloudinaryService = require('../src/services/cloudinaryService');
 const { agent } = require('./helpers/app');
-const { mockCloudinary, team, upload } = require('./helpers/fixtures');
+const { team, upload } = require('./helpers/fixtures');
+
+const BASE = 'https://res.cloudinary.com/demo/image/upload';
 
 beforeEach(() => {
   fakeDb.reset();
-  jest.clearAllMocks();
-  mockCloudinary(cloudinaryService);
 });
 
 async function ownerPhoto() {
   const members = await team();
   const { photo } = (await upload(members.owner.client)).body;
   return { ...members, photo };
+}
+
+async function linksOf(photoId) {
+  return (await agent().get(`/api/photos/${photoId}/links`)).body.items;
 }
 
 function createLink(client, photoId, transformations = { effect: 'sepia' }) {
@@ -36,11 +32,10 @@ describe('POST /api/photos/:id/links', () => {
     const res = await createLink(owner.client, photo.id, transformations);
 
     expect(res.status).toBe(201);
-    expect(cloudinaryService.transformedUrl).toHaveBeenCalledWith('photoshare/p1', transformations);
     expect(res.body.link).toMatchObject({
       id: 1,
       photoId: photo.id,
-      url: 'https://res.cloudinary.com/demo/image/upload/e_sepia/v1/photoshare/p1',
+      url: `${BASE}/ar_1:1,c_fill,g_auto/a_90/e_sepia/v1/photoshare/p1`,
       transformations,
     });
     expect(res.body.link.qrCode).toMatch(/^data:image\/png;base64,/);
@@ -74,7 +69,7 @@ describe('POST /api/photos/:id/links', () => {
     expect(guest.status).toBe(401);
     expect(foreign.status).toBe(403);
     expect(moderator.status).toBe(403);
-    expect(cloudinaryService.transformedUrl).not.toHaveBeenCalled();
+    expect(await linksOf(photo.id)).toEqual([]);
   });
 
   it('неіснуюча світлина 404, некоректний id 422', async () => {
@@ -105,7 +100,7 @@ describe('POST /api/photos/:id/links', () => {
     const noBody = await owner.client.post(`/api/photos/${photo.id}/links`).send({});
     expect(noBody.status).toBe(422);
     expect(noBody.body.error.fields.transformations).toBeDefined();
-    expect(cloudinaryService.transformedUrl).not.toHaveBeenCalled();
+    expect(await linksOf(photo.id)).toEqual([]);
   });
 });
 
@@ -137,14 +132,31 @@ describe('GET /api/photos/:id/links', () => {
     const res = await agent().get('/api/photos/999/links');
     expect(res.status).toBe(404);
   });
+});
 
-  it('посилання видаляються разом зі світлиною', async () => {
+describe('файл у Cloudinary', () => {
+  it('світлина, її посилання і файл у хмарі видаляються разом', async () => {
     const { owner, photo } = await ownerPhoto();
-    await createLink(owner.client, photo.id);
+    const { link } = (await createLink(owner.client, photo.id, { crop: 'square' })).body;
+
+    expect(cloud.files.has('photoshare/p1')).toBe(true);
+    expect(link.url).toBe(`${BASE}/ar_1:1,c_fill,g_auto/v1/photoshare/p1`);
+
     await owner.client.delete(`/api/photos/${photo.id}`);
 
-    const res = await agent().get(`/api/photos/${photo.id}/links`);
+    expect(cloud.files.size).toBe(0);
+    expect((await agent().get(`/api/photos/${photo.id}/links`)).status).toBe(404);
+  });
 
-    expect(res.status).toBe(404);
+  it('посилання будується від оригіналу, ефекти не накладаються', async () => {
+    const { owner } = await team();
+    const { photo } = (
+      await upload(owner.client).field('transformations', '{"effect":"grayscale"}')
+    ).body;
+    const { link } = (await createLink(owner.client, photo.id, { effect: 'sepia' })).body;
+
+    expect(photo.url).toBe(`${BASE}/e_grayscale/v1/photoshare/p1`);
+    expect(link.url).toBe(`${BASE}/e_sepia/v1/photoshare/p1`);
+    expect(cloud.files.size).toBe(1);
   });
 });
