@@ -6,6 +6,7 @@ function toPublicUser(user) {
     email: user.email,
     role: user.role,
     isActive: user.isActive,
+    avatarUrl: user.avatarUrl ?? null,
     createdAt: user.createdAt,
   };
 }

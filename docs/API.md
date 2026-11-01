@@ -117,7 +117,9 @@
 | GET `/api/admin/users` | staff | `q` (ім'я або email), `role`, `registeredFrom`, `registeredTo`, `page`, `limit` | 200 пагінований список користувачів |
 | PATCH `/api/admin/users/:id/status` | ADMIN | `{ isActive: boolean }` | 200 `{ user }` |
 
-Заборонено банити себе і іншого ADMIN (403).
+Список: нові першими, `limit` до 50. `q` (до 100 символів) шукає підрядок в імені, `username` або email без урахування регістру. `role`: `USER` / `MODERATOR` / `ADMIN`. `registeredFrom`, `registeredTo`: дати `YYYY-MM-DD` за UTC, обидва дні включно ([D-23](DECISIONS.md)). Фільтри поєднуються. Некоректний фільтр або `registeredTo` раніше за `registeredFrom`: 422.
+
+Заборонено банити себе і іншого ADMIN (403). MODERATOR бачить список, але статус не змінює (403). Бан діє одразу: забанений не може увійти, а його поточна сесія отримує 403 `USER_BANNED` на наступному запиті ([D-03](DECISIONS.md)).
 
 ## Мок-API для frontend
 

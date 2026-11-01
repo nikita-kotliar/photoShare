@@ -16,6 +16,21 @@ function findBy(where) {
   return users.find((user) => user[key] === where[key]);
 }
 
+function contains(value, { contains: needle }) {
+  return value.toLowerCase().includes(needle.toLowerCase());
+}
+
+function matchesUser(user, where = {}) {
+  if (where.OR && !where.OR.some((cond) => matchesUser(user, cond))) return false;
+  for (const field of ['name', 'username', 'email']) {
+    if (where[field] && !contains(user[field], where[field])) return false;
+  }
+  if (where.role && user.role !== where.role) return false;
+  if (where.createdAt?.gte && user.createdAt < where.createdAt.gte) return false;
+  if (where.createdAt?.lt && user.createdAt >= where.createdAt.lt) return false;
+  return true;
+}
+
 function pick(record, select) {
   return Object.fromEntries(Object.keys(select).map((key) => [key, record[key]]));
 }
@@ -57,7 +72,13 @@ function notFound() {
 const fakeDb = {
   user: {
     findUnique: async ({ where }) => clone(findBy(where)),
-    count: async () => users.length,
+    findMany: async ({ where, skip = 0, take = users.length } = {}) =>
+      users
+        .filter((user) => matchesUser(user, where))
+        .sort(newest)
+        .slice(skip, skip + take)
+        .map(clone),
+    count: async ({ where } = {}) => users.filter((user) => matchesUser(user, where)).length,
     create: async ({ data }) => {
       const now = new Date();
       const user = {
