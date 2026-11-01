@@ -129,7 +129,11 @@ export function PhotoCard(
   }
   if (mode !== 'guest') {
     actions.append(
-      Button({ text: 'Видалити', variant: 'danger', onClick: () => onDelete?.(photo) }),
+      Button({
+        text: 'Видалити',
+        variant: 'danger',
+        onClick: (event) => onDelete?.(photo, event),
+      }),
     );
   }
 
