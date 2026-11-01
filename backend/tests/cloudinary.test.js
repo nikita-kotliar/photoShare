@@ -1,15 +1,8 @@
+const { cloud } = require('cloudinary');
 const cloudinary = require('../src/config/cloudinary');
 const cloudinaryService = require('../src/services/cloudinaryService');
 
 const BASE = 'https://res.cloudinary.com/demo/image/upload';
-
-beforeAll(() => {
-  cloudinary.config({ cloud_name: 'demo' });
-});
-
-afterEach(() => {
-  jest.restoreAllMocks();
-});
 
 describe('toCloudinary', () => {
   it('без трансформацій повертає порожній список', () => {
@@ -47,48 +40,44 @@ describe('transformedUrl', () => {
 });
 
 describe('uploadImage / deleteImage', () => {
+  it('тести працюють з моком SDK, а не з мережею', () => {
+    expect(jest.isMockFunction(cloudinary.uploader.upload_stream)).toBe(true);
+    expect(jest.isMockFunction(cloudinary.uploader.destroy)).toBe(true);
+    expect(cloudinary.config().cloud_name).toBe('demo');
+  });
+
   it('вантажить буфер у папку photoshare', async () => {
-    const end = jest.fn();
-    const spy = jest
-      .spyOn(cloudinary.uploader, 'upload_stream')
-      .mockImplementation((options, cb) => {
-        setImmediate(() =>
-          cb(null, { secure_url: `${BASE}/v1/photoshare/abc.png`, public_id: 'photoshare/abc' }),
-        );
-        return { end };
-      });
     const buffer = Buffer.from('image');
 
     await expect(cloudinaryService.uploadImage(buffer)).resolves.toEqual({
-      url: `${BASE}/v1/photoshare/abc.png`,
-      publicId: 'photoshare/abc',
+      url: `${BASE}/photoshare/p1.png`,
+      publicId: 'photoshare/p1',
     });
-    expect(spy).toHaveBeenCalledWith(
+    expect(cloudinary.uploader.upload_stream).toHaveBeenCalledWith(
       { folder: 'photoshare', resource_type: 'image' },
       expect.any(Function),
     );
-    expect(end).toHaveBeenCalledWith(buffer);
+    expect(cloud.files.get('photoshare/p1')).toBe(buffer);
   });
 
   it('передає помилку Cloudinary далі', async () => {
-    jest.spyOn(cloudinary.uploader, 'upload_stream').mockImplementation((options, cb) => {
-      setImmediate(() => cb(new Error('Invalid API key')));
-      return { end: jest.fn() };
-    });
+    cloud.failNext(new Error('Invalid API key'));
 
     await expect(cloudinaryService.uploadImage(Buffer.from('x'))).rejects.toThrow(
       'Invalid API key',
     );
+    expect(cloud.files.size).toBe(0);
   });
 
   it('видаляє файл і скидає кеш CDN', async () => {
-    const spy = jest.spyOn(cloudinary.uploader, 'destroy').mockResolvedValue({ result: 'ok' });
+    await cloudinaryService.uploadImage(Buffer.from('x'));
 
-    await cloudinaryService.deleteImage('photoshare/abc');
+    await cloudinaryService.deleteImage('photoshare/p1');
 
-    expect(spy).toHaveBeenCalledWith('photoshare/abc', {
+    expect(cloudinary.uploader.destroy).toHaveBeenCalledWith('photoshare/p1', {
       resource_type: 'image',
       invalidate: true,
     });
+    expect(cloud.files.size).toBe(0);
   });
 });
