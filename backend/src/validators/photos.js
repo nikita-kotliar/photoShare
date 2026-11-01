@@ -40,6 +40,12 @@ const createPhotoSchema = z.object({
 
 const updatePhotoSchema = z.object({ description });
 
+const linkSchema = z.object({
+  transformations: transformationsSchema.refine((value) => Object.keys(value).length > 0, {
+    error: 'Оберіть хоча б одну трансформацію',
+  }),
+});
+
 const idOrSlugParamsSchema = z.object({
   idOrSlug: z
     .string()
@@ -54,5 +60,6 @@ module.exports = {
   transformationsSchema,
   createPhotoSchema,
   updatePhotoSchema,
+  linkSchema,
   idOrSlugParamsSchema,
 };
