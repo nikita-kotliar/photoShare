@@ -1,6 +1,6 @@
 import { matchRoute, parseQuery, resolveAccess } from './match.js';
 
-export function createRouter({ routes, outlet, store }) {
+export function createRouter({ routes, outlet, store, onRoute }) {
   let cleanup = null;
   let renderToken = 0;
 
@@ -33,6 +33,8 @@ export function createRouter({ routes, outlet, store }) {
       navigate(access.redirect, { replace: true });
       return;
     }
+
+    onRoute?.(pathname);
 
     const module = await found.route.load();
     if (token !== renderToken) return;
