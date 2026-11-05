@@ -21,6 +21,12 @@ export const routes = [
     load: () => import('../pages/PhotoPage.js'),
   },
   {
+    path: '/about',
+    access: 'any',
+    title: 'Про нас',
+    load: () => import('../pages/AboutPage.js'),
+  },
+  {
     path: '/upload',
     access: 'private',
     title: 'Додати світлину',
