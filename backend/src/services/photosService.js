@@ -56,7 +56,8 @@ function getByIdOrSlug(idOrSlug) {
   return findPhoto(/^\d+$/.test(idOrSlug) ? { id: Number(idOrSlug) } : { slug: idOrSlug });
 }
 
-async function create({ file, description, tags = [], author }) {
+async function create({ file, description, tags = [], transformations, author }) {
+
   const image = await cloudinaryService.uploadImage(file.buffer);
 
   try {
@@ -65,7 +66,9 @@ async function create({ file, description, tags = [], author }) {
     return await db.photo.create({
       data: {
         slug: createSlug(),
-        url: image.url,
+        url: transformations
+          ? cloudinaryService.transformedUrl(image.publicId, transformations)
+          : image.url,
         publicId: image.publicId,
         description,
         authorId: author.id,
@@ -103,4 +106,4 @@ async function remove(id, user) {
   });
 }
 
-module.exports = { listFeed, getByIdOrSlug, create, update, remove };
+module.exports = { findManageable, listFeed, getByIdOrSlug, create, update, remove };

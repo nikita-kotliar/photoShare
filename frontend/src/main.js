@@ -1,11 +1,13 @@
 import './styles/index.css';
 import { mountSprite } from './components/icons.js';
+import { Footer } from './components/Footer.js';
+import { Header } from './components/Header.js';
 import { createRouter } from './router/index.js';
 import { routes } from './router/routes.js';
 import { store } from './store/index.js';
 import { authApi } from './api/auth.js';
 
-// Каркас 
+// Каркас
 const root = document.getElementById('app');
 root.innerHTML = `
   <div class="app">
@@ -30,7 +32,13 @@ async function bootstrap() {
     routes,
     outlet: document.getElementById('app-main'),
     store,
+    onRoute: (path) => header.setPath(path),
   });
+
+  const header = Header({ store, navigate: router.navigate });
+  document.getElementById('app-header').replaceWith(header);
+  document.getElementById('app-footer').replaceWith(Footer({ store }));
+
   await router.start();
 }
 

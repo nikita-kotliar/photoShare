@@ -17,6 +17,7 @@ async function create(req, res) {
     file: req.file,
     description: req.body.description,
     tags: req.body.tags,
+    transformations: req.body.transformations,
     author: req.user,
   });
   res.status(201).json({ photo: toPhoto(photo) });

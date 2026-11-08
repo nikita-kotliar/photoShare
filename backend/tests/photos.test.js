@@ -1,25 +1,20 @@
 jest.mock('../src/config/db', () => require('./helpers/fakeDb'));
-jest.mock('../src/services/cloudinaryService', () => ({
-  uploadImage: jest.fn(),
-  deleteImage: jest.fn(),
-}));
 
+const { cloud, v2: cloudinary } = require('cloudinary');
 const fakeDb = require('./helpers/fakeDb');
-const cloudinaryService = require('../src/services/cloudinaryService');
 const { agent } = require('./helpers/app');
-const { PNG, mockCloudinary, team, upload } = require('./helpers/fixtures');
+const { PNG, team, upload } = require('./helpers/fixtures');
 
 beforeEach(() => {
   fakeDb.reset();
   jest.clearAllMocks();
-  mockCloudinary(cloudinaryService);
 });
 
 describe('POST /api/photos', () => {
   it('без авторизації повертає 401', async () => {
     const res = await upload(agent());
     expect(res.status).toBe(401);
-    expect(cloudinaryService.uploadImage).not.toHaveBeenCalled();
+    expect(cloud.files.size).toBe(0);
   });
 
   it('завантажує світлину в Cloudinary і повертає photo', async () => {
@@ -27,7 +22,7 @@ describe('POST /api/photos', () => {
     const res = await upload(owner.client, '  Захід сонця  ');
 
     expect(res.status).toBe(201);
-    expect(cloudinaryService.uploadImage).toHaveBeenCalledWith(expect.any(Buffer));
+    expect(cloud.files.get('photoshare/p1')).toEqual(PNG);
     expect(res.body.photo).toMatchObject({
       id: 1,
       url: 'https://res.cloudinary.com/demo/image/upload/photoshare/p1.png',
@@ -63,7 +58,7 @@ describe('POST /api/photos', () => {
 
     expect(res.status).toBe(422);
     expect(res.body.error.fields.image).toMatch(/JPEG, PNG, WEBP або GIF/);
-    expect(cloudinaryService.uploadImage).not.toHaveBeenCalled();
+    expect(cloud.files.size).toBe(0);
   });
 
   it('файл більше 10 МБ повертає 413', async () => {
@@ -83,7 +78,7 @@ describe('POST /api/photos', () => {
     expect(empty.status).toBe(422);
     expect(empty.body.error.fields.description).toBeDefined();
     expect(long.status).toBe(422);
-    expect(cloudinaryService.uploadImage).not.toHaveBeenCalled();
+    expect(cloud.files.size).toBe(0);
   });
 
   it('видаляє файл з Cloudinary, якщо запис у БД не створився', async () => {
@@ -92,8 +87,43 @@ describe('POST /api/photos', () => {
     const res = await upload(owner.client);
 
     expect(res.status).toBe(500);
-    expect(cloudinaryService.deleteImage).toHaveBeenCalledWith('photoshare/p1');
+    expect(cloudinary.uploader.destroy).toHaveBeenCalledWith('photoshare/p1', expect.any(Object));
+    expect(cloud.files.size).toBe(0);
     spy.mockRestore();
+  });
+
+  it('з трансформаціями зберігає URL трансформованого зображення', async () => {
+    const { owner } = await team();
+    const transformations = { effect: 'sepia', angle: 90, crop: 'square' };
+    const res = await upload(owner.client).field(
+      'transformations',
+      JSON.stringify(transformations),
+    );
+
+    expect(res.status).toBe(201);
+    expect(cloud.files.get('photoshare/p1')).toEqual(PNG);
+    expect(res.body.photo.url).toBe(
+      'https://res.cloudinary.com/demo/image/upload/ar_1:1,c_fill,g_auto/a_90/e_sepia/v1/photoshare/p1',
+    );
+  });
+
+  it('некоректні трансформації повертають 422 і не вантажать файл', async () => {
+    const { owner } = await team();
+    const cases = [
+      ['{"effect":"vintage"}', 'transformations.effect'],
+      ['{"angle":360}', 'transformations.angle'],
+      ['{"angle":12.5}', 'transformations.angle'],
+      ['{"crop":"circle"}', 'transformations.crop'],
+      ['{"width":100}', 'transformations'],
+      ['не json', 'transformations'],
+    ];
+
+    for (const [value, field] of cases) {
+      const res = await upload(owner.client).field('transformations', value);
+      expect(res.status).toBe(422);
+      expect(res.body.error.fields[field]).toBeDefined();
+    }
+    expect(cloud.files.size).toBe(0);
   });
 });
 
@@ -238,7 +268,7 @@ describe('DELETE /api/photos/:id', () => {
     const res = await owner.client.delete(`/api/photos/${photo.id}`);
 
     expect(res.status).toBe(204);
-    expect(cloudinaryService.deleteImage).toHaveBeenCalledWith('photoshare/p1');
+    expect(cloud.files.has('photoshare/p1')).toBe(false);
     expect((await agent().get(`/api/photos/${photo.id}`)).status).toBe(404);
   });
 
@@ -249,7 +279,7 @@ describe('DELETE /api/photos/:id', () => {
     const res = await stranger.client.delete(`/api/photos/${photo.id}`);
 
     expect(res.status).toBe(403);
-    expect(cloudinaryService.deleteImage).not.toHaveBeenCalled();
+    expect(cloud.files.has('photoshare/p1')).toBe(true);
   });
 
   it('ADMIN видаляє будь-яку світлину', async () => {
@@ -264,7 +294,7 @@ describe('DELETE /api/photos/:id', () => {
   it('збій Cloudinary не ламає видалення', async () => {
     const { owner } = await team();
     const { photo } = (await upload(owner.client)).body;
-    cloudinaryService.deleteImage.mockRejectedValueOnce(new Error('timeout'));
+    cloud.failNext(new Error('timeout'));
     const log = jest.spyOn(console, 'error').mockImplementation(() => {});
 
     const res = await owner.client.delete(`/api/photos/${photo.id}`);

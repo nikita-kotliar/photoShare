@@ -28,6 +28,17 @@ export const iconAliases = {
   trash: 'Vector-5',
   calendar: 'Group-2',
   lock: 'material-symbols_edit-outline-1',
+  starFilled: 'star-filled',
+  burger: 'burger',
+  close: 'close',
+  exit: 'exit',
+  chevrons: 'chevrons',
+  sort: 'sort',
+  filter: 'filter',
+  checkbox: 'checkbox',
+  arrowRight: 'arrow-right',
+  arrowLeft: 'arrow-left',
+  eye: 'eye',
 };
 
 export function mountSprite() {

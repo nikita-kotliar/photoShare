@@ -5,18 +5,6 @@ const PNG = Buffer.concat([
   Buffer.alloc(32),
 ]);
 
-function mockCloudinary(cloudinaryService) {
-  let uploads = 0;
-  cloudinaryService.uploadImage.mockImplementation(async () => {
-    uploads += 1;
-    return {
-      url: `https://res.cloudinary.com/demo/image/upload/photoshare/p${uploads}.png`,
-      publicId: `photoshare/p${uploads}`,
-    };
-  });
-  cloudinaryService.deleteImage.mockResolvedValue();
-}
-
 async function signedIn(username) {
   const client = agent();
   const res = await register(client, { username, email: `${username}@example.com` });
@@ -37,4 +25,4 @@ function upload(client, description = 'Захід сонця', file = PNG, filen
     .attach('image', file, filename);
 }
 
-module.exports = { PNG, mockCloudinary, signedIn, team, upload };
+module.exports = { PNG, signedIn, team, upload };

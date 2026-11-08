@@ -4,9 +4,11 @@ let comments = [];
 let tags = [];
 let photoTags = [];
 let nextTagId = 1;
+let links = [];
 let nextId = 1;
 let nextPhotoId = 1;
 let nextCommentId = 1;
+let nextLinkId = 1;
 
 function clone(user) {
   return user ? { ...user } : null;
@@ -15,6 +17,21 @@ function clone(user) {
 function findBy(where) {
   const [key] = Object.keys(where);
   return users.find((user) => user[key] === where[key]);
+}
+
+function contains(value, { contains: needle }) {
+  return value.toLowerCase().includes(needle.toLowerCase());
+}
+
+function matchesUser(user, where = {}) {
+  if (where.OR && !where.OR.some((cond) => matchesUser(user, cond))) return false;
+  for (const field of ['name', 'username', 'email']) {
+    if (where[field] && !contains(user[field], where[field])) return false;
+  }
+  if (where.role && user.role !== where.role) return false;
+  if (where.createdAt?.gte && user.createdAt < where.createdAt.gte) return false;
+  if (where.createdAt?.lt && user.createdAt >= where.createdAt.lt) return false;
+  return true;
 }
 
 function pick(record, select) {
@@ -64,7 +81,13 @@ function notFound() {
 const fakeDb = {
   user: {
     findUnique: async ({ where }) => clone(findBy(where)),
-    count: async () => users.length,
+    findMany: async ({ where, skip = 0, take = users.length } = {}) =>
+      users
+        .filter((user) => matchesUser(user, where))
+        .sort(newest)
+        .slice(skip, skip + take)
+        .map(clone),
+    count: async ({ where } = {}) => users.filter((user) => matchesUser(user, where)).length,
     create: async ({ data }) => {
       const now = new Date();
       const user = {
@@ -113,6 +136,7 @@ const fakeDb = {
       photos = photos.filter((item) => item.id !== photo.id);
       comments = comments.filter((comment) => comment.photoId !== photo.id);
       photoTags = photoTags.filter((link) => link.photoId !== photo.id);
+      links = links.filter((link) => link.photoId !== photo.id);
       return { ...photo };
     },
   },
@@ -183,6 +207,18 @@ const fakeDb = {
   $transaction: async (callback) => callback(fakeDb),
   // Для перевірок "дублікатів у БД немає"
   tagNames: () => tags.map((tag) => tag.name),
+  transformedLink: {
+    findMany: async ({ where }) =>
+      links
+        .filter((link) => link.photoId === where.photoId)
+        .sort(newest)
+        .map((link) => ({ ...link })),
+    create: async ({ data }) => {
+      const link = { id: nextLinkId++, createdAt: new Date(), ...data };
+      links.push(link);
+      return { ...link };
+    },
+  },
   $disconnect: async () => {},
   reset() {
     users = [];
@@ -191,9 +227,11 @@ const fakeDb = {
     tags = [];
     photoTags = [];
     nextTagId = 1;
+    links = [];
     nextId = 1;
     nextPhotoId = 1;
     nextCommentId = 1;
+    nextLinkId = 1;
   },
 };
 

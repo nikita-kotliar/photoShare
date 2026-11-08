@@ -1,0 +1,168 @@
+.home {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-block: 1.5rem;
+}
+
+.home__title {
+  padding-bottom: 0.25rem;
+  border-bottom: 0.6px solid var(--color-primary-dark);
+  font-size: 1rem;
+  line-height: 1.34;
+  color: var(--color-text);
+}
+
+.home__title-text {
+  display: block;
+  max-width: 12.75rem;
+}
+
+/* Сітка */
+.home__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.375rem;
+}
+
+.home__item {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 1.375rem;
+  border-bottom: 0.6px solid var(--color-primary-dark);
+}
+
+/* Скелетон */
+.home-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 26rem;
+}
+
+.home-skeleton__media,
+.home-skeleton__line {
+  border-radius: var(--radius-m);
+  background: var(--color-surface);
+  animation: home-pulse 1.2s ease-in-out infinite alternate;
+}
+
+.home-skeleton__media {
+  aspect-ratio: 1;
+}
+
+.home-skeleton__line {
+  width: 60%;
+  height: 1.25rem;
+}
+
+.home-skeleton__line--wide {
+  width: 80%;
+}
+
+.home-skeleton__line--short {
+  width: 40%;
+}
+
+@keyframes home-pulse {
+  to {
+    opacity: 0.4;
+  }
+}
+
+/* Порожньо і помилка */
+.home__message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding-block: 3rem;
+  text-align: center;
+}
+
+.home__message-title {
+  font-size: 1.125rem;
+  font-weight: var(--fw-semibold);
+  color: var(--color-primary-dark);
+}
+
+.home__message-text {
+  color: var(--color-text-muted);
+}
+
+/* Пагінація */
+.home__pagination {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.home__pagination .btn {
+  flex: 1 1 0;
+  max-width: 9.75rem;
+}
+
+/* Планшет */
+@media (min-width: 768px) {
+  .home {
+    gap: 3rem;
+    padding-block: 3rem;
+  }
+
+  .home__title {
+    border-bottom-width: 0.4px;
+    font-size: 1.5rem;
+    text-transform: uppercase;
+  }
+
+  .home__title-text {
+    max-width: 28.5rem;
+  }
+
+  .home__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+
+  .home__item {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+
+  .home__pagination {
+    gap: 1.25rem;
+  }
+
+  .home__pagination .btn {
+    max-width: 19.375rem;
+  }
+}
+
+/* Десктоп */
+@media (min-width: 1440px) {
+  .home {
+    gap: 3.8125rem;
+    padding-block: 3.8125rem;
+  }
+
+  .home__title {
+    padding-block: 0.5rem;
+    font-size: 2rem;
+  }
+
+  .home__title-text {
+    max-width: 43.75rem;
+  }
+
+  .home__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-skeleton__media,
+  .home-skeleton__line {
+    animation: none;
+  }
+}

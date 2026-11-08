@@ -1,0 +1,158 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  max-width: 100%;
+  min-height: 48px;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius-m);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-medium);
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.btn__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn--primary {
+  color: var(--color-white);
+  background: var(--gradient-button);
+}
+
+.btn--primary:active {
+  background: var(--color-pressed);
+}
+
+.btn--secondary {
+  color: var(--color-primary);
+  background:
+    linear-gradient(var(--color-bg), var(--color-bg)) padding-box,
+    var(--gradient-button) border-box;
+}
+
+.btn--secondary:active {
+  color: var(--color-pressed);
+  background: transparent;
+  border-color: var(--color-pressed);
+}
+
+.btn--danger {
+  color: var(--color-danger);
+  background: transparent;
+  border-color: var(--color-danger);
+}
+
+.btn--danger:active {
+  color: var(--color-white);
+  background: var(--color-danger);
+}
+
+/* Неактивна */
+.btn:disabled,
+.btn[aria-disabled='true'] {
+  color: var(--color-white);
+  background: var(--color-disabled);
+  border-color: var(--color-disabled);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn--secondary:disabled,
+.btn--secondary[aria-disabled='true'] {
+  color: var(--color-disabled);
+  background: transparent;
+}
+
+/* Розміри */
+.btn--xxxs {
+  width: 156px;
+}
+
+.btn--xxs {
+  width: 198px;
+}
+
+.btn--xs {
+  width: 310px;
+}
+
+.btn--s {
+  width: 328px;
+}
+
+.btn--m {
+  width: 336px;
+}
+
+.btn--l {
+  width: 416px;
+}
+
+.btn--xl {
+  width: 526px;
+  min-height: 56px;
+}
+
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-m);
+  color: var(--color-white);
+  background: var(--gradient-field);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.icon-btn[aria-expanded='true'] {
+  background: var(--color-hover);
+}
+
+.icon-btn:active {
+  background: var(--color-pressed);
+}
+
+.icon-btn:disabled {
+  background: var(--color-disabled);
+  cursor: not-allowed;
+}
+
+/* Наведення */
+@media (hover: hover) and (pointer: fine) {
+  .btn--primary:hover:not(:active, :disabled, [aria-disabled='true']) {
+    background: var(--color-hover);
+  }
+
+  .btn--secondary:hover:not(:active, :disabled, [aria-disabled='true']) {
+    color: var(--color-hover);
+    background: transparent;
+    border-color: var(--color-hover);
+  }
+
+  .btn--danger:hover:not(:active, :disabled, [aria-disabled='true']) {
+    color: var(--color-white);
+    background: var(--color-danger);
+  }
+
+  .icon-btn:hover:not(:active, :disabled, [aria-disabled='true']) {
+    background: var(--color-hover);
+  }
+}

@@ -17,7 +17,8 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
-    "db:reset": "prisma migrate reset"
+    "db:reset": "prisma migrate reset",
+    "db:seed": "node prisma/seed.js"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
@@ -32,6 +33,7 @@
     "morgan": "^1.10.1",
     "multer": "^2.5.0",
     "prisma": "^6.19.3",
+    "qrcode": "^1.5.4",
     "zod": "^4.1.12"
   },
   "devDependencies": {

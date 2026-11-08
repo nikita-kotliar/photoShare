@@ -21,6 +21,12 @@ export const routes = [
     load: () => import('../pages/PhotoPage.js'),
   },
   {
+    path: '/about',
+    access: 'any',
+    title: 'Про нас',
+    load: () => import('../pages/AboutPage.js'),
+  },
+  {
     path: '/upload',
     access: 'private',
     title: 'Додати світлину',
@@ -58,6 +64,12 @@ export const routes = [
           access: 'any',
           title: 'Іконки',
           load: () => import('../pages/dev/IconsPage.js'),
+        },
+        {
+          path: '/dev/ui',
+          access: 'any',
+          title: 'UI Kit',
+          load: () => import('../pages/dev/UiKitPage.js'),
         },
       ]
     : []),
