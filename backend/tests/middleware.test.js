@@ -8,6 +8,7 @@ const fakeDb = require('./helpers/fakeDb');
 const { authenticate } = require('../src/middleware/auth');
 const { requireRole } = require('../src/middleware/roles');
 const { errorHandler } = require('../src/middleware/errorHandler');
+const { signToken } = require('../src/services/authService');
 const { agent, register } = require('./helpers/app');
 
 // =========
@@ -92,7 +93,7 @@ describe('requireRole', () => {
     await register(a, { username: 'first', email: 'first@example.com' });
     const second = await register(a, { username: 'other', email: 'other@example.com' });
     await fakeDb.user.update({ where: { id: second.body.user.id }, data: { role } });
-    const token = jwt.sign({ sub: String(second.body.user.id) }, process.env.JWT_SECRET);
+    const token = signToken({ id: second.body.user.id });
     return `token=${token}`;
   }
 

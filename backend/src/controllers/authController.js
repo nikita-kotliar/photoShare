@@ -1,5 +1,5 @@
 const authService = require('../services/authService');
-const { setAuthCookie, clearAuthCookie } = require('../utils/cookies');
+const { COOKIE_NAME, setAuthCookie, clearAuthCookie } = require('../utils/cookies');
 const { toPublicUser } = require('../utils/serializers');
 
 async function register(req, res) {
@@ -14,7 +14,8 @@ async function login(req, res) {
   res.json({ user: toPublicUser(user) });
 }
 
-function logout(_req, res) {
+async function logout(req, res) {
+  await authService.logout(req.cookies?.[COOKIE_NAME]);
   clearAuthCookie(res);
   res.status(204).end();
 }

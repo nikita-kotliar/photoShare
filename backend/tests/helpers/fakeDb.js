@@ -9,6 +9,7 @@ let nextId = 1;
 let nextPhotoId = 1;
 let nextCommentId = 1;
 let nextLinkId = 1;
+let blacklist = [];
 
 function clone(user) {
   return user ? { ...user } : null;
@@ -221,6 +222,24 @@ const fakeDb = {
       return { ...link };
     },
   },
+  tokenBlacklist: {
+    findUnique: async ({ where }) => {
+      const entry = blacklist.find((item) => item.jti === where.jti);
+      return entry ? { ...entry } : null;
+    },
+    upsert: async ({ where, create }) => {
+      const existing = blacklist.find((item) => item.jti === where.jti);
+      if (existing) return { ...existing };
+      const entry = { createdAt: new Date(), ...create };
+      blacklist.push(entry);
+      return { ...entry };
+    },
+    deleteMany: async ({ where }) => {
+      const before = blacklist.length;
+      blacklist = blacklist.filter((item) => item.expiresAt >= where.expiresAt.lt);
+      return { count: before - blacklist.length };
+    },
+  },
   $disconnect: async () => {},
   reset() {
     users = [];
@@ -234,6 +253,7 @@ const fakeDb = {
     nextPhotoId = 1;
     nextCommentId = 1;
     nextLinkId = 1;
+    blacklist = [];
   },
 };
 

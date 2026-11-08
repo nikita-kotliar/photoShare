@@ -31,11 +31,11 @@
 |---|---|---|---|
 | POST `/api/users` | public | `{ username, email, password, name? }` | 201 `{ user }`, ставить cookie |
 | POST `/api/sessions` | public | `{ email, password }` | 200 `{ user }`, ставить cookie |
-| DELETE `/api/sessions` | public | - | 204, очищає cookie; з Sprint-4 токен потрапляє в blacklist |
+| DELETE `/api/sessions` | public | - | 204, очищає cookie, токен з cookie потрапляє в blacklist до кінця свого життя |
 | GET `/api/users/me` | auth | - | 200 `{ user }` |
 | GET `/api/health` | public | - | 200 `{ status, uptime }` |
 
-Правила валідації: `username` 3-30 символів `[a-zA-Z0-9_.-]`, `email` валідний (зберігається в нижньому регістрі), `password` 8-72 символи, `name` 1-60 символів (за замовчуванням дорівнює `username`). Забанений користувач не може увійти (403 `USER_BANNED`).
+Правила валідації: `username` 3-30 символів `[a-zA-Z0-9_.-]`, `email` валідний (зберігається в нижньому регістрі), `password` 8-72 символи, `name` 1-60 символів (за замовчуванням дорівнює `username`). Забанений користувач не може увійти (403 `USER_BANNED`). Після виходу цей токен повертає 401 `TOKEN_INVALID`, інші сесії користувача працюють далі ([D-36](DECISIONS.md)).
 
 ## Користувачі і профіль
 
