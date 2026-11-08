@@ -1,4 +1,3 @@
-
 const db = require('../config/db');
 
 // Find-or-create: існуючі теги беремо, нових створюємо.
@@ -64,4 +63,3 @@ module.exports = {
   nestedCreate,
   replacePhotoTags,
 };
-

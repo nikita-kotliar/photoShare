@@ -1,4 +1,3 @@
-
 const crypto = require('node:crypto');
 const db = require('../config/db');
 const AppError = require('../utils/AppError');
@@ -57,7 +56,6 @@ function getByIdOrSlug(idOrSlug) {
 }
 
 async function create({ file, description, tags = [], transformations, author }) {
-
   const image = await cloudinaryService.uploadImage(file.buffer);
 
   try {

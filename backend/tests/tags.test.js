@@ -1,20 +1,14 @@
 jest.mock('../src/config/db', () => require('./helpers/fakeDb'));
-jest.mock('../src/services/cloudinaryService', () => ({
-  uploadImage: jest.fn(),
-  deleteImage: jest.fn(),
-  transformedUrl: jest.fn(),
-}));
 
 const fakeDb = require('./helpers/fakeDb');
-const cloudinaryService = require('../src/services/cloudinaryService');
+const { v2: cloudinary } = require('cloudinary');
 const { agent } = require('./helpers/app');
-const { PNG, mockCloudinary, team } = require('./helpers/fixtures');
+const { PNG, team } = require('./helpers/fixtures');
 const { normalizeTags, tagsSchema } = require('../src/validators/tags');
 
 beforeEach(() => {
   fakeDb.reset();
   jest.clearAllMocks();
-  mockCloudinary(cloudinaryService);
 });
 
 function uploadWith(client, fields = {}, description = 'Захід сонця') {
@@ -92,12 +86,12 @@ describe('POST /api/photos з тегами', () => {
     expect(ok.status).toBe(201);
     expect(ok.body.photo.tags).toHaveLength(5);
 
-    cloudinaryService.uploadImage.mockClear();
+    cloudinary.uploader.upload_stream.mockClear();
     const res = await uploadWith(owner.client, { tags: 'a,b,c,d,e,f' });
 
     expect(res.status).toBe(422);
     expect(res.body.error.fields.tags).toBe('Можна додати не більше 5 тегів');
-    expect(cloudinaryService.uploadImage).not.toHaveBeenCalled();
+    expect(cloudinary.uploader.upload_stream).not.toHaveBeenCalled();
   });
 
   it('тег довший за 30 символів дає 422', async () => {
@@ -165,7 +159,9 @@ describe('PUT /api/photos/:id з тегами', () => {
 
   it('без tags теги не змінюються', async () => {
     const { owner, photo } = await setup();
-    const res = await owner.client.put(`/api/photos/${photo.id}`).send({ description: 'Новий опис' });
+    const res = await owner.client
+      .put(`/api/photos/${photo.id}`)
+      .send({ description: 'Новий опис' });
 
     expect(res.status).toBe(200);
     expect(res.body.photo.description).toBe('Новий опис');
@@ -185,7 +181,9 @@ describe('PUT /api/photos/:id з тегами', () => {
 
   it('порожній масив прибирає всі теги', async () => {
     const { owner, photo } = await setup();
-    const res = await owner.client.put(`/api/photos/${photo.id}`).send({ description: 'Опис', tags: [] });
+    const res = await owner.client
+      .put(`/api/photos/${photo.id}`)
+      .send({ description: 'Опис', tags: [] });
 
     expect(res.status).toBe(200);
     expect(res.body.photo.tags).toEqual([]);

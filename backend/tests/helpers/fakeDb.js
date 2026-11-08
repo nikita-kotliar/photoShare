@@ -185,7 +185,9 @@ const fakeDb = {
       return { count };
     },
     findMany: async ({ where } = {}) =>
-      tags.filter((tag) => !where?.name?.in || where.name.in.includes(tag.name)).map((tag) => ({ ...tag })),
+      tags
+        .filter((tag) => !where?.name?.in || where.name.in.includes(tag.name))
+        .map((tag) => ({ ...tag })),
   },
   photoTag: {
     deleteMany: async ({ where }) => {
