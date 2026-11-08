@@ -2,7 +2,7 @@ jest.mock('../src/config/db', () => require('./helpers/fakeDb'));
 
 const fakeDb = require('./helpers/fakeDb');
 const { agent } = require('./helpers/app');
-const { signedIn, team, upload } = require('./helpers/fixtures');
+const { allRoles, ban, upload, withRole } = require('./helpers/fixtures');
 
 beforeEach(() => {
   fakeDb.reset();
@@ -10,11 +10,9 @@ beforeEach(() => {
 });
 
 async function setup() {
-  const people = await team();
-  const moderator = await signedIn('moderator');
-  await fakeDb.user.update({ where: { id: moderator.user.id }, data: { role: 'MODERATOR' } });
+  const people = await allRoles();
   const { photo } = (await upload(people.owner.client)).body;
-  return { ...people, moderator, photo };
+  return { ...people, photo };
 }
 
 function comment(client, photoId, text = 'Гарний кадр') {
@@ -171,5 +169,90 @@ describe('DELETE /api/comments/:id', () => {
     await owner.client.delete(`/api/photos/${photo.id}`);
 
     expect((await agent().get(`/api/photos/${photo.id}/comments`)).status).toBe(404);
+  });
+});
+
+describe('права і негативні сценарії коментарів', () => {
+  it('PUT і DELETE без авторизації повертають 401', async () => {
+    const { stranger, photo } = await setup();
+    const created = (await comment(stranger.client, photo.id)).body.comment;
+
+    const put = await agent().put(`/api/comments/${created.id}`).send({ text: 'Гість' });
+    const del = await agent().delete(`/api/comments/${created.id}`);
+
+    expect(put.status).toBe(401);
+    expect(del.status).toBe(401);
+  });
+
+  it('звичайний користувач не може видалити чужий коментар', async () => {
+    const { stranger, owner, photo } = await setup();
+    const created = (await comment(stranger.client, photo.id)).body.comment;
+
+    const res = await owner.client.delete(`/api/comments/${created.id}`);
+
+    expect(res.status).toBe(403);
+    expect((await agent().get(`/api/photos/${photo.id}/comments`)).body.total).toBe(1);
+  });
+
+  it('MODERATOR не може редагувати чужий коментар', async () => {
+    const { stranger, moderator, photo } = await setup();
+    const created = (await comment(stranger.client, photo.id)).body.comment;
+
+    const res = await moderator.client
+      .put(`/api/comments/${created.id}`)
+      .send({ text: 'Від модератора' });
+
+    expect(res.status).toBe(403);
+  });
+
+  it('модератор, який став звичайним користувачем, уже не видаляє коментарі', async () => {
+    const { stranger, moderator, photo } = await setup();
+    const created = (await comment(stranger.client, photo.id)).body.comment;
+    await withRole(moderator, 'USER');
+
+    const res = await moderator.client.delete(`/api/comments/${created.id}`);
+
+    expect(res.status).toBe(403);
+  });
+
+  it('забанений користувач не може коментувати', async () => {
+    const { stranger, photo } = await setup();
+    await ban(stranger);
+
+    const res = await comment(stranger.client, photo.id);
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('USER_BANNED');
+  });
+
+  it('текст обрізається від пробілів', async () => {
+    const { stranger, photo } = await setup();
+
+    const res = await comment(stranger.client, photo.id, '   Гарний кадр   ');
+
+    expect(res.status).toBe(201);
+    expect(res.body.comment.text).toBe('Гарний кадр');
+  });
+
+  it('видалення коментаря зменшує commentsCount світлини', async () => {
+    const { stranger, moderator, photo } = await setup();
+    const created = (await comment(stranger.client, photo.id)).body.comment;
+    await comment(stranger.client, photo.id);
+
+    await moderator.client.delete(`/api/comments/${created.id}`);
+
+    expect((await agent().get(`/api/photos/${photo.id}`)).body.photo.commentsCount).toBe(1);
+  });
+
+  it('некоректні id і пагінація повертають 422', async () => {
+    const { stranger, photo } = await setup();
+
+    const badPhoto = await comment(stranger.client, 'abc');
+    const badLimit = await agent().get(`/api/photos/${photo.id}/comments?limit=51`);
+    const badComment = await stranger.client.put('/api/comments/abc').send({ text: 'Текст' });
+
+    expect(badPhoto.status).toBe(422);
+    expect(badLimit.status).toBe(422);
+    expect(badComment.status).toBe(422);
   });
 });
