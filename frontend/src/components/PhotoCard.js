@@ -41,7 +41,7 @@ function el(tag, className, text) {
   return node;
 }
 
-function Stars(value) {
+export function Stars(value) {
   const list = el('span', 'photo-card__stars');
   list.setAttribute('aria-hidden', 'true');
   for (let i = 0; i < 5; i += 1) {
