@@ -26,8 +26,8 @@ function toPhoto(photo) {
     slug: photo.slug,
     url: photo.url,
     description: photo.description,
-    // ====== tags arrive with TASK-020, ratings with TASK-042 ======
-    tags: [],
+    tags: (photo.tags ?? []).map((item) => item.tag.name),
+    // ====== ratings arrive with TASK-042 ======
     author: toAuthor(photo.author),
     averageRating: null,
     ratingsCount: 0,

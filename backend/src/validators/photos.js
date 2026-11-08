@@ -1,4 +1,5 @@
 const { z } = require('zod');
+const { tagsSchema } = require('./tags');
 
 const description = z
   .string({ error: 'Додайте опис світлини' })
@@ -35,10 +36,14 @@ const jsonField = (schema) =>
 
 const createPhotoSchema = z.object({
   description,
+  tags: tagsSchema,
   transformations: jsonField(transformationsSchema.optional()),
 });
 
-const updatePhotoSchema = z.object({ description });
+const updatePhotoSchema = z.object({
+  description,
+  tags: tagsSchema,
+});
 
 const linkSchema = z.object({
   transformations: transformationsSchema.refine((value) => Object.keys(value).length > 0, {

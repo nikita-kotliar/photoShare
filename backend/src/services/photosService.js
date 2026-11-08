@@ -3,9 +3,14 @@ const db = require('../config/db');
 const AppError = require('../utils/AppError');
 const { skipFor } = require('../utils/pagination');
 const cloudinaryService = require('./cloudinaryService');
+const tagsService = require('./tagsService');
 
 const photoInclude = {
   author: { select: { id: true, username: true, name: true } },
+  tags: {
+    include: { tag: { select: { name: true } } },
+    orderBy: { tag: { name: 'asc' } },
+  },
   _count: { select: { comments: true } },
 };
 
@@ -50,10 +55,12 @@ function getByIdOrSlug(idOrSlug) {
   return findPhoto(/^\d+$/.test(idOrSlug) ? { id: Number(idOrSlug) } : { slug: idOrSlug });
 }
 
-async function create({ file, description, transformations, author }) {
+async function create({ file, description, tags = [], transformations, author }) {
   const image = await cloudinaryService.uploadImage(file.buffer);
 
   try {
+    const photoTags = await tagsService.findOrCreate(tags);
+
     return await db.photo.create({
       data: {
         slug: createSlug(),
@@ -63,6 +70,7 @@ async function create({ file, description, transformations, author }) {
         publicId: image.publicId,
         description,
         authorId: author.id,
+        tags: tagsService.nestedCreate(photoTags),
       },
       include: photoInclude,
     });
@@ -72,9 +80,20 @@ async function create({ file, description, transformations, author }) {
   }
 }
 
-async function update(id, { description }, user) {
+async function update(id, { description, tags }, user) {
   await findManageable(id, user);
-  return db.photo.update({ where: { id }, data: { description }, include: photoInclude });
+
+  return db.$transaction(async (tx) => {
+    if (description !== undefined) {
+      await tx.photo.update({ where: { id }, data: { description } });
+    }
+
+    if (tags !== undefined) {
+      await tagsService.replacePhotoTags(tx, id, tags);
+    }
+
+    return tx.photo.findUnique({ where: { id }, include: photoInclude });
+  });
 }
 
 async function remove(id, user) {
