@@ -16,6 +16,7 @@ async function create(req, res) {
   const photo = await photosService.create({
     file: req.file,
     description: req.body.description,
+    tags: req.body.tags,
     author: req.user,
   });
   res.status(201).json({ photo: toPhoto(photo) });

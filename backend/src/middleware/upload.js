@@ -6,7 +6,7 @@ const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
 
 const multipart = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: MAX_IMAGE_SIZE, files: 1, fields: 10, fieldSize: 64 * 1024 },
+  limits: { fileSize: MAX_IMAGE_SIZE, files: 1, fields: 20, fieldSize: 64 * 1024 },
 });
 
 function imageError(message) {
