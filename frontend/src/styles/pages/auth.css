@@ -1,0 +1,205 @@
+.auth {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  min-height: 100vh;
+  padding: 8.5rem 1rem 2.5rem;
+  background: var(--color-surface);
+}
+
+/* Логотип і фото */
+.auth__logo,
+.auth__photo {
+  display: none;
+}
+
+.auth__photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Форма */
+.auth__panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.75rem;
+  width: 100%;
+  max-width: 20.5rem;
+}
+
+.auth__title {
+  color: var(--color-primary);
+  font-size: 1.75rem;
+  font-weight: var(--fw-semibold);
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.auth__form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 1rem 1rem 1.25rem;
+  border-radius: var(--radius-m);
+  background: linear-gradient(180deg, var(--color-surface) 0%, #e8eefc 100%);
+  box-shadow: 0 4px 16px rgb(19 45 98 / 15%);
+}
+
+.auth__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.auth__fields .field {
+  max-width: none;
+}
+
+.auth__error {
+  margin-top: 1rem;
+  color: var(--color-danger);
+  font-size: var(--fs-small);
+  text-align: center;
+}
+
+.auth__error:empty {
+  display: none;
+}
+
+.auth__submit {
+  width: 100%;
+  margin-top: 1.5rem;
+}
+
+.auth__terms {
+  margin-top: 1rem;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.auth__switch {
+  margin-top: 1.5rem;
+  color: var(--color-text);
+  font-size: var(--fs-small);
+  text-align: center;
+}
+
+.auth__switch a {
+  color: var(--color-link);
+  text-underline-offset: 0.2em;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.auth__switch a:active {
+  color: var(--color-pressed);
+}
+
+/* Планшет */
+@media (min-width: 768px) {
+  .auth {
+    grid-template-rows: auto 1fr;
+    padding: 0 0 3rem;
+  }
+
+  .auth__photo {
+    display: block;
+    width: 100%;
+    height: 17.375rem;
+  }
+
+  .auth__panel {
+    gap: 2.25rem;
+    max-width: 31.75rem;
+    margin-top: 4.5rem;
+  }
+
+  .auth__title {
+    font-size: 2.25rem;
+    text-transform: none;
+  }
+
+  .auth__form {
+    padding: 1.5rem 1.5625rem 1.25rem;
+  }
+
+  .auth__fields {
+    gap: 1.25rem;
+  }
+
+  .auth__submit {
+    margin-top: 2rem;
+  }
+
+  .auth__switch {
+    margin-top: 2.5rem;
+  }
+}
+
+/* Десктоп */
+@media (min-width: 1440px) {
+  .auth {
+    grid-template-columns: 35.875rem 29.375rem;
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      'logo .'
+      'photo panel';
+    column-gap: 4.875rem;
+    justify-content: center;
+    align-items: start;
+    justify-items: stretch;
+    padding: 2.625rem 0 3rem;
+  }
+
+  .auth__logo {
+    grid-area: logo;
+    display: block;
+    justify-self: start;
+    border-radius: var(--radius-s);
+  }
+
+  .auth__logo img {
+    display: block;
+    width: auto;
+    height: 5.5rem;
+  }
+
+  .auth__photo {
+    grid-area: photo;
+    width: 35.875rem;
+    height: 37.5rem;
+    margin-top: 5.125rem;
+    overflow: hidden;
+    border-radius: var(--radius-m);
+  }
+
+  .auth__panel {
+    grid-area: panel;
+    align-self: start;
+    max-width: none;
+    margin-top: 5.125rem;
+    min-height: 37.5rem;
+    justify-content: center;
+  }
+
+  .auth__panel {
+    gap: 1.75rem;
+  }
+
+  .auth__title {
+    font-size: 3rem;
+    text-transform: uppercase;
+  }
+}
+
+/* Наведення */
+@media (hover: hover) and (pointer: fine) {
+  .auth__switch a:hover:not(:active) {
+    color: var(--color-hover);
+  }
+}

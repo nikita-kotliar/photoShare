@@ -32,7 +32,10 @@ async function bootstrap() {
     routes,
     outlet: document.getElementById('app-main'),
     store,
-    onRoute: (path) => header.setPath(path),
+    onRoute: (path) => {
+      header.setPath(path);
+      document.body.classList.toggle('layout-bare', path === '/auth');
+    },
   });
 
   const header = Header({ store, navigate: router.navigate });
