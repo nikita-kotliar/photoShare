@@ -1,3 +1,4 @@
+const fakeDb = require('./fakeDb');
 const { agent, register } = require('./app');
 
 const PNG = Buffer.concat([
@@ -18,6 +19,21 @@ async function team() {
   return { admin, owner, stranger };
 }
 
+async function withRole(member, role) {
+  await fakeDb.user.update({ where: { id: member.user.id }, data: { role } });
+  return { ...member, user: { ...member.user, role } };
+}
+
+async function ban(member) {
+  await fakeDb.user.update({ where: { id: member.user.id }, data: { isActive: false } });
+}
+
+async function allRoles() {
+  const members = await team();
+  const moderator = await withRole(await signedIn('moderator'), 'MODERATOR');
+  return { ...members, moderator };
+}
+
 function upload(client, description = 'Захід сонця', file = PNG, filename = 'photo.png') {
   return client
     .post('/api/photos')
@@ -25,4 +41,4 @@ function upload(client, description = 'Захід сонця', file = PNG, filen
     .attach('image', file, filename);
 }
 
-module.exports = { PNG, signedIn, team, upload };
+module.exports = { PNG, signedIn, team, allRoles, withRole, ban, upload };

@@ -3,7 +3,7 @@ jest.mock('../src/config/db', () => require('./helpers/fakeDb'));
 const { cloud, v2: cloudinary } = require('cloudinary');
 const fakeDb = require('./helpers/fakeDb');
 const { agent } = require('./helpers/app');
-const { PNG, team, upload } = require('./helpers/fixtures');
+const { PNG, allRoles, ban, team, upload } = require('./helpers/fixtures');
 
 beforeEach(() => {
   fakeDb.reset();
@@ -216,11 +216,10 @@ describe('PUT /api/photos/:id', () => {
   });
 
   it('модератор чужу світлину змінити не може', async () => {
-    const { owner, stranger } = await team();
-    await fakeDb.user.update({ where: { id: stranger.user.id }, data: { role: 'MODERATOR' } });
+    const { owner, moderator } = await allRoles();
     const { photo } = (await upload(owner.client)).body;
 
-    const res = await stranger.client
+    const res = await moderator.client
       .put(`/api/photos/${photo.id}`)
       .send({ description: 'Модерація' });
 
@@ -301,5 +300,97 @@ describe('DELETE /api/photos/:id', () => {
 
     expect(res.status).toBe(204);
     log.mockRestore();
+  });
+});
+
+describe('права і негативні сценарії світлин', () => {
+  it('забанений користувач не може завантажити світлину', async () => {
+    const { owner } = await team();
+    await ban(owner);
+
+    const res = await upload(owner.client);
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('USER_BANNED');
+    expect(cloud.files.size).toBe(0);
+  });
+
+  it('PUT і DELETE без авторизації повертають 401', async () => {
+    const { owner } = await team();
+    const { photo } = (await upload(owner.client)).body;
+
+    const put = await agent().put(`/api/photos/${photo.id}`).send({ description: 'Гість' });
+    const del = await agent().delete(`/api/photos/${photo.id}`);
+
+    expect(put.status).toBe(401);
+    expect(del.status).toBe(401);
+    expect(cloud.files.has('photoshare/p1')).toBe(true);
+  });
+
+  it('MODERATOR не може видалити чужу світлину', async () => {
+    const { owner, moderator } = await allRoles();
+    const { photo } = (await upload(owner.client)).body;
+
+    const res = await moderator.client.delete(`/api/photos/${photo.id}`);
+
+    expect(res.status).toBe(403);
+    expect((await agent().get(`/api/photos/${photo.id}`)).status).toBe(200);
+    expect(cloud.files.has('photoshare/p1')).toBe(true);
+  });
+
+  it('DELETE неіснуючої світлини 404, некоректного id 422', async () => {
+    const { owner } = await team();
+
+    expect((await owner.client.delete('/api/photos/999')).status).toBe(404);
+    expect((await owner.client.delete('/api/photos/abc')).status).toBe(422);
+  });
+
+  it('ADMIN змінює опис і теги чужої світлини, автор лишається той самий', async () => {
+    const { admin, owner } = await team();
+    const { photo } = (await upload(owner.client)).body;
+
+    const res = await admin.client
+      .put(`/api/photos/${photo.id}`)
+      .send({ description: 'Від адміна', tags: ['Море'] });
+
+    expect(res.status).toBe(200);
+    expect(res.body.photo).toMatchObject({
+      description: 'Від адміна',
+      tags: ['море'],
+      author: { id: owner.user.id },
+    });
+  });
+
+  it('задовгий опис при редагуванні повертає 422 і опис не змінюється', async () => {
+    const { owner } = await team();
+    const { photo } = (await upload(owner.client)).body;
+
+    const res = await owner.client
+      .put(`/api/photos/${photo.id}`)
+      .send({ description: 'a'.repeat(1001) });
+
+    expect(res.status).toBe(422);
+    expect(res.body.error.fields.description).toBeDefined();
+    expect((await agent().get(`/api/photos/${photo.id}`)).body.photo.description).toBe(
+      'Захід сонця',
+    );
+  });
+
+  it('сторінка стрічки за межами повертає порожній список', async () => {
+    const { owner } = await team();
+    await upload(owner.client);
+
+    const res = await owner.client.get('/api/photos?page=5');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ items: [], total: 1, page: 5, pages: 1 });
+  });
+
+  it('неіснуючий slug повертає 404, некоректний 422', async () => {
+    const missing = await agent().get('/api/photos/abcdefghijkl');
+    const invalid = await agent().get(`/api/photos/${encodeURIComponent('bad slug!')}`);
+
+    expect(missing.status).toBe(404);
+    expect(invalid.status).toBe(422);
   });
 });
