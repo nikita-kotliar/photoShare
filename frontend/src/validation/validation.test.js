@@ -9,6 +9,8 @@ import {
   validateField,
   validateForm,
   validateTags,
+  normalizeTags,
+  cleanValues,
   pluralize,
   schemas,
 } from './index.js';
@@ -122,10 +124,53 @@ describe('validateField / validateForm', () => {
   });
 });
 
-describe('validateTags', () => {
+describe('cleanValues', () => {
+  it('порожнє необов’язкове name при реєстрації не відправляється', () => {
+    const values = {
+      username: 'ksenia_31',
+      email: 'k@example.com',
+      name: '',
+      password: 'password123',
+      passwordConfirm: 'password123',
+    };
+    const result = cleanValues(values, schemas.register);
+    expect('name' in result).toBe(false);
+    expect(result.username).toBe('ksenia_31');
+  });
+
+  it('name з одних пробілів теж пропускається', () => {
+    expect('name' in cleanValues({ name: '   ' }, schemas.register)).toBe(false);
+  });
+
+  it('заповнене name лишається', () => {
+    expect(cleanValues({ name: 'Ксенія' }, schemas.register).name).toBe('Ксенія');
+  });
+
+  it('обов’язкові поля не прибираються, навіть порожні (їх зловить валідація)', () => {
+    expect(cleanValues({ email: '' }, schemas.login)).toEqual({ email: '' });
+  });
+
+  it('поле, якого немає в схемі, не чіпаємо', () => {
+    expect(cleanValues({ other: '' }, schemas.login)).toEqual({ other: '' });
+  });
+});
+
+describe('normalizeTags / validateTags', () => {
+  it('прибирає порожні, пробіли, регістр і дублікати, порядок зберігає', () => {
+    expect(normalizeTags(['Море', ' море ', '', '   ', 'Небо', 'небо', 'гори'])).toEqual([
+      'море',
+      'небо',
+      'гори',
+    ]);
+  });
+
   it('не більше 5 тегів', () => {
     expect(validateTags(['a', 'b', 'c', 'd', 'e'])).toBe('');
     expect(validateTags(['a', 'b', 'c', 'd', 'e', 'f'])).toBe('Не більше 5 тегів');
+  });
+
+  it('порожні і повторні теги не рахуються в ліміті', () => {
+    expect(validateTags(['a', 'a', 'A', '', ' ', 'b', 'c', 'd', 'e'])).toBe('');
   });
 
   it('тег довший за 30 символів', () => {

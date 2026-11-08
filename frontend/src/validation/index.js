@@ -22,7 +22,9 @@ function text(value, trim) {
 }
 
 export function required(message = 'Це поле обов’язкове') {
-  return (value) => (text(value, true) === '' ? message : '');
+  const rule = (value) => (text(value, true) === '' ? message : '');
+  rule.required = true; // за цим маркером cleanValues відрізняє обов'язкові поля від необов'язкових
+  return rule;
 }
 
 export function email(message = 'Введіть коректний email') {
@@ -78,12 +80,40 @@ export function validateForm(values, schema) {
   return { valid: Object.keys(errors).length === 0, errors };
 }
 
-// Теги: до 5 на світлину, кожен 1-30 символів (docs/API.md). Повертає текст помилки або ''
-export function validateTags(tags, { max = 5, maxLen = 30 } = {}) {
-  if (tags.length > max) return `Не більше ${max} тегів`;
-  if (tags.some((tag) => tag.trim().length > maxLen)) {
-    return `Тег: максимум ${chars(maxLen)}`;
+// Значення для відправки на сервер. Необов'язкові поля (без required) з порожнім значенням
+// або самими пробілами пропускаємо: бекенд на "" відповідає 422, наприклад
+// name: z.string().trim().min(1).optional() не приймає порожній рядок.
+export function cleanValues(values, schema) {
+  const result = {};
+  for (const [name, value] of Object.entries(values)) {
+    const rules = schema[name];
+    const optional = rules && !rules.some((rule) => rule.required);
+    if (optional && text(value, true) === '') continue;
+    result[name] = value;
   }
+  return result;
+}
+
+// Теги для відправки: обрізаємо пробіли, приводимо до нижнього регістру (сервер робить так само),
+// прибираємо порожні й дублікати, порядок зберігаємо.
+export function normalizeTags(tags) {
+  const seen = new Set();
+  const result = [];
+  for (const tag of tags) {
+    const name = String(tag ?? '').trim().toLowerCase();
+    if (name === '' || seen.has(name)) continue;
+    seen.add(name);
+    result.push(name);
+  }
+  return result;
+}
+
+// Теги: до 5 на світлину, кожен 1-30 символів (docs/API.md). Перевіряємо вже нормалізований список,
+// тому порожні й повторні теги не рахуються. Повертає текст помилки або ''
+export function validateTags(tags, { max = 5, maxLen = 30 } = {}) {
+  const list = normalizeTags(tags);
+  if (list.length > max) return `Не більше ${max} тегів`;
+  if (list.some((tag) => tag.length > maxLen)) return `Тег: максимум ${chars(maxLen)}`;
   return '';
 }
 

@@ -1,7 +1,7 @@
 // Прив'язка валідації до DOM-форми: помилка під полем, очищення при вводі, блокування відправки.
 // Поля створюємо UI Kit-компонентами Input / PasswordField (вони самі показують помилку).
 // Для звичайного <input name="..."> всередині <div class="field"> помилку додасть bindForm.
-import { validateForm } from './index.js';
+import { validateForm, cleanValues } from './index.js';
 
 const ERROR_CLASS = 'field__error';
 const INVALID_CLASS = 'field--error'; // той самий клас, що в UI Kit (Input)
@@ -56,7 +56,8 @@ function readValues(form) {
   return values;
 }
 
-// schema: { назваПоля: [правила] } з ./index.js. onSubmit(values) викликається лише для валідної форми.
+// schema: { назваПоля: [правила] } з ./index.js. onSubmit(values) викликається лише для валідної форми,
+// і лише один раз за раз: поки він виконується, повторні відправки ігноруються, кнопка заблокована.
 export function bindForm(form, schema, { onSubmit } = {}) {
   form.noValidate = true; // повідомлення показуємо самі, українською, а не вбудовані браузерні
 
@@ -72,7 +73,8 @@ export function bindForm(form, schema, { onSubmit } = {}) {
       else clearFieldError(input);
     }
     if (!valid) inputOf(Object.keys(errors)[0])?.focus();
-    return { valid, values, errors };
+    // На сервер йдуть values без порожніх необов'язкових полів (див. cleanValues)
+    return { valid, values: cleanValues(values, schema), errors };
   }
 
   // Помилки з сервера (422 `fields`) показуємо під відповідними полями
@@ -91,10 +93,30 @@ export function bindForm(form, schema, { onSubmit } = {}) {
     if (event.target.name in schema) clearFieldError(event.target);
   });
 
+  let submitting = false;
+
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
+    if (submitting) return; // подвійний клік або Enter, поки попередня відправка не завершилась
+
     const { valid, values } = validate();
-    if (valid && onSubmit) await onSubmit(values, { setErrors });
+    if (!valid || !onSubmit) return;
+
+    submitting = true;
+    form.setAttribute('aria-busy', 'true');
+    // Блокуємо лише кнопки, які ще активні, і потім розблоковуємо саме їх
+    const buttons = [...form.querySelectorAll('button[type="submit"], button:not([type])')].filter(
+      (button) => !button.disabled,
+    );
+    buttons.forEach((button) => (button.disabled = true));
+
+    try {
+      await onSubmit(values, { setErrors });
+    } finally {
+      submitting = false;
+      form.removeAttribute('aria-busy');
+      buttons.forEach((button) => (button.disabled = false));
+    }
   });
 
   return { validate, setErrors };
