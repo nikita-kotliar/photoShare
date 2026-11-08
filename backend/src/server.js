@@ -1,6 +1,7 @@
 const app = require('./app');
 const env = require('./config/env');
 const db = require('./config/db');
+const { startCleanBlacklist } = require('./jobs/cleanBlacklist');
 
 const SHUTDOWN_TIMEOUT_MS = 10_000;
 
@@ -8,11 +9,14 @@ const server = app.listen(env.PORT, () => {
   console.log(`PhotoShare API: http://localhost:${env.PORT}/api`);
 });
 
+const stopCleanBlacklist = startCleanBlacklist();
+
 let shuttingDown = false;
 
 async function shutdown(signal) {
   if (shuttingDown) return;
   shuttingDown = true;
+  stopCleanBlacklist();
   console.log(`${signal}: зупиняю сервер`);
 
   // Якщо з'єднання не закриваються, не висимо вічно

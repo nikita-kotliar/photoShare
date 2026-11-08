@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 const env = require('../config/env');
 const AppError = require('../utils/AppError');
+const blacklistService = require('./blacklistService');
 
 const BCRYPT_ROUNDS = 10;
 
@@ -57,4 +58,14 @@ async function login({ email, password }) {
   return { user, token: signToken(user) };
 }
 
-module.exports = { register, login, signToken };
+async function logout(token) {
+  if (!token) return;
+  try {
+    const payload = jwt.verify(token, env.JWT_SECRET);
+    if (payload.jti) await blacklistService.revoke(payload);
+  } catch (err) {
+    if (!(err instanceof jwt.JsonWebTokenError)) throw err;
+  }
+}
+
+module.exports = { register, login, logout, signToken };
