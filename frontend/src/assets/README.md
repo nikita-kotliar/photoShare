@@ -68,4 +68,5 @@ Icon('send', { size: 32, color: '#fdfdfd', color2: '#24448a' });
 | `welcome@1x/@2x.webp`, `welcome@1x.jpg` | WelcomePage | 636x580 |
 | `not-found@1x/@2x.webp`, `not-found@1x.png` | сторінка 404 | 456x464 |
 | `logo.svg` | Header, Footer (світлий текст для темного фону) | 177x38 |
+| `logo-dark.svg` | WelcomePage (темний текст для світлого фону) | 177x38 |
 | `avatar-placeholder.svg` | аватар без фото | 96x96 |
