@@ -1,0 +1,271 @@
+.welcome {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 9.75rem;
+  grid-template-areas:
+    'logo logo'
+    'tagline tagline'
+    'band band'
+    'text photo'
+    'actions actions';
+  column-gap: 0.8125rem;
+  padding-block: 1.625rem 3.0625rem;
+  color: var(--color-primary);
+}
+
+/* Логотип і слоган */
+.welcome__logo {
+  grid-area: logo;
+  margin: 0;
+}
+
+.welcome__logo img {
+  display: block;
+  width: auto;
+  height: 3.9375rem;
+}
+
+.welcome__tagline {
+  grid-area: tagline;
+  margin-top: 0.0625rem;
+  font-size: 1rem;
+  font-style: italic;
+  line-height: 1.3;
+}
+
+.welcome__band {
+  grid-area: band;
+  margin-top: 1.625rem;
+  margin-inline: calc(-1 * var(--gutter));
+  padding: 0.5rem var(--gutter);
+  background: var(--gradient-button);
+  color: var(--color-bg);
+  font-size: 0.75rem;
+  font-style: italic;
+  line-height: 1.3;
+  text-align: center;
+}
+
+/* Цінності і контакти */
+.welcome__text {
+  grid-area: text;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 4.375rem;
+}
+
+.welcome__block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.25rem 0 0.25rem 0.5rem;
+  border-left: 1px solid var(--color-primary);
+}
+
+.welcome__subtitle {
+  color: var(--color-primary);
+  font-size: 0.875rem;
+  font-weight: var(--fw-semibold);
+  line-height: 1.3;
+}
+
+.welcome__values {
+  margin: 0;
+  padding-left: 1rem;
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.welcome__contacts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.welcome__contact a {
+  color: inherit;
+  overflow-wrap: anywhere;
+  text-decoration: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.welcome__contact a:active {
+  opacity: 0.7;
+}
+
+.welcome__emoji {
+  margin-right: 0.25rem;
+}
+
+.welcome__photo {
+  grid-area: photo;
+  align-self: start;
+  margin-top: 4.375rem;
+}
+
+.welcome__photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 156 / 226;
+  border: 1px solid var(--color-hover);
+  border-radius: var(--radius-m);
+  object-fit: cover;
+}
+
+/* Кнопки */
+.welcome__actions {
+  grid-area: actions;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 3.75rem;
+}
+
+.welcome__actions .btn {
+  width: 100%;
+  max-width: 20.5rem;
+}
+
+/* Планшет */
+@media (min-width: 768px) {
+  .welcome {
+    grid-template-columns: minmax(0, 1fr) 21rem;
+    column-gap: 1.5625rem;
+    padding-block: 1.75rem 3rem;
+  }
+
+  .welcome__logo img {
+    height: 7.875rem;
+  }
+
+  .welcome__tagline {
+    margin-top: 0.4375rem;
+    font-size: 1.625rem;
+  }
+
+  .welcome__band {
+    margin-top: 2.1875rem;
+    margin-inline: 0;
+    padding: 0.625rem 1rem;
+    font-size: 1.25rem;
+  }
+
+  .welcome__text {
+    gap: 4.125rem;
+    margin-top: 5.75rem;
+  }
+
+  .welcome__block {
+    gap: 1.125rem;
+    padding: 1rem 0 1rem 0.5rem;
+  }
+
+  .welcome__subtitle {
+    font-size: 1.5rem;
+    text-decoration: underline;
+    text-underline-offset: 0.25rem;
+  }
+
+  .welcome__values,
+  .welcome__contacts {
+    font-size: 1.25rem;
+    line-height: 1.5;
+  }
+
+  .welcome__contacts {
+    gap: 0;
+  }
+
+  .welcome__photo {
+    margin-top: 2.625rem;
+  }
+
+  .welcome__photo img {
+    aspect-ratio: 336 / 536;
+  }
+
+  .welcome__actions {
+    flex-direction: row;
+    justify-content: center;
+    gap: 1.25rem;
+    margin-top: 4.125rem;
+  }
+
+  .welcome__actions .btn {
+    flex: 1 1 0;
+    max-width: 26rem;
+  }
+
+  .welcome__actions .btn + .btn,
+  .welcome__actions .btn:has(+ .btn) {
+    max-width: 19.375rem;
+  }
+}
+
+/* Десктоп */
+@media (min-width: 1440px) {
+  .welcome {
+    grid-template-columns: minmax(0, 1fr) 39.75rem;
+    grid-template-rows: auto auto auto 1fr auto;
+    grid-template-areas:
+      'logo logo'
+      'tagline photo'
+      'band photo'
+      'text photo'
+      'actions actions';
+    column-gap: 0;
+    padding-block: 1.125rem 4.125rem;
+  }
+
+  .welcome__tagline {
+    margin-top: 0.1875rem;
+  }
+
+  .welcome__band {
+    margin-top: 2.8125rem;
+    margin-left: calc(-1 * (var(--gutter) + (100vw - min(100vw, var(--page-max-width))) / 2));
+    padding: 0.6875rem 1rem 0.6875rem var(--gutter);
+    text-align: left;
+  }
+
+  .welcome__text {
+    gap: 3.75rem;
+    margin-top: 5.125rem;
+  }
+
+  .welcome__block {
+    display: grid;
+    grid-template-columns: 10.875rem minmax(0, 1fr);
+    gap: 0;
+    padding: 0.625rem 0 0.625rem 0.625rem;
+  }
+
+  .welcome__subtitle {
+    max-width: 8rem;
+  }
+
+  .welcome__photo {
+    margin-top: 2.125rem;
+  }
+
+  .welcome__photo img {
+    aspect-ratio: 636 / 580;
+    border-radius: 1rem;
+  }
+
+  .welcome__actions {
+    margin-top: 4rem;
+  }
+}
+
+/* Наведення */
+@media (hover: hover) and (pointer: fine) {
+  .welcome__contact a:hover:not(:active) {
+    color: var(--color-hover);
+  }
+}
