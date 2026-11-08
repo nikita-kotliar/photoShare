@@ -221,6 +221,11 @@
   opacity: 0.7;
 }
 
+.menu__icon-link:disabled {
+  cursor: progress;
+  opacity: 0.5;
+}
+
 .menu__search {
   max-width: none;
   height: 2.375rem;

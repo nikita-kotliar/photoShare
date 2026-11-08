@@ -46,6 +46,25 @@ function AddPhoto(className) {
   return add;
 }
 
+// Вихід
+export function createLogout({ logout, navigate, onError, onBusy = () => {} }) {
+  let pending = false;
+  return async function signOut() {
+    if (pending) return;
+    pending = true;
+    onBusy(true);
+    try {
+      await logout();
+      navigate('/', { replace: true });
+    } catch (error) {
+      onError(error);
+    } finally {
+      pending = false;
+      onBusy(false);
+    }
+  };
+}
+
 export function Header({ store, navigate }) {
   const root = el('header', 'header');
   let path = window.location.pathname;
@@ -76,14 +95,17 @@ export function Header({ store, navigate }) {
     return list;
   }
 
-  async function logout() {
-    try {
-      await authApi.logout();
-      navigate('/');
-    } catch (error) {
-      pushToast(error.message, 'error');
-    }
-  }
+  const logout = createLogout({
+    logout: () => authApi.logout(),
+    navigate,
+    onError: (error) => pushToast(error.message || 'Не вдалося вийти', 'error'),
+    onBusy: (busy) => {
+      for (const node of root.querySelectorAll('.menu__exit')) {
+        node.disabled = busy;
+        node.setAttribute('aria-busy', String(busy));
+      }
+    },
+  });
 
   // Меню користувача на десктопі
   function UserMenu(user) {
@@ -131,7 +153,7 @@ export function Header({ store, navigate }) {
       const profile = el('div', 'menu__profile');
       const person = link('menu__person', profileHref(user));
       person.append(Avatar(user), el('span', 'menu__name', user.name || user.username));
-      const exit = el('button', 'menu__icon-link');
+      const exit = el('button', 'menu__icon-link menu__exit');
       exit.type = 'button';
       exit.setAttribute('aria-label', 'Вийти');
       exit.append(Icon('exit', { size: '1.125rem' }));
