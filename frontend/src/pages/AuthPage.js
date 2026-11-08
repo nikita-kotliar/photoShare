@@ -5,9 +5,17 @@ import { Input } from '../components/Input.js';
 import { PasswordField } from '../components/PasswordField.js';
 import { bindForm } from '../validation/form.js';
 import { schemas } from '../validation/index.js';
-import logo from '../assets/images/logo-dark.svg';
+import logo from '../assets/images/logo-auth.svg';
 import photoJpg from '../assets/images/auth@1x.jpg';
+import photoJpg2x from '../assets/images/auth@2x.jpg';
 import photoWebp from '../assets/images/auth@1x.webp';
+import photoWebp2x from '../assets/images/auth@2x.webp';
+import tabletJpg from '../assets/images/auth-tablet@1x.jpg';
+import tabletJpg2x from '../assets/images/auth-tablet@2x.jpg';
+import tabletWebp from '../assets/images/auth-tablet@1x.webp';
+import tabletWebp2x from '../assets/images/auth-tablet@2x.webp';
+
+const EMPTY_IMAGE = 'data:image/gif;base64,R0lGODlhAQABAAAAACw=';
 
 const MODES = {
   login: {
@@ -86,16 +94,28 @@ export default function AuthPage({ query, navigate }) {
   brand.append(logoImg);
 
   const picture = el('picture', 'auth__photo');
-  const source = el('source');
-  source.type = 'image/webp';
-  source.srcset = photoWebp;
+  const source = (srcset, media, type) => {
+    const node = el('source');
+    node.srcset = srcset;
+    if (media) node.media = media;
+    if (type) node.type = type;
+    return node;
+  };
+  const tablet = '(max-width: 1439px)';
   const img = el('img');
   img.src = photoJpg;
+  img.srcset = `${photoJpg} 1x, ${photoJpg2x} 2x`;
   img.alt = '';
-  img.width = 574;
+  img.width = 575;
   img.height = 600;
   img.fetchPriority = 'high';
-  picture.append(source, img);
+  picture.append(
+    source(EMPTY_IMAGE, '(max-width: 767px)'),
+    source(`${tabletWebp} 1x, ${tabletWebp2x} 2x`, tablet, 'image/webp'),
+    source(`${tabletJpg} 1x, ${tabletJpg2x} 2x`, tablet),
+    source(`${photoWebp} 1x, ${photoWebp2x} 2x`, '', 'image/webp'),
+    img,
+  );
 
   // Форма
   const panel = el('div', 'auth__panel');
