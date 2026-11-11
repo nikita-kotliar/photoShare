@@ -53,13 +53,31 @@
   display: block;
   width: 100%;
   max-width: 20.5rem;
+  position: relative;
   margin-top: -2.5rem;
 }
 
-.not-found__image img {
+.not-found__still img {
   display: block;
   width: 100%;
   height: auto;
+}
+
+.not-found__animation {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.not-found__image--animated .not-found__animation {
+  opacity: 1;
+}
+
+.not-found__image--animated .not-found__still {
+  visibility: hidden;
 }
 
 /* Текст і кнопка */

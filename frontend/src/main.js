@@ -6,7 +6,6 @@ import { createRouter } from './router/index.js';
 import { routes } from './router/routes.js';
 import { store } from './store/index.js';
 import { authApi } from './api/auth.js';
-import { ErrorPage } from './pages/NotFoundPage.js';
 
 // Каркас
 const root = document.getElementById('app');
@@ -33,7 +32,6 @@ async function bootstrap() {
     routes,
     outlet: document.getElementById('app-main'),
     store,
-    renderError: () => ErrorPage({ retry: () => window.location.reload() }),
     onRoute: (path) => {
       header.setPath(path);
       document.body.classList.toggle('layout-bare', path === '/auth');

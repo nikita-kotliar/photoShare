@@ -17,7 +17,8 @@
   },
   "dependencies": {
     "@fontsource/montserrat": "^5.2.8",
-    "@fontsource/poppins": "^5.2.7"
+    "@fontsource/poppins": "^5.2.7",
+    "@lottiefiles/dotlottie-web": "^0.83.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",

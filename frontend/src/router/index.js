@@ -1,6 +1,6 @@
 import { matchRoute, parseQuery, resolveAccess } from './match.js';
 
-export function createRouter({ routes, outlet, store, onRoute, renderError }) {
+export function createRouter({ routes, outlet, store, onRoute }) {
   let cleanup = null;
   let renderToken = 0;
 
@@ -36,32 +36,21 @@ export function createRouter({ routes, outlet, store, onRoute, renderError }) {
 
     onRoute?.(pathname);
 
-    let result;
-    try {
-      const module = await found.route.load();
-      if (token !== renderToken) return;
+    const module = await found.route.load();
+    if (token !== renderToken) return;
 
-      if (cleanup) cleanup();
-      cleanup = null;
-      outlet.replaceChildren();
+    if (cleanup) cleanup();
+    cleanup = null;
+    outlet.replaceChildren();
 
-      const ctx = {
-        params: found.params,
-        query: parseQuery(search),
-        path: pathname,
-        navigate,
-        store,
-      };
-      result = await module.default(ctx);
-    } catch (error) {
-      if (token !== renderToken) return;
-      console.error(error);
-      if (cleanup) cleanup();
-      cleanup = null;
-      outlet.replaceChildren(...(renderError ? [renderError({ error, retry: render })] : []));
-      document.title = 'Помилка | PhotoShare';
-      return;
-    }
+    const ctx = {
+      params: found.params,
+      query: parseQuery(search),
+      path: pathname,
+      navigate,
+      store,
+    };
+    const result = await module.default(ctx);
     if (token !== renderToken) {
       if (result?.destroy) result.destroy();
       return;
