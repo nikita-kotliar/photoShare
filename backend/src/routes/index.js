@@ -5,12 +5,14 @@ const photos = require('./photos');
 const comments = require('./comments');
 const links = require('./links');
 const admin = require('./admin');
+const docs = require('../docs/swagger');
 
 const router = Router();
 
 router.get('/health', (_req, res) => {
   res.json({ status: 'ok', uptime: process.uptime() });
 });
+router.use(docs.router);
 router.use('/users', users);
 router.use('/sessions', sessions);
 router.use('/photos/:id/links', links);

@@ -1,0 +1,63 @@
+paths:
+  /admin/users:
+    get:
+      tags: [Адміністрування]
+      summary: Список користувачів
+      description: MODERATOR і ADMIN. Нові першими, фільтри поєднуються. Дати рахуються за UTC, обидві межі включно (D-23).
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - name: q
+          in: query
+          description: Підрядок в імені, username або email без урахування регістру
+          schema: { type: string, maxLength: 100 }
+        - name: role
+          in: query
+          schema: { $ref: '#/components/schemas/Role' }
+        - name: registeredFrom
+          in: query
+          schema: { type: string, format: date, example: '2026-10-01' }
+        - name: registeredTo
+          in: query
+          description: Не раніше за registeredFrom
+          schema: { type: string, format: date, example: '2026-10-31' }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Сторінка користувачів
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UserPage' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /admin/users/{id}/status:
+    patch:
+      tags: [Адміністрування]
+      summary: Заблокувати або розблокувати користувача
+      description: Лише ADMIN. Себе й іншого ADMIN блокувати не можна. Бан діє одразу на наступному запиті користувача (D-03).
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [isActive]
+              properties:
+                isActive: { type: boolean, example: false }
+      responses:
+        '200':
+          description: Оновлений користувач
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { user: { $ref: '#/components/schemas/User' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }

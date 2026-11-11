@@ -2,6 +2,8 @@
 
 Базовий URL: `/api`. Формат: JSON (завантаження світлини: `multipart/form-data`). Автентифікація: JWT в httpOnly cookie `token`, яку ставить сервер при реєстрації і логіні. Клієнт надсилає запити з `credentials: include`.
 
+Swagger UI: `/api/docs`, специфікація OpenAPI 3: `/api/docs.json`. Описи лежать у `backend/src/docs/openapi/*.yaml` ([D-41](DECISIONS.md)), при зміні контракту їх оновлюють разом із цим файлом.
+
 
 **Помилки** (усі однакового формату):
 ```json
