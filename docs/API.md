@@ -10,7 +10,7 @@
 
 | Код HTTP | code | Коли |
 |---|---|---|
-| 400 | BAD_REQUEST | некоректний JSON |
+| 400 | BAD_REQUEST | некоректний JSON або multipart |
 | 401 | UNAUTHORIZED, TOKEN_INVALID, INVALID_CREDENTIALS | немає сесії, токен недійсний, невірний логін/пароль |
 | 403 | FORBIDDEN, USER_BANNED | немає прав, акаунт заблоковано |
 | 404 | NOT_FOUND | ресурс не знайдено |

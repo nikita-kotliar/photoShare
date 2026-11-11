@@ -21,7 +21,7 @@ jobs:
       - run: npm ci
       - run: npx prisma generate
       - run: npm run lint
-      - run: npm test
+      - run: npm run test:coverage
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test
           JWT_SECRET: ci-secret-ci-secret-ci-secret
