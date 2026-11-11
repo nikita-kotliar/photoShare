@@ -1,0 +1,92 @@
+paths:
+  /photos/{id}/comments:
+    get:
+      tags: [Коментарі]
+      summary: Коментарі світлини
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Сторінка коментарів
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CommentPage' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    post:
+      tags: [Коментарі]
+      summary: Додати коментар
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CommentInput' }
+      responses:
+        '201':
+          description: Коментар створено
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { comment: { $ref: '#/components/schemas/Comment' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /comments/{id}:
+    put:
+      tags: [Коментарі]
+      summary: Редагувати коментар
+      description: Лише автор. Чужий коментар не редагує ніхто, зокрема ADMIN (D-16).
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CommentInput' }
+      responses:
+        '200':
+          description: Оновлений коментар
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { comment: { $ref: '#/components/schemas/Comment' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    delete:
+      tags: [Коментарі]
+      summary: Видалити коментар
+      description: Лише MODERATOR і ADMIN. Автор свій коментар видаляти не може.
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204': { $ref: '#/components/responses/NoContent' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+components:
+  schemas:
+    CommentInput:
+      type: object
+      required: [text]
+      properties:
+        text:
+          {
+            type: string,
+            minLength: 1,
+            maxLength: 1000,
+            description: Довжина рахується після обрізання пробілів,
+          }

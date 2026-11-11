@@ -1,0 +1,201 @@
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+      description: JWT у httpOnly cookie. Ставиться сервером після реєстрації або входу, живе JWT_EXPIRES_IN_HOURS годин.
+
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer, minimum: 1, maximum: 2147483647 }
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    Limit:
+      name: limit
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 50, default: 12 }
+
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              enum:
+                - BAD_REQUEST
+                - UNAUTHORIZED
+                - TOKEN_INVALID
+                - INVALID_CREDENTIALS
+                - FORBIDDEN
+                - USER_BANNED
+                - NOT_FOUND
+                - CONFLICT
+                - PAYLOAD_TOO_LARGE
+                - VALIDATION_ERROR
+                - INTERNAL_ERROR
+            message: { type: string }
+            fields:
+              type: object
+              additionalProperties: { type: string }
+              description: Помилки по полях, лише для 409 і 422
+
+    Role:
+      type: string
+      enum: [USER, MODERATOR, ADMIN]
+
+    User:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        username: { type: string, example: nikita }
+        name: { type: string, example: Нікіта }
+        email: { type: string, format: email, example: nikita@example.com }
+        role: { $ref: '#/components/schemas/Role' }
+        isActive: { type: boolean }
+        avatarUrl: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+
+    Author:
+      type: object
+      properties:
+        id: { type: integer }
+        username: { type: string }
+        name: { type: string }
+        avatarUrl: { type: string, nullable: true }
+
+    Photo:
+      type: object
+      properties:
+        id: { type: integer, example: 7 }
+        slug: { type: string, example: aB3_xY9-kLmN, description: 12 випадкових символів }
+        url: { type: string, format: uri }
+        description: { type: string }
+        tags:
+          type: array
+          maxItems: 5
+          items: { type: string }
+          example: [nature, sea]
+        author: { $ref: '#/components/schemas/Author' }
+        averageRating:
+          { type: number, nullable: true, description: 'Один знак після коми, null без оцінок' }
+        ratingsCount: { type: integer }
+        commentsCount: { type: integer }
+        myRating: { type: integer, nullable: true, description: Оцінка поточного користувача }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    Transformations:
+      type: object
+      additionalProperties: false
+      description: Порядок застосування фіксований - обрізка, поворот, ефект (D-22)
+      properties:
+        effect: { type: string, enum: [grayscale, sepia, blur] }
+        angle: { type: integer, minimum: 0, maximum: 359 }
+        crop: { type: string, enum: [square] }
+      example: { crop: square, angle: 90, effect: sepia }
+
+    Link:
+      type: object
+      properties:
+        id: { type: integer }
+        photoId: { type: integer }
+        url: { type: string, format: uri, description: URL трансформованого зображення }
+        qrCode:
+          {
+            type: string,
+            description: PNG у форматі data URL,
+            example: 'data:image/png;base64,iVBORw0...',
+          }
+        transformations: { $ref: '#/components/schemas/Transformations' }
+        createdAt: { type: string, format: date-time }
+
+    Comment:
+      type: object
+      properties:
+        id: { type: integer }
+        photoId: { type: integer }
+        text: { type: string }
+        author: { $ref: '#/components/schemas/Author' }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    Page:
+      type: object
+      properties:
+        total: { type: integer, example: 30 }
+        page: { type: integer, example: 1 }
+        limit: { type: integer, example: 12 }
+        pages: { type: integer, example: 3 }
+
+    PhotoPage:
+      allOf:
+        - $ref: '#/components/schemas/Page'
+        - type: object
+          properties:
+            items: { type: array, items: { $ref: '#/components/schemas/Photo' } }
+
+    CommentPage:
+      allOf:
+        - $ref: '#/components/schemas/Page'
+        - type: object
+          properties:
+            items: { type: array, items: { $ref: '#/components/schemas/Comment' } }
+
+    UserPage:
+      allOf:
+        - $ref: '#/components/schemas/Page'
+        - type: object
+          properties:
+            items: { type: array, items: { $ref: '#/components/schemas/User' } }
+
+  responses:
+    NoContent:
+      description: Успішно, без тіла
+    BadRequest:
+      description: Некоректний JSON або multipart
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Unauthorized:
+      description: Немає сесії (UNAUTHORIZED) або токен недійсний (TOKEN_INVALID)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { error: { code: UNAUTHORIZED, message: Потрібна авторизація } }
+    Forbidden:
+      description: Немає прав (FORBIDDEN) або акаунт заблоковано (USER_BANNED)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { error: { code: FORBIDDEN, message: Недостатньо прав для цієї дії } }
+    NotFound:
+      description: Ресурс не знайдено
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { error: { code: NOT_FOUND, message: Світлину не знайдено } }
+    ValidationError:
+      description: Помилка валідації, деталі в fields
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example:
+            {
+              error:
+                {
+                  code: VALIDATION_ERROR,
+                  message: Помилка валідації,
+                  fields: { email: Некоректний email },
+                },
+            }

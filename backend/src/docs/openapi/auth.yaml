@@ -1,0 +1,133 @@
+paths:
+  /users:
+    post:
+      tags: [Автентифікація]
+      summary: Реєстрація
+      description: Перший зареєстрований користувач отримує роль ADMIN. Після реєстрації користувач одразу в акаунті (D-02).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, email, password]
+              properties:
+                username:
+                  {
+                    type: string,
+                    minLength: 3,
+                    maxLength: 30,
+                    pattern: '^[a-zA-Z0-9_.-]+$',
+                    example: nikita,
+                  }
+                email: { type: string, format: email, example: nikita@example.com }
+                password: { type: string, minLength: 8, maxLength: 72, example: password123 }
+                name:
+                  {
+                    type: string,
+                    minLength: 1,
+                    maxLength: 60,
+                    description: За замовчуванням дорівнює username,
+                  }
+      responses:
+        '201':
+          description: Користувача створено, cookie встановлено
+          headers:
+            Set-Cookie:
+              { schema: { type: string, example: token=eyJ...; Path=/; HttpOnly; SameSite=Lax } }
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { user: { $ref: '#/components/schemas/User' } }
+        '409':
+          description: email або username вже зайняті
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                {
+                  error:
+                    {
+                      code: CONFLICT,
+                      message: Користувач вже існує,
+                      fields: { email: Користувач з таким email вже існує },
+                    },
+                }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /users/me:
+    get:
+      tags: [Автентифікація]
+      summary: Поточний користувач
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200':
+          description: Дані користувача
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { user: { $ref: '#/components/schemas/User' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /sessions:
+    post:
+      tags: [Автентифікація]
+      summary: Вхід
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email, example: nikita@example.com }
+                password: { type: string, example: password123 }
+      responses:
+        '200':
+          description: Вхід виконано, cookie встановлено
+          headers:
+            Set-Cookie:
+              { schema: { type: string, example: token=eyJ...; Path=/; HttpOnly; SameSite=Lax } }
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { user: { $ref: '#/components/schemas/User' } }
+        '401':
+          description: Невірний email або пароль
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example: { error: { code: INVALID_CREDENTIALS, message: Невірний email або пароль } }
+        '403':
+          description: Акаунт заблоковано
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example: { error: { code: USER_BANNED, message: Акаунт заблоковано } }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    delete:
+      tags: [Автентифікація]
+      summary: Вихід
+      description: Очищає cookie, токен потрапляє в blacklist до кінця свого життя. Інші сесії користувача працюють далі (D-36). Без cookie або з битим токеном теж 204.
+      responses:
+        '204': { $ref: '#/components/responses/NoContent' }
+
+  /health:
+    get:
+      tags: [Сервіс]
+      summary: Перевірка стану сервера
+      responses:
+        '200':
+          description: Сервер працює
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+                  uptime: { type: number, description: Секунди з моменту запуску }
