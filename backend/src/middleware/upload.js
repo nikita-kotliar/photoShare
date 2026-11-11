@@ -14,16 +14,13 @@ function imageError(message) {
 }
 
 function toAppError(err) {
-  if (err instanceof multer.MulterError) {
-    if (err.code === 'LIMIT_FILE_SIZE') {
-      return new AppError(413, 'PAYLOAD_TOO_LARGE', 'Файл завеликий (максимум 10 МБ)');
-    }
-    if (err.code === 'LIMIT_UNEXPECTED_FILE' || err.code === 'LIMIT_FILE_COUNT') {
-      return imageError('Додайте один файл у поле image');
-    }
-    return new AppError(400, 'BAD_REQUEST', 'Некоректний multipart-запит');
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return new AppError(413, 'PAYLOAD_TOO_LARGE', 'Файл завеликий (максимум 10 МБ)');
   }
-  return err;
+  if (err.code === 'LIMIT_UNEXPECTED_FILE' || err.code === 'LIMIT_FILE_COUNT') {
+    return imageError('Додайте один файл у поле image');
+  }
+  return new AppError(400, 'BAD_REQUEST', 'Некоректний multipart-запит');
 }
 
 function uploadImage(field) {
