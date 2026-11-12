@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { profileChanges, profileErrors } from './SettingsPage.js';
+import { formatJoined, profileChanges, profileErrors } from './SettingsPage.js';
 import { schemas, validateForm } from '../validation/index.js';
 
 const user = {
@@ -73,5 +73,12 @@ describe('schemas.profile', () => {
     expect(validateForm({ ...base, bio: 'x'.repeat(301) }, schemas.profile).errors.bio).toBe(
       'Максимум 300 символів',
     );
+  });
+});
+
+describe('formatJoined', () => {
+  it('форматує дату реєстрації як у макеті', () => {
+    expect(formatJoined(new Date(2025, 2, 3).toISOString())).toBe('03/03/25');
+    expect(formatJoined('bad')).toBe('');
   });
 });

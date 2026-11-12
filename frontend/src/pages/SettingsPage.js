@@ -1,10 +1,12 @@
 import '../styles/pages/settings.css';
 import { usersApi } from '../api/users.js';
 import { Button, setButtonLoading } from '../components/Button.js';
-import { Icon } from '../components/icons.js';
 import { Input } from '../components/Input.js';
 import { bindForm } from '../validation/form.js';
 import { schemas } from '../validation/index.js';
+import avatarPlaceholder from '../assets/images/avatar-placeholder.svg';
+import cover1x from '../assets/images/auth@1x.webp';
+import cover2x from '../assets/images/auth@2x.webp';
 
 export const BIO_MAX = 300;
 const FIELDS = ['name', 'username', 'email', 'bio'];
@@ -34,6 +36,14 @@ export function profileChanges(values, user) {
   return changes;
 }
 
+// Дата реєстрації як у макеті: 03/03/25
+export function formatJoined(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${String(date.getFullYear()).slice(-2)}`;
+}
+
 // Помилки сервера: 409 і 422 з полями показуємо під полями, решту одним повідомленням
 export function profileErrors(error) {
   const fields = {};
@@ -49,24 +59,22 @@ export function profileErrors(error) {
   return { fields, message: 'Не вдалося зберегти профіль, спробуйте ще раз' };
 }
 
-function BioField(value) {
+function BioField() {
   const field = el('div', 'field settings__bio');
-  const label = el('label', 'field__label', 'Про себе');
-  label.htmlFor = 'settings-bio';
   const input = el('textarea', 'settings__textarea');
   input.id = 'settings-bio';
   input.name = 'bio';
-  input.rows = 4;
+  input.rows = 3;
   input.maxLength = BIO_MAX;
-  input.placeholder = 'Кілька слів про себе';
-  input.value = value ?? '';
+  input.placeholder = 'Розкажіть про себе';
+  input.setAttribute('aria-label', 'Про себе');
   const counter = el('p', 'settings__counter');
   counter.id = 'settings-bio-counter';
   input.setAttribute('aria-describedby', counter.id);
   const sync = () => (counter.textContent = `${input.value.length}/${BIO_MAX}`);
   input.addEventListener('input', sync);
   sync();
-  field.append(label, input, counter);
+  field.append(input, counter);
   return Object.assign(field, {
     input,
     setValue(next) {
@@ -76,32 +84,60 @@ function BioField(value) {
   });
 }
 
+function group(title, className) {
+  const fieldset = el('fieldset', `settings__group ${className}`);
+  fieldset.append(el('legend', 'settings__legend', title));
+  return fieldset;
+}
+
 export function ProfileForm(user, { onSave } = {}) {
   const form = el('form', 'settings__form');
   form.setAttribute('aria-labelledby', 'settings-title');
 
-  const name = Input({ label: 'Ім’я', name: 'name', autocomplete: 'name', maxLength: 60 });
+  const name = Input({
+    label: 'Ім’я',
+    name: 'name',
+    placeholder: 'Введіть ім’я',
+    autocomplete: 'name',
+    maxLength: 60,
+  });
   const username = Input({
-    label: 'Юзернейм',
+    label: 'UserName',
     name: 'username',
+    placeholder: 'Введіть UserName',
     autocomplete: 'username',
     maxLength: 30,
   });
-  const email = Input({ label: 'Email', name: 'email', type: 'email', autocomplete: 'email' });
+  const email = Input({
+    label: 'Електронна пошта',
+    name: 'email',
+    type: 'email',
+    placeholder: 'Введіть пошту',
+    autocomplete: 'email',
+  });
   const bio = BioField();
   const inputs = { name, username, email, bio };
+
+  const personal = group('Особисті дані', 'settings__group--personal');
+  personal.append(name, username, email);
+  const extra = group('Додаткові дані', 'settings__group--extra');
+  extra.append(bio);
 
   const status = el('p', 'settings__status');
   status.setAttribute('role', 'status');
   const formError = el('p', 'settings__error');
   formError.setAttribute('role', 'alert');
 
-  const submit = Button({ text: 'Зберегти', type: 'submit', className: 'settings__submit' });
-  const reset = Button({ text: 'Скасувати', variant: 'secondary', className: 'settings__reset' });
+  const reset = Button({ text: 'Скинути', variant: 'secondary', className: 'settings__reset' });
+  const submit = Button({
+    text: 'Застосувати зміни',
+    type: 'submit',
+    className: 'settings__submit',
+  });
   const actions = el('div', 'settings__actions');
   actions.append(reset, submit);
 
-  form.append(name, username, email, bio, formError, status, actions);
+  form.append(personal, extra, formError, status, actions);
 
   let current = user;
   function fill(next) {
@@ -151,28 +187,47 @@ export function ProfileForm(user, { onSave } = {}) {
   return Object.assign(form, { fill, inputs });
 }
 
+// Банер з аватаром і датою реєстрації
+function ProfileCover(user) {
+  const cover = el('div', 'settings__cover');
+  const picture = el('picture', 'settings__banner');
+  const source = el('source');
+  source.type = 'image/webp';
+  source.srcset = `${cover1x} 1x, ${cover2x} 2x`;
+  const banner = el('img', 'settings__banner-img');
+  banner.src = cover1x;
+  banner.alt = '';
+  banner.width = 1060;
+  banner.height = 220;
+  picture.append(source, banner);
+
+  const avatar = el('img', 'settings__avatar');
+  avatar.src = user?.avatarUrl || avatarPlaceholder;
+  avatar.alt = user?.name ? `Аватар: ${user.name}` : 'Аватар';
+  avatar.width = 108;
+  avatar.height = 108;
+
+  const joined = el('p', 'settings__joined');
+  const date = formatJoined(user?.createdAt);
+  if (date) {
+    const time = el('time', '', date);
+    time.dateTime = user.createdAt;
+    joined.append('дата реєстрації ', time);
+  }
+
+  cover.append(picture, avatar, joined);
+  return cover;
+}
+
 export default function SettingsPage({ store }) {
   const root = el('section', 'settings container');
-
-  const back = el('button', 'settings__back');
-  back.type = 'button';
-  back.append(Icon('backDesktop', { size: '1.125rem' }), el('span', '', 'Назад'));
-  back.addEventListener('click', () => window.history.back());
-
-  const title = el('h1', 'settings__title', 'Редагування профілю');
+  const title = el('h1', 'visually-hidden', 'Редагування профілю');
   title.id = 'settings-title';
 
   const user = store.get().user;
-  const profileLink = el('a', 'settings__profile-link', 'Переглянути мій профіль');
-  const syncLink = (u) => (profileLink.href = `/users/${u?.username ?? ''}`);
-  syncLink(user);
-
-  // usersApi.updateMe сам кладе нового користувача в store: шапка й посилання оновляться
+  // usersApi.updateMe сам кладе нового користувача в store: шапка оновиться
   const form = ProfileForm(user, { onSave: (changes) => usersApi.updateMe(changes) });
 
-  // Вихід і вхід обробляє роутер (перебудовує сторінку), тут лише оновлюємо посилання
-  const unsubscribe = store.subscribe(syncLink, (s) => s.user);
-
-  root.append(back, title, form, profileLink);
-  return { el: root, destroy: unsubscribe };
+  root.append(title, ProfileCover(user), form);
+  return root;
 }
