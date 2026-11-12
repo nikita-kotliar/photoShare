@@ -662,3 +662,54 @@ textarea.upload__input {
     color: var(--color-hover);
   }
 }
+
+/* TASK-037: відправлення, прогрес, помилки */
+.upload__form--busy .upload__drop {
+  cursor: progress;
+}
+
+.upload__drop:has(.upload__frame--result) .upload__change {
+  display: none;
+}
+
+.upload__status {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.upload__progress {
+  width: 100%;
+  height: 0.5rem;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: var(--color-text-muted);
+  accent-color: var(--color-primary);
+  appearance: none;
+}
+
+.upload__progress::-webkit-progress-bar {
+  background: var(--color-text-muted);
+}
+
+.upload__progress::-webkit-progress-value {
+  background: var(--color-primary);
+  transition: width var(--transition);
+}
+
+.upload__progress::-moz-progress-bar {
+  background: var(--color-primary);
+}
+
+.upload__status-text {
+  color: var(--color-primary);
+  font-size: var(--fs-small);
+  text-align: center;
+}
+
+.upload__form-error {
+  color: var(--color-danger);
+  font-size: var(--fs-small);
+  text-align: center;
+}
