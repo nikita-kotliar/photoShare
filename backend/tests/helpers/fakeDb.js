@@ -71,6 +71,10 @@ function findPhoto(where) {
   return findIn(photos, where);
 }
 
+function matches(record, where = {}) {
+  return Object.entries(where).every(([key, value]) => record[key] === value);
+}
+
 function newest(a, b) {
   return b.createdAt - a.createdAt || b.id - a.id;
 }
@@ -104,18 +108,29 @@ const fakeDb = {
     },
     update: async ({ where, data }) => {
       const user = findBy(where);
-      Object.assign(user, data, { updatedAt: new Date() });
+      const changes = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined));
+      // Як унікальні індекси PostgreSQL
+      for (const key of ['username', 'email']) {
+        if (changes[key] && users.some((u) => u.id !== user.id && u[key] === changes[key])) {
+          throw Object.assign(new Error('Unique constraint failed'), {
+            code: 'P2002',
+            meta: { target: [key] },
+          });
+        }
+      }
+      Object.assign(user, changes, { updatedAt: new Date() });
       return clone(user);
     },
   },
   photo: {
     findUnique: async ({ where, ...options }) => shape(findPhoto(where), options),
-    findMany: async ({ include, skip = 0, take = photos.length } = {}) =>
-      [...photos]
+    findMany: async ({ where, include, skip = 0, take = photos.length } = {}) =>
+      photos
+        .filter((photo) => matches(photo, where))
         .sort(newest)
         .slice(skip, skip + take)
         .map((photo) => withInclude(photo, include)),
-    count: async () => photos.length,
+    count: async ({ where } = {}) => photos.filter((photo) => matches(photo, where)).length,
     create: async ({ data: { tags: nested, ...data }, include }) => {
       const now = new Date();
       const photo = { id: nextPhotoId++, createdAt: now, updatedAt: now, ...data };

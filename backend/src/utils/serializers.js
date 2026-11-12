@@ -11,6 +11,17 @@ function toPublicUser(user) {
   };
 }
 
+// Публічний профіль: без email, role, isActive та хеша пароля
+function toProfile(user, photosCount) {
+  return {
+    username: user.username,
+    name: user.name,
+    avatarUrl: user.avatarUrl ?? null,
+    createdAt: user.createdAt,
+    photosCount,
+  };
+}
+
 function toAuthor(user) {
   return {
     id: user.id,
@@ -60,4 +71,4 @@ function toLink(link) {
   };
 }
 
-module.exports = { toPublicUser, toAuthor, toPhoto, toComment, toLink };
+module.exports = { toPublicUser, toProfile, toAuthor, toPhoto, toComment, toLink };
