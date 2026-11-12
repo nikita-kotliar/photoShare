@@ -48,6 +48,7 @@ describe('GET /api/admin/users', () => {
       role: 'MODERATOR',
       isActive: true,
       avatarUrl: null,
+      bio: null,
       createdAt: expect.any(String),
     });
     expect(byModerator.status).toBe(200);

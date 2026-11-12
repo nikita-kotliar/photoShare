@@ -103,6 +103,7 @@ erDiagram
 | role | enum `Role` | NN, default `USER` | `USER`, `MODERATOR`, `ADMIN` |
 | is_active | boolean | NN, default `true` | `false` = забанений |
 | avatar_url | text | NULL | нова колонка |
+| bio | varchar(300) | NULL | «Про себе», TASK-039 |
 | created_at | timestamp(3) | NN, default now | |
 | updated_at | timestamp(3) | NN | |
 

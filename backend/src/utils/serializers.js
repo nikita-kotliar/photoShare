@@ -7,6 +7,7 @@ function toPublicUser(user) {
     role: user.role,
     isActive: user.isActive,
     avatarUrl: user.avatarUrl ?? null,
+    bio: user.bio ?? null,
     createdAt: user.createdAt,
   };
 }
@@ -17,6 +18,7 @@ function toProfile(user, photosCount) {
     username: user.username,
     name: user.name,
     avatarUrl: user.avatarUrl ?? null,
+    bio: user.bio ?? null,
     createdAt: user.createdAt,
     photosCount,
   };

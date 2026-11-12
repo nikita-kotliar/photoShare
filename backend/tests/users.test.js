@@ -24,6 +24,7 @@ describe('GET /api/users/:username', () => {
       username: 'owner',
       name: 'owner',
       avatarUrl: null,
+      bio: null,
       createdAt: expect.any(String),
       photosCount: 2,
     });
@@ -220,5 +221,50 @@ describe('PUT /api/users/me', () => {
   it('без авторизації повертає 401', async () => {
     const res = await agent().put('/api/users/me').send({ name: 'Хтось' });
     expect(res.status).toBe(401);
+  });
+});
+
+describe('PUT /api/users/me: поле «про себе» (TASK-039)', () => {
+  it('зберігає bio з обрізаними пробілами і показує його в профілі', async () => {
+    const { client } = await signedIn('owner');
+    const res = await client.put('/api/users/me').send({ bio: '  Фотографую море  ' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.user.bio).toBe('Фотографую море');
+    const profile = await agent().get('/api/users/owner');
+    expect(profile.body.user.bio).toBe('Фотографую море');
+  });
+
+  it('порожній рядок очищає bio', async () => {
+    const { client } = await signedIn('owner');
+    await client.put('/api/users/me').send({ bio: 'Текст' });
+    const res = await client.put('/api/users/me').send({ bio: '   ' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.user.bio).toBeNull();
+  });
+
+  it('не змінює bio, якщо його не передали', async () => {
+    const { client } = await signedIn('owner');
+    await client.put('/api/users/me').send({ bio: 'Текст' });
+    const res = await client.put('/api/users/me').send({ name: 'Нове' });
+
+    expect(res.body.user.bio).toBe('Текст');
+  });
+
+  it('довший за 300 символів або не рядок повертає 422', async () => {
+    const { client } = await signedIn('owner');
+    const long = await client.put('/api/users/me').send({ bio: 'x'.repeat(301) });
+    expect(long.status).toBe(422);
+    expect(long.body.error.fields.bio).toBeDefined();
+
+    const wrong = await client.put('/api/users/me').send({ bio: 42 });
+    expect(wrong.status).toBe(422);
+  });
+
+  it('GET /api/users/me віддає bio (null за замовчуванням)', async () => {
+    const { client } = await signedIn('owner');
+    const res = await client.get('/api/users/me');
+    expect(res.body.user.bio).toBeNull();
   });
 });
