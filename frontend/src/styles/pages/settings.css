@@ -1,0 +1,199 @@
+/* Редагування профілю (макет «Profile Edit») */
+.settings {
+  display: flex;
+  flex-direction: column;
+  padding-block: 1.5rem 3rem;
+  color: var(--color-primary);
+}
+
+/* Банер, аватар і дата реєстрації */
+.settings__cover {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.settings__banner-img {
+  display: block;
+  width: 100%;
+  height: 7.5rem;
+  border-radius: var(--radius-m);
+  object-fit: cover;
+}
+
+.settings__avatar {
+  position: absolute;
+  top: 4.25rem;
+  left: -0.25rem;
+  width: 4.5rem;
+  height: 4.5rem;
+  border: 3px solid var(--color-white);
+  border-radius: 50%;
+  background: var(--color-white);
+  object-fit: cover;
+}
+
+.settings__joined {
+  align-self: flex-end;
+  min-height: 1.25rem;
+  margin-top: 0.25rem;
+  color: var(--color-text-muted);
+  font-size: 0.625rem;
+  font-style: italic;
+}
+
+/* Форма */
+.settings__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.settings__group {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.settings__legend {
+  margin-bottom: 1rem;
+  padding: 0;
+  color: var(--color-primary);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-semibold);
+}
+
+.settings__group .field {
+  max-width: none;
+}
+
+.settings__textarea {
+  display: block;
+  width: 100%;
+  min-height: 3.5rem;
+  padding: var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-m);
+  background:
+    linear-gradient(var(--color-white), var(--color-white)) padding-box,
+    var(--gradient-field) border-box;
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--fs-body);
+  resize: vertical;
+  transition: box-shadow var(--transition);
+}
+
+.settings__textarea:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(22 84 215 / 15%);
+}
+
+.settings__bio.field--error .settings__textarea {
+  border-color: var(--color-danger);
+  background: var(--color-white);
+}
+
+.settings__counter {
+  align-self: flex-end;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.settings__status,
+.settings__error {
+  font-size: var(--fs-small);
+  text-align: center;
+}
+
+.settings__status {
+  color: var(--color-success);
+}
+
+.settings__error {
+  color: var(--color-danger);
+}
+
+.settings__status:empty,
+.settings__error:empty {
+  display: none;
+}
+
+.settings__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.settings__actions .btn {
+  flex: 1 1 9rem;
+  max-width: 12.5rem;
+}
+
+/* Планшет */
+@media (min-width: 768px) {
+  .settings {
+    padding-block: 2.25rem 3rem;
+  }
+
+  .settings__banner-img {
+    height: 10rem;
+  }
+
+  .settings__avatar {
+    top: 6.5rem;
+    left: -0.75rem;
+    width: 6rem;
+    height: 6rem;
+  }
+
+  .settings__form {
+    gap: 2rem;
+    margin-top: 1.5rem;
+  }
+
+  .settings__group--personal {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 1.5rem;
+    padding-left: 2.25rem;
+  }
+
+  .settings__group--extra {
+    padding-left: 2.25rem;
+  }
+
+  .settings__group--personal .settings__legend {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Десктоп */
+@media (min-width: 1440px) {
+  .settings__banner-img {
+    height: 13.75rem;
+  }
+
+  .settings__avatar {
+    top: 9.375rem;
+    left: -0.75rem;
+    width: 6.75rem;
+    height: 6.75rem;
+  }
+
+  .settings__group--personal {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: 1.75rem;
+    padding-left: 2.25rem;
+  }
+
+  .settings__group--extra,
+  .settings__group--personal {
+    padding-right: 2.25rem;
+  }
+}

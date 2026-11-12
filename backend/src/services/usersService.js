@@ -26,7 +26,7 @@ function conflict(fields) {
 }
 
 // Змінюємо лише поля, які передали і які справді відрізняються від поточних
-async function updateMe(current, { name, username, email }) {
+async function updateMe(current, { name, username, email, bio }) {
   const fields = {};
 
   if (username !== undefined && username !== current.username) {
@@ -44,7 +44,7 @@ async function updateMe(current, { name, username, email }) {
   try {
     return await db.user.update({
       where: { id: current.id },
-      data: { name, username, email },
+      data: { name, username, email, bio },
     });
   } catch (err) {
     // Гонка: хтось встиг зайняти значення між перевіркою і записом

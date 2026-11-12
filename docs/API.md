@@ -25,7 +25,7 @@ Swagger UI: `/api/docs`, специфікація OpenAPI 3: `/api/docs.json`. �
 
 **Ролі:** `USER`, `MODERATOR`, `ADMIN`. Перший зареєстрований користувач - `ADMIN`. Стовпець "Доступ": `public` без входу, `auth` будь-який користувач, `owner` власник ресурсу, `staff` MODERATOR і ADMIN.
 
-**Користувач** (`user`): `{ id, username, name, email, role, isActive, avatarUrl, createdAt }`. `avatarUrl` - рядок або `null`. 
+**Користувач** (`user`): `{ id, username, name, email, role, isActive, avatarUrl, bio, createdAt }`. `avatarUrl` і `bio` («про себе») - рядок або `null`. 
 
 ## Автентифікація
 
@@ -43,8 +43,8 @@ Swagger UI: `/api/docs`, специфікація OpenAPI 3: `/api/docs.json`. �
 
 | Метод і шлях | Доступ | Тіло / query | Відповідь |
 |---|---|---|---|
-| PUT `/api/users/me` | auth | `{ name?, username?, email? }` | 200 `{ user }` |
-| GET `/api/users/:username` | public | - | 200 `{ user: { username, name, avatarUrl, createdAt, photosCount } }` |
+| PUT `/api/users/me` | auth | `{ name?, username?, email?, bio? }` | 200 `{ user }`; `bio` до 300 символів, `""` очищає поле |
+| GET `/api/users/:username` | public | - | 200 `{ user: { username, name, avatarUrl, bio, createdAt, photosCount } }` |
 | GET `/api/users/:username/photos` | public | `page, limit` | 200 пагінований список світлин |
 
 ## Світлини

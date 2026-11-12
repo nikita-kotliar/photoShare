@@ -86,6 +86,7 @@ export function createMockApi({ now = Date.now() } = {}) {
       role: user.role,
       isActive: user.isActive,
       avatarUrl: user.avatarUrl,
+      bio: user.bio ?? null,
       createdAt: user.createdAt,
     };
   }
@@ -216,6 +217,11 @@ export function createMockApi({ now = Date.now() } = {}) {
       if (!name || name.length > 60) fields.name = 'Ім\u2019я має містити від 1 до 60 символів';
       out.name = name;
     }
+    if (input.bio !== undefined) {
+      const bio = String(input.bio ?? '').trim();
+      if (bio.length > 300) fields.bio = 'Поле «Про себе» не може бути довшим за 300 символів';
+      out.bio = bio || null;
+    }
     if (Object.keys(fields).length > 0) validationError(fields);
 
     const conflicts = {};
@@ -303,6 +309,7 @@ export function createMockApi({ now = Date.now() } = {}) {
           username: user.username,
           name: user.name,
           avatarUrl: user.avatarUrl,
+          bio: user.bio ?? null,
           createdAt: user.createdAt,
           photosCount: db.photos.filter((p) => p.authorId === user.id).length,
         },
@@ -454,7 +461,6 @@ export function createMockApi({ now = Date.now() } = {}) {
     );
     return { body: { items } };
   });
-
 
   route('GET', '/photos/:id/comments', (ctx) => {
     const photo = findPhoto(ctx.params.id);

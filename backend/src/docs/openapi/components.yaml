@@ -64,6 +64,7 @@ components:
         role: { $ref: '#/components/schemas/Role' }
         isActive: { type: boolean }
         avatarUrl: { type: string, nullable: true }
+        bio: { type: string, nullable: true, maxLength: 300 }
         createdAt: { type: string, format: date-time }
 
     Author:

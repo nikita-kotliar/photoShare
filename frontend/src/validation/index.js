@@ -130,6 +130,7 @@ export const fieldRules = {
   name: [required(), maxLength(60)],
   description: [required(), maxLength(1000)],
   comment: [required(), maxLength(1000)],
+  bio: [maxLength(300)],
 };
 
 export const schemas = {
@@ -142,7 +143,12 @@ export const schemas = {
     password: fieldRules.password,
     passwordConfirm: [required(), matches('password')],
   },
-  profile: { name: fieldRules.name, username: fieldRules.username, email: fieldRules.email },
+  profile: {
+    name: fieldRules.name,
+    username: fieldRules.username,
+    email: fieldRules.email,
+    bio: fieldRules.bio,
+  },
   photo: { description: fieldRules.description },
   comment: { text: fieldRules.comment },
 };
