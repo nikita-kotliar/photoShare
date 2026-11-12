@@ -38,15 +38,16 @@ async function findManageable(id, user) {
   return photo;
 }
 
-async function listFeed(pagination) {
+async function listFeed(pagination, where = {}) {
   const [items, total] = await Promise.all([
     db.photo.findMany({
+      where,
       include: photoInclude,
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       skip: skipFor(pagination),
       take: pagination.limit,
     }),
-    db.photo.count(),
+    db.photo.count({ where }),
   ]);
   return { items, total };
 }
