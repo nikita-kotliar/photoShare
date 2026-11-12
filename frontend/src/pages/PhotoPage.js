@@ -10,6 +10,7 @@ import { bindForm } from '../validation/form.js';
 import { schemas } from '../validation/index.js';
 import { EFFECTS, transformationsPayload } from './UploadPage.js';
 import avatarPlaceholder from '../assets/images/avatar-placeholder.svg';
+import { withBase } from '../router/base.js';
 
 const IMAGE_SIZE = 636;
 const COMMENTS_LIMIT = 20;
@@ -396,7 +397,7 @@ export function CommentItem(comment, { canEdit, canDelete, onSave, onDelete } = 
   item.dataset.id = comment.id;
   const head = el('div', 'comment__head');
   const author = el('a', 'comment__author');
-  author.href = `/users/${comment.author?.username ?? ''}`;
+  author.href = withBase(`/users/${comment.author?.username ?? ''}`);
   author.append(
     avatar(comment.author, 54, 'comment__avatar'),
     el('span', 'comment__name', comment.author?.name || comment.author?.username || ''),
@@ -590,7 +591,7 @@ function CommentsSection(photo, user) {
   } else {
     const hint = el('p', 'comment-form__hint');
     const link = el('a', '', 'Увійдіть');
-    link.href = '/auth';
+    link.href = withBase('/auth');
     hint.append(link, ', щоб залишити коментар');
     section.append(hint);
   }
@@ -607,7 +608,7 @@ function PhotoMeta(photo, { canManage, onQr, onSave }) {
 
   const authorRow = el('div', 'photo-page__row');
   const author = el('a', 'photo-page__author');
-  author.href = `/users/${photo.author?.username ?? ''}`;
+  author.href = withBase(`/users/${photo.author?.username ?? ''}`);
   author.append(
     avatar(photo.author, 36, 'photo-page__avatar'),
     el('span', '', photo.author?.name || photo.author?.username || ''),

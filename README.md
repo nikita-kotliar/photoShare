@@ -21,8 +21,8 @@
 
 ## Посилання
 
-- Деплой: _буде додано_
-- Документація API: _буде додано (маршрут /api/docs)_. Контракт: [docs/API.md](docs/API.md)
+- Деплой: https://kotdenik.cx.ua/photoshare/ (інструкція: [docs/DEPLOY.md](docs/DEPLOY.md))
+- Документація API: https://kotdenik.cx.ua/photoshare-api/docs/ (локально `/api/docs`). Контракт: [docs/API.md](docs/API.md)
 
 ## Запуск локально
 

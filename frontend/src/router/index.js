@@ -1,4 +1,5 @@
 import { matchRoute, parseQuery, resolveAccess } from './match.js';
+import { stripBase, withBase } from './base.js';
 
 export function createRouter({ routes, outlet, store, onRoute }) {
   let cleanup = null;
@@ -19,12 +20,13 @@ export function createRouter({ routes, outlet, store, onRoute }) {
     if (!isInternalLink(anchor)) return;
 
     event.preventDefault();
-    navigate(anchor.pathname + anchor.search + anchor.hash);
+    navigate(stripBase(anchor.pathname) + anchor.search + anchor.hash);
   }
 
   async function render() {
     const token = ++renderToken;
-    const { pathname, search } = window.location;
+    const { search } = window.location;
+    const pathname = stripBase(window.location.pathname);
     const found = matchRoute(routes, pathname);
     if (!found) return;
 
@@ -64,12 +66,13 @@ export function createRouter({ routes, outlet, store, onRoute }) {
   }
 
   function navigate(to, { replace = false } = {}) {
-    const current = window.location.pathname + window.location.search + window.location.hash;
+    const current =
+      stripBase(window.location.pathname) + window.location.search + window.location.hash;
     if (to === current) {
       render();
       return;
     }
-    window.history[replace ? 'replaceState' : 'pushState']({}, '', to);
+    window.history[replace ? 'replaceState' : 'pushState']({}, '', withBase(to));
     render();
   }
 

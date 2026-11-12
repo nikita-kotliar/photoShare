@@ -1,4 +1,5 @@
 import { Icon } from './icons.js';
+import { withBase } from '../router/base.js';
 
 const SIZES = ['xxxs', 'xxs', 'xs', 's', 'm', 'l', 'xl'];
 const VARIANTS = ['primary', 'secondary', 'danger'];
@@ -26,7 +27,7 @@ export function Button({
   el.className = classes.join(' ');
 
   if (href) {
-    el.href = href;
+    el.href = withBase(href);
     if (disabled) el.setAttribute('aria-disabled', 'true');
   } else {
     el.type = type;
