@@ -1,14 +1,20 @@
 import '../styles/pages/upload.css';
-import { Button } from '../components/Button.js';
+import { photoFormData, photosApi } from '../api/photos.js';
+import { Button, setButtonLoading } from '../components/Button.js';
 import { Icon } from '../components/icons.js';
 import { Tag } from '../components/Tag.js';
 import { bindForm, clearFieldError, showFieldError } from '../validation/form.js';
 import { normalizeTags, schemas, validateTags } from '../validation/index.js';
+import { pushToast } from '../store/index.js';
 import sampleWebp from '../assets/images/welcome@1x.webp';
 
 export const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
 export const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 export const MAX_TAGS = 5;
+// Скільки показуємо результат з Cloudinary перед переходом на сторінку світлини
+export const RESULT_DELAY = 1500;
+const RESULT_LOAD_TIMEOUT = 4000;
+const FIELD_ERRORS = ['image', 'description', 'tags'];
 
 export const EFFECTS = [
   { value: '', label: 'Без фільтра', css: 'none' },
@@ -60,6 +66,35 @@ export function rotationScale({ width, height, boxWidth, boxHeight, angle, cover
   const rotatedW = visibleW * cos + visibleH * sin;
   const rotatedH = visibleW * sin + visibleH * cos;
   return Math.min(1, boxWidth / rotatedW, boxHeight / rotatedH);
+}
+
+export function progressText(fraction) {
+  if (fraction >= 1) return 'Обробка в Cloudinary…';
+  return `Завантаження ${Math.round(Math.max(0, fraction) * 100)}%`;
+}
+
+export function photoHref(photo) {
+  return `/photos/${photo.slug || photo.id}`;
+}
+
+// Розкладає помилку сервера: поля форми (під полем) і загальне повідомлення (над кнопкою)
+export function uploadErrors(error) {
+  if (!error) return { fields: {}, message: '' };
+  if (error.status === 413) return { fields: { image: error.message }, message: '' };
+  if (error.status === 422) {
+    const fields = {};
+    const rest = [];
+    for (const [name, text] of Object.entries(error.fields ?? {})) {
+      if (FIELD_ERRORS.includes(name)) fields[name] = text;
+      else rest.push(text);
+    }
+    const message = rest[0] || (Object.keys(fields).length ? '' : error.message);
+    return { fields, message: message || '' };
+  }
+  if (error.status === 0) return { fields: {}, message: error.message };
+  if (error.status === 401) return { fields: {}, message: 'Сесія завершилась, увійдіть знову' };
+  if (error.status === 403) return { fields: {}, message: error.message };
+  return { fields: {}, message: 'Не вдалося опублікувати світлину, спробуйте ще раз' };
 }
 
 function el(tag, className, text) {
@@ -170,6 +205,7 @@ function TagsField(state) {
   list.setAttribute('role', 'list');
   const input = el('input', 'upload__tag-input');
   input.id = 'upload-tags';
+  input.name = 'tags';
   input.placeholder = 'Введіть тег #';
   input.setAttribute('aria-label', `Теги, до ${MAX_TAGS}. Enter або кома додає тег`);
   input.enterKeyHint = 'done';
@@ -367,9 +403,75 @@ export function UploadForm({ onSubmit } = {}) {
   );
 
   const submit = Button({ text: 'Опублікувати', type: 'submit', className: 'upload__submit' });
+
+  const status = el('div', 'upload__status');
+  status.hidden = true;
+  const bar = el('progress', 'upload__progress');
+  bar.max = 1;
+  bar.value = 0;
+  bar.setAttribute('aria-label', 'Прогрес завантаження');
+  const statusText = el('p', 'upload__status-text');
+  statusText.setAttribute('aria-live', 'polite');
+  status.append(bar, statusText);
+
+  const formError = el('p', 'upload__form-error');
+  formError.setAttribute('role', 'alert');
+  formError.hidden = true;
+
   const side = el('div', 'upload__side');
-  side.append(fields, AdjustBlock(state, update), effects, submit);
+  side.append(fields, AdjustBlock(state, update), effects, formError, status, submit);
   form.append(drop, side);
+
+  // Під час запиту блокуємо всю форму, а не лише кнопку: зміни вже не потраплять у запит
+  let locked = [];
+  function setBusy(busy) {
+    form.classList.toggle('upload__form--busy', busy);
+    if (busy) {
+      setButtonLoading(submit, true, 'Публікація…');
+      locked = [...form.elements].filter((item) => item !== submit && !item.disabled);
+      locked.forEach((item) => (item.disabled = true));
+    } else {
+      locked.forEach((item) => (item.disabled = false));
+      locked = [];
+      setButtonLoading(submit, false);
+    }
+  }
+
+  function setProgress(fraction) {
+    status.hidden = false;
+    // Файл уже на сервері, той вантажить його в Cloudinary: смуга без значення
+    if (fraction >= 1) bar.removeAttribute('value');
+    else bar.value = fraction;
+    statusText.textContent = progressText(fraction);
+  }
+
+  function setFormError(message) {
+    formError.textContent = message;
+    formError.hidden = !message;
+  }
+
+  // Справжній результат: photo.url уже містить трансформації Cloudinary,
+  // тому CSS-фільтр і поворот з прев'ю знімаємо
+  function showResult(photo) {
+    const { preview, frame } = drop;
+    return new Promise((resolve) => {
+      const finish = () => {
+        clearTimeout(timer);
+        resolve();
+      };
+      const timer = setTimeout(finish, RESULT_LOAD_TIMEOUT);
+      preview.addEventListener('load', finish, { once: true });
+      preview.addEventListener('error', finish, { once: true });
+      preview.style.filter = '';
+      preview.style.transform = '';
+      frame.classList.remove('upload__frame--square');
+      frame.classList.add('upload__frame--result');
+      preview.alt = 'Світлина після обробки в Cloudinary';
+      preview.src = photo.url;
+      statusText.textContent = 'Готово! Так світлина виглядає після обробки в Cloudinary';
+      bar.value = 1;
+    });
+  }
 
   const schema = {
     image: [() => validateImage(state.file)],
@@ -379,23 +481,64 @@ export function UploadForm({ onSubmit } = {}) {
   const controls = bindForm(form, schema, {
     async onSubmit(values, helpers) {
       if (!tags.commit()) return;
-      await onSubmit?.(
-        {
-          file: state.file,
-          description: values.description.trim(),
-          tags: state.tags,
-          transformations: transformationsPayload(state),
-        },
-        helpers,
-      );
+      setFormError('');
+      setBusy(true);
+      try {
+        await onSubmit?.(
+          {
+            file: state.file,
+            description: values.description.trim(),
+            tags: state.tags,
+            transformations: transformationsPayload(state),
+          },
+          { ...helpers, setProgress, setFormError, showResult },
+        );
+      } finally {
+        if (form.isConnected) {
+          setBusy(false);
+          status.hidden = true;
+        }
+      }
     },
   });
 
-  return Object.assign(form, { state, submit, setErrors: controls.setErrors, revoke: drop.revoke });
+  return Object.assign(form, {
+    state,
+    submit,
+    setErrors: controls.setErrors,
+    setFormError,
+    revoke: drop.revoke,
+  });
 }
 
-export default function UploadPage({ onSubmit } = {}) {
+// Публікація: FormData з прогресом, помилки сервера у формі, результат з Cloudinary і редирект
+export function publishPhoto({
+  navigate,
+  signal,
+  wait = (ms) => new Promise((r) => setTimeout(r, ms)),
+}) {
+  return async (data, { setErrors, setProgress, setFormError, showResult }) => {
+    setProgress(0);
+    let photo;
+    try {
+      photo = await photosApi.create(photoFormData(data), { onProgress: setProgress, signal });
+    } catch (error) {
+      if (error.name === 'AbortError') return;
+      const { fields, message } = uploadErrors(error);
+      setErrors(fields);
+      setFormError(message);
+      return;
+    }
+    pushToast('Світлину опубліковано', 'success');
+    await showResult(photo);
+    await wait(RESULT_DELAY);
+    if (!signal?.aborted) navigate?.(photoHref(photo));
+  };
+}
+
+export default function UploadPage({ onSubmit, navigate } = {}) {
   const root = el('section', 'upload container');
+  const controller = new AbortController();
 
   // Заголовок
   const back = el('button', 'upload__back');
@@ -405,6 +548,15 @@ export default function UploadPage({ onSubmit } = {}) {
   const title = el('h1', 'upload__title', 'Завантаження та редагування фото');
   title.id = 'upload-title';
 
-  root.append(back, title, UploadForm({ onSubmit }));
-  return root;
+  const form = UploadForm({
+    onSubmit: onSubmit ?? publishPhoto({ navigate, signal: controller.signal }),
+  });
+  root.append(back, title, form);
+  return {
+    el: root,
+    destroy: () => {
+      controller.abort();
+      form.revoke();
+    },
+  };
 }
