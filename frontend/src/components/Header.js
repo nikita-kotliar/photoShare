@@ -6,6 +6,7 @@ import { navItems, profileHref } from './navigation.js';
 import { SearchInput } from './SearchInput.js';
 import avatarPlaceholder from '../assets/images/avatar-placeholder.svg';
 import logo from '../assets/images/logo.svg';
+import { stripBase, withBase } from '../router/base.js';
 
 const MENU_ID = 'header-menu';
 const AVATAR_SIZE = 48;
@@ -19,7 +20,7 @@ function el(tag, className, text) {
 
 function link(className, href, text) {
   const node = el('a', className, text);
-  node.href = href;
+  node.href = withBase(href);
   return node;
 }
 
@@ -67,7 +68,7 @@ export function createLogout({ logout, navigate, onError, onBusy = () => {} }) {
 
 export function Header({ store, navigate }) {
   const root = el('header', 'header');
-  let path = window.location.pathname;
+  let path = stripBase(window.location.pathname);
   let links = [];
   let dropdown = null;
   let closeMenu = () => {};

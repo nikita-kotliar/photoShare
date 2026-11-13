@@ -2,6 +2,7 @@ import { Button } from './Button.js';
 import { Icon } from './icons.js';
 import { TagList } from './Tag.js';
 import avatarPlaceholder from '../assets/images/avatar-placeholder.svg';
+import { withBase } from '../router/base.js';
 
 const ADMIN_ROLES = ['ADMIN'];
 const IMAGE_SIZE = 416;
@@ -73,7 +74,7 @@ export function PhotoCard(
 
   // Зображення
   const media = el('a', 'photo-card__media');
-  media.href = href;
+  media.href = withBase(href);
   media.setAttribute('aria-label', `Відкрити світлину «${title}»`);
   const img = el('img', 'photo-card__img');
   img.src = photo.url;
@@ -89,7 +90,7 @@ export function PhotoCard(
 
   // Автор
   const author = el('a', 'photo-card__author');
-  author.href = `/users/${photo.author?.username ?? ''}`;
+  author.href = withBase(`/users/${photo.author?.username ?? ''}`);
   const avatar = el('img', 'photo-card__avatar');
   avatar.src = photo.author?.avatarUrl || avatarPlaceholder;
   avatar.alt = '';

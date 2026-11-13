@@ -1,3 +1,4 @@
+import { withBase } from '../router/base.js';
 // Тег
 export function Tag(name, { href, onRemove } = {}) {
   const text = `#${String(name).replace(/^#/, '')}`;
@@ -15,7 +16,7 @@ export function Tag(name, { href, onRemove } = {}) {
   const el = document.createElement(href ? 'a' : 'span');
   el.className = 'tag';
   el.textContent = text;
-  if (href) el.href = href;
+  if (href) el.href = withBase(href);
   return el;
 }
 

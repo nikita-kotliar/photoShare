@@ -1,6 +1,7 @@
 import { Icon } from './icons.js';
 import { isStaff, profileHref } from './navigation.js';
 import logo from '../assets/images/logo.svg';
+import { withBase } from '../router/base.js';
 
 const SOCIALS = [
   { icon: 'facebook', label: 'Facebook', href: 'https://www.facebook.com/' },
@@ -18,7 +19,7 @@ function el(tag, className, text) {
 
 function link(className, href, text) {
   const node = el('a', className, text);
-  node.href = href;
+  node.href = withBase(href);
   return node;
 }
 

@@ -21,6 +21,12 @@ const schema = z
     JWT_EXPIRES_IN_HOURS: z.coerce.number().positive().default(24),
     CORS_ORIGIN: z.string().default('http://localhost:5173'),
     COOKIE_SECURE: z.enum(['true', 'false']).optional(),
+    COOKIE_NAME: z
+      .string()
+      .regex(/^[\w-]+$/)
+      .default('token'),
+    COOKIE_PATH: z.string().startsWith('/').default('/'),
+    PUBLIC_API_PATH: z.string().startsWith('/').default('/api'),
     CLOUDINARY_CLOUD_NAME: z.string().optional(),
     CLOUDINARY_API_KEY: z.string().optional(),
     CLOUDINARY_API_SECRET: z.string().optional(),

@@ -14,6 +14,7 @@ import tabletJpg from '../assets/images/auth-tablet@1x.jpg';
 import tabletJpg2x from '../assets/images/auth-tablet@2x.jpg';
 import tabletWebp from '../assets/images/auth-tablet@1x.webp';
 import tabletWebp2x from '../assets/images/auth-tablet@2x.webp';
+import { withBase } from '../router/base.js';
 
 const EMPTY_IMAGE = 'data:image/gif;base64,R0lGODlhAQABAAAAACw=';
 
@@ -84,7 +85,7 @@ export default function AuthPage({ query, navigate }) {
 
   // Логотип і фото
   const brand = el('a', 'auth__logo');
-  brand.href = '/';
+  brand.href = withBase('/');
   brand.setAttribute('aria-label', 'PhotoShare, на головну');
   const logoImg = el('img');
   logoImg.src = logo;
@@ -143,7 +144,7 @@ export default function AuthPage({ query, navigate }) {
 
   const switcher = el('p', 'auth__switch', `${text.switchText} `);
   const switchLink = el('a', '', text.switchLink);
-  switchLink.href = mode === 'login' ? '/auth?tab=register' : '/auth';
+  switchLink.href = withBase(mode === 'login' ? '/auth?tab=register' : '/auth');
   switcher.append(switchLink);
   form.append(switcher);
 

@@ -1,13 +1,13 @@
 const env = require('../config/env');
 
-const COOKIE_NAME = 'token';
+const COOKIE_NAME = env.COOKIE_NAME;
 
 function baseOptions() {
   return {
     httpOnly: true,
     sameSite: 'lax',
     secure: env.cookieSecure,
-    path: '/',
+    path: env.COOKIE_PATH,
   };
 }
 

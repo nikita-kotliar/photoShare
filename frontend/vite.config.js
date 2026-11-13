@@ -3,8 +3,11 @@ import { mockApiPlugin } from './mock/plugin.js';
 
 export default defineConfig(({ mode }) => {
   const useMock = mode === 'mock';
+  const deploy = mode === 'deploy';
 
   return {
+    base: deploy ? '/photoshare/' : '/',
+    define: deploy ? { 'import.meta.env.VITE_API_URL': JSON.stringify('/photoshare-api') } : {},
     plugins: useMock ? [mockApiPlugin({ delay: Number(process.env.MOCK_DELAY ?? 350) })] : [],
     server: {
       port: 5173,
