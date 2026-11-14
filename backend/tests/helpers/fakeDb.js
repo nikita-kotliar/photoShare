@@ -10,6 +10,8 @@ let nextPhotoId = 1;
 let nextCommentId = 1;
 let nextLinkId = 1;
 let blacklist = [];
+let ratings = [];
+let nextRatingId = 1;
 
 function clone(user) {
   return user ? { ...user } : null;
@@ -51,6 +53,10 @@ function withInclude(record, include = {}) {
       .map((link) => ({ ...link, tag: { name: tags.find((tag) => tag.id === link.tagId).name } }))
       .sort((a, b) => a.tag.name.localeCompare(b.tag.name));
   }
+  if (include.user) {
+    const user = users.find((item) => item.id === record.userId);
+    result.user = include.user.select ? pick(user, include.user.select) : { ...user };
+  }
   if (include._count) {
     result._count = { comments: comments.filter((c) => c.photoId === record.id).length };
   }
@@ -73,6 +79,15 @@ function findPhoto(where) {
 
 function matches(record, where = {}) {
   return Object.entries(where).every(([key, value]) => record[key] === value);
+}
+
+// where для оцінок: рівність полів або { in: [...] }
+function matchesRating(record, where = {}) {
+  return Object.entries(where).every(([key, value]) =>
+    value && typeof value === 'object' && Array.isArray(value.in)
+      ? value.in.includes(record[key])
+      : record[key] === value,
+  );
 }
 
 function newest(a, b) {
@@ -153,6 +168,7 @@ const fakeDb = {
       comments = comments.filter((comment) => comment.photoId !== photo.id);
       photoTags = photoTags.filter((link) => link.photoId !== photo.id);
       links = links.filter((link) => link.photoId !== photo.id);
+      ratings = ratings.filter((rating) => rating.photoId !== photo.id);
       return { ...photo };
     },
   },
@@ -182,6 +198,54 @@ const fakeDb = {
       if (!comment) throw notFound();
       comments = comments.filter((item) => item.id !== comment.id);
       return { ...comment };
+    },
+  },
+  rating: {
+    // where: { id } або складений ключ { photoId_userId: { photoId, userId } }
+    findUnique: async ({ where, ...options }) => {
+      const key = where.photoId_userId;
+      const rating = key
+        ? ratings.find((r) => r.photoId === key.photoId && r.userId === key.userId)
+        : findIn(ratings, where);
+      return shape(rating, options);
+    },
+    findMany: async ({ where = {}, include, select, skip = 0, take = ratings.length } = {}) =>
+      ratings
+        .filter((r) => matchesRating(r, where))
+        .sort(newest)
+        .slice(skip, skip + take)
+        .map((r) => shape(r, { include, select })),
+    count: async ({ where = {} } = {}) => ratings.filter((r) => matchesRating(r, where)).length,
+    create: async ({ data, include }) => {
+      // Як UQ (photo_id, user_id) у PostgreSQL
+      if (ratings.some((r) => r.photoId === data.photoId && r.userId === data.userId)) {
+        throw Object.assign(new Error('Unique constraint failed'), {
+          code: 'P2002',
+          meta: { target: ['photo_id', 'user_id'] },
+        });
+      }
+      const rating = { id: nextRatingId++, createdAt: new Date(), ...data };
+      ratings.push(rating);
+      return withInclude(rating, include);
+    },
+    delete: async ({ where }) => {
+      const rating = findIn(ratings, where);
+      if (!rating) throw notFound();
+      ratings = ratings.filter((item) => item.id !== rating.id);
+      return { ...rating };
+    },
+    // Лише те, що використовує ratingsService: by photoId, _avg.value, _count._all
+    groupBy: async ({ where = {} }) => {
+      const groups = new Map();
+      for (const r of ratings.filter((item) => matchesRating(item, where))) {
+        if (!groups.has(r.photoId)) groups.set(r.photoId, []);
+        groups.get(r.photoId).push(r.value);
+      }
+      return [...groups].map(([photoId, values]) => ({
+        photoId,
+        _avg: { value: values.reduce((sum, v) => sum + v, 0) / values.length },
+        _count: { _all: values.length },
+      }));
     },
   },
   tag: {
@@ -269,6 +333,8 @@ const fakeDb = {
     nextCommentId = 1;
     nextLinkId = 1;
     blacklist = [];
+    ratings = [];
+    nextRatingId = 1;
   },
 };
 

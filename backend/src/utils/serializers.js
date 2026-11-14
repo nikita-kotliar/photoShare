@@ -33,19 +33,19 @@ function toAuthor(user) {
   };
 }
 
-function toPhoto(photo) {
+// stats: { averageRating, ratingsCount, myRating } з ratingsService.statsFor
+function toPhoto(photo, stats = {}) {
   return {
     id: photo.id,
     slug: photo.slug,
     url: photo.url,
     description: photo.description,
     tags: (photo.tags ?? []).map((item) => item.tag.name),
-    // ====== ratings arrive with TASK-042 ======
     author: toAuthor(photo.author),
-    averageRating: null,
-    ratingsCount: 0,
+    averageRating: stats.averageRating ?? null,
+    ratingsCount: stats.ratingsCount ?? 0,
     commentsCount: photo._count?.comments ?? 0,
-    myRating: null,
+    myRating: stats.myRating ?? null,
     createdAt: photo.createdAt,
     updatedAt: photo.updatedAt,
   };
@@ -62,6 +62,16 @@ function toComment(comment) {
   };
 }
 
+function toRating(rating) {
+  return {
+    id: rating.id,
+    photoId: rating.photoId,
+    value: rating.value,
+    user: toAuthor(rating.user),
+    createdAt: rating.createdAt,
+  };
+}
+
 function toLink(link) {
   return {
     id: link.id,
@@ -73,4 +83,12 @@ function toLink(link) {
   };
 }
 
-module.exports = { toPublicUser, toProfile, toAuthor, toPhoto, toComment, toLink };
+module.exports = {
+  toPublicUser,
+  toProfile,
+  toAuthor,
+  toPhoto,
+  toComment,
+  toRating,
+  toLink,
+};

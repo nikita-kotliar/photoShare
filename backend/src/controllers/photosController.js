@@ -1,15 +1,17 @@
 const photosService = require('../services/photosService');
 const { toPhoto } = require('../utils/serializers');
 const { toPage } = require('../utils/pagination');
+const { withRatings } = require('./photoResponse');
 
 async function feed(req, res) {
   const { items, total } = await photosService.listFeed(req.query);
-  res.json(toPage(items.map(toPhoto), total, req.query));
+  res.json(toPage(await withRatings(items, req.user), total, req.query));
 }
 
 async function getOne(req, res) {
   const photo = await photosService.getByIdOrSlug(req.params.idOrSlug);
-  res.json({ photo: toPhoto(photo) });
+  const [result] = await withRatings([photo], req.user);
+  res.json({ photo: result });
 }
 
 async function create(req, res) {
@@ -25,7 +27,8 @@ async function create(req, res) {
 
 async function update(req, res) {
   const photo = await photosService.update(req.params.id, req.body, req.user);
-  res.json({ photo: toPhoto(photo) });
+  const [result] = await withRatings([photo], req.user);
+  res.json({ photo: result });
 }
 
 async function remove(req, res) {

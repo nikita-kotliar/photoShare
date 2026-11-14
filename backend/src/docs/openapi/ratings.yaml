@@ -1,0 +1,96 @@
+paths:
+  /photos/{id}/ratings:
+    post:
+      tags: [Оцінки]
+      summary: Оцінити світлину
+      description: >-
+        Оцінка 1-5. Одна оцінка на користувача на світлину (повторна: 409),
+        власну світлину оцінити не можна, навіть ADMIN (403). У відповіді новий
+        середній рейтинг (з одним знаком після коми) і кількість оцінок.
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RatingInput' }
+      responses:
+        '201':
+          description: Оцінку збережено
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rating: { $ref: '#/components/schemas/Rating' }
+                  averageRating: { type: number, example: 4.3 }
+                  ratingsCount: { type: integer, example: 3 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: Користувач уже оцінив цю світлину
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example: { error: { code: CONFLICT, message: Ви вже оцінили цю світлину } }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    get:
+      tags: [Оцінки]
+      summary: Оцінки світлини
+      description: Лише MODERATOR і ADMIN. Нові першими.
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Сторінка оцінок
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RatingPage' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /ratings/{id}:
+    delete:
+      tags: [Оцінки]
+      summary: Видалити оцінку
+      description: Лише MODERATOR і ADMIN. Після видалення користувач може оцінити світлину знову.
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204': { $ref: '#/components/responses/NoContent' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+components:
+  schemas:
+    RatingInput:
+      type: object
+      required: [value]
+      properties:
+        value: { type: integer, minimum: 1, maximum: 5, example: 4 }
+
+    Rating:
+      type: object
+      properties:
+        id: { type: integer }
+        photoId: { type: integer }
+        value: { type: integer, minimum: 1, maximum: 5 }
+        user: { $ref: '#/components/schemas/Author' }
+        createdAt: { type: string, format: date-time }
+
+    RatingPage:
+      allOf:
+        - $ref: '#/components/schemas/Page'
+        - type: object
+          properties:
+            items: { type: array, items: { $ref: '#/components/schemas/Rating' } }
