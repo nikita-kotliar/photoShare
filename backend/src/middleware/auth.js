@@ -5,12 +5,7 @@ const AppError = require('../utils/AppError');
 const blacklistService = require('../services/blacklistService');
 const { COOKIE_NAME } = require('../utils/cookies');
 
-async function authenticate(req, _res, next) {
-  const token = req.cookies?.[COOKIE_NAME];
-  if (!token) {
-    throw new AppError(401, 'UNAUTHORIZED', 'Потрібна авторизація');
-  }
-
+async function resolveSession(token) {
   let payload;
   try {
     payload = jwt.verify(token, env.JWT_SECRET);
@@ -28,10 +23,34 @@ async function authenticate(req, _res, next) {
   if (!user.isActive) {
     throw new AppError(403, 'USER_BANNED', 'Акаунт заблоковано');
   }
+  return { user, payload };
+}
 
+async function authenticate(req, _res, next) {
+  const token = req.cookies?.[COOKIE_NAME];
+  if (!token) {
+    throw new AppError(401, 'UNAUTHORIZED', 'Потрібна авторизація');
+  }
+  const { user, payload } = await resolveSession(token);
   req.user = user;
   req.token = payload;
   next();
 }
 
-module.exports = { authenticate };
+// Для публічних маршрутів: з валідною сесією знаємо користувача (наприклад, для myRating),
+// без неї або з недійсною сесією запит іде як від гостя, а не падає з 401
+async function optionalAuthenticate(req, _res, next) {
+  const token = req.cookies?.[COOKIE_NAME];
+  if (token) {
+    try {
+      const { user, payload } = await resolveSession(token);
+      req.user = user;
+      req.token = payload;
+    } catch (err) {
+      if (!(err instanceof AppError)) throw err;
+    }
+  }
+  next();
+}
+
+module.exports = { authenticate, optionalAuthenticate };

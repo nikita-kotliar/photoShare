@@ -91,11 +91,13 @@ Swagger UI: `/api/docs`, специфікація OpenAPI 3: `/api/docs.json`. �
 
 | Метод і шлях | Доступ | Тіло | Відповідь |
 |---|---|---|---|
-| POST `/api/photos/:id/ratings` | auth | `{ value }` (1-5) | 201 `{ rating, averageRating, ratingsCount }` |
-| GET `/api/photos/:id/ratings` | staff | `page, limit` | 200 список оцінок |
+| POST `/api/photos/:id/ratings` | auth | `{ value }` (ціле 1-5) | 201 `{ rating, averageRating, ratingsCount }` |
+| GET `/api/photos/:id/ratings` | staff | `page, limit` | 200 пагінований список оцінок, нові першими |
 | DELETE `/api/ratings/:id` | staff | - | 204 |
 
-Одна оцінка на користувача (повторна: 409), власну світлину оцінювати не можна (403). Рейтинг світлини - середнє всіх оцінок.
+`rating`: `{ id, photoId, value, user: { id, username, name, avatarUrl }, createdAt }`.
+
+Одна оцінка на користувача (повторна: 409), власну світлину оцінювати не можна навіть ADMIN (403). Змінити свою оцінку не можна; MODERATOR або ADMIN може її видалити, після чого користувач оцінює знову. Рейтинг світлини - середнє всіх оцінок з одним знаком після коми, рахується агрегатом під час запиту. `averageRating`, `ratingsCount` і `myRating` є в кожній світлині: у стрічці, на сторінці світлини і в профілі. `GET /api/photos/:idOrSlug` і `GET /api/users/:username/photos` публічні, але з валідною сесією повертають `myRating`; недійсна сесія або забанений користувач на цих маршрутах вважаються гостем.
 
 ## Пошук (MVP2)
 
