@@ -79,6 +79,19 @@ function newest(a, b) {
   return b.createdAt - a.createdAt || b.id - a.id;
 }
 
+function byOrder(orderBy) {
+  const rules = [orderBy ?? []].flat();
+  if (rules.length === 0) return newest;
+  return (a, b) => {
+    for (const rule of rules) {
+      const [key, dir] = Object.entries(rule)[0];
+      const diff = (a[key] > b[key]) - (a[key] < b[key]);
+      if (diff) return dir === 'desc' ? -diff : diff;
+    }
+    return 0;
+  };
+}
+
 function notFound() {
   return Object.assign(new Error('Record not found'), { code: 'P2025' });
 }
@@ -124,10 +137,10 @@ const fakeDb = {
   },
   photo: {
     findUnique: async ({ where, ...options }) => shape(findPhoto(where), options),
-    findMany: async ({ where, include, skip = 0, take = photos.length } = {}) =>
+    findMany: async ({ where, include, orderBy, skip = 0, take = photos.length } = {}) =>
       photos
         .filter((photo) => matches(photo, where))
-        .sort(newest)
+        .sort(byOrder(orderBy))
         .slice(skip, skip + take)
         .map((photo) => withInclude(photo, include)),
     count: async ({ where } = {}) => photos.filter((photo) => matches(photo, where)).length,
