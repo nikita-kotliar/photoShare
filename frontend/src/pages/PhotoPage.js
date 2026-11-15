@@ -4,7 +4,8 @@ import { photosApi } from '../api/photos.js';
 import { Button, setButtonLoading } from '../components/Button.js';
 import { Icon } from '../components/icons.js';
 import { isStaff } from '../components/navigation.js';
-import { canManagePhoto, formatPhotoDate, plural, Stars } from '../components/PhotoCard.js';
+import { canManagePhoto, formatPhotoDate } from '../components/PhotoCard.js';
+import { Rating } from '../components/Rating.js';
 import { TagList } from '../components/Tag.js';
 import { pushToast } from '../store/index.js';
 import { bindForm } from '../validation/form.js';
@@ -604,7 +605,7 @@ function CommentsSection(photo, user) {
 
 // ====== Інформація про світлину ======
 
-function PhotoMeta(photo, { canManage, onQr, onSave }) {
+function PhotoMeta(photo, { user, canManage, onQr, onSave }) {
   const meta = el('div', 'photo-page__meta');
 
   const authorRow = el('div', 'photo-page__row');
@@ -627,16 +628,8 @@ function PhotoMeta(photo, { canManage, onQr, onSave }) {
     description,
     iconButton('photo-icon photo-icon--qr', 'qr', 'Показати QR-код', onQr),
   );
-  const count = photo.ratingsCount ?? 0;
-  const rating = el('p', 'photo-page__rating');
-  rating.append(
-    Stars(photo.averageRating),
-    el(
-      'span',
-      'photo-page__rating-text',
-      `${photo.averageRating ?? '-'} (${count} ${plural(count, ['оцінка', 'оцінки', 'оцінок'])})`,
-    ),
-  );
+  const rating = el('div', 'photo-page__rating');
+  rating.append(Rating(photo, { user, textClass: 'photo-page__rating-text' }));
   titleRow.append(heading, rating);
 
   meta.append(authorRow, titleRow, TagList(photo.tags ?? []));
@@ -689,6 +682,7 @@ export function PhotoView(photo, { user, navigate } = {}) {
 
   function createMeta(current) {
     const node = PhotoMeta(current, {
+      user,
       canManage,
       onQr: () => qr.reveal(),
       onSave: async (description) => {

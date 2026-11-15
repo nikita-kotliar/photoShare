@@ -1,0 +1,70 @@
+.rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.rating__stars {
+  display: inline-flex;
+  gap: 0.125rem;
+}
+
+.rating__star {
+  position: relative;
+  display: inline-flex;
+  color: #7785a3;
+}
+
+.rating__star-fill {
+  position: absolute;
+  inset: 0;
+  display: inline-flex;
+  color: var(--color-title);
+  clip-path: inset(0 calc(100% - var(--fill, 0%)) 0 0);
+}
+
+.rating--owner .rating__stars,
+.rating--guest .rating__stars {
+  cursor: default;
+}
+
+/* Вибір оцінки */
+.rating__stars--input {
+  gap: 0;
+}
+
+.rating__button {
+  display: inline-grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.rating__button:disabled {
+  cursor: progress;
+  opacity: 0.6;
+}
+
+.rating__button:focus-visible {
+  outline: 2px solid var(--color-link);
+  outline-offset: -2px;
+}
+
+.rating__stars--preview .rating__star-fill {
+  clip-path: inset(0 100% 0 0);
+}
+
+.rating__stars--preview .rating__button--on .rating__star {
+  color: var(--color-hover);
+}
+
+.rating__button:active .rating__star {
+  color: var(--color-pressed);
+}
