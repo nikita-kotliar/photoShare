@@ -85,11 +85,18 @@
 }
 
 .welcome__contact a {
+  position: relative;
   color: inherit;
   overflow-wrap: anywhere;
   text-decoration: none;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+}
+
+.welcome__contact a::after {
+  content: '';
+  position: absolute;
+  inset: -0.5rem -0.25rem;
 }
 
 .welcome__contact a:active {

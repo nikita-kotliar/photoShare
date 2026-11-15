@@ -37,10 +37,18 @@
 
 .footer__link,
 .footer__phone {
+  position: relative;
   color: inherit;
   text-decoration: none;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+}
+
+.footer__link::after,
+.footer__phone::after {
+  content: '';
+  position: absolute;
+  inset: -0.5rem -0.25rem;
 }
 
 .footer__link:active,
@@ -74,6 +82,7 @@
 }
 
 .footer__social {
+  position: relative;
   display: grid;
   place-items: center;
   width: 1.5625rem;
@@ -83,6 +92,12 @@
   color: inherit;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+}
+
+.footer__social::after {
+  content: '';
+  position: absolute;
+  inset: -0.625rem;
 }
 
 .footer__copyright {
