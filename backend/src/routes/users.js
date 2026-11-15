@@ -2,7 +2,7 @@ const { Router } = require('express');
 const authController = require('../controllers/authController');
 const controller = require('../controllers/usersController');
 const validate = require('../middleware/validate');
-const { authenticate } = require('../middleware/auth');
+const { authenticate, optionalAuthenticate } = require('../middleware/auth');
 const { registerSchema } = require('../validators/auth');
 const { usernameParamsSchema, updateMeSchema } = require('../validators/users');
 const { paginationSchema } = require('../validators/common');
@@ -18,6 +18,7 @@ router.put('/me', authenticate, validate(updateMeSchema), controller.updateMe);
 router.get('/:username', validate(usernameParamsSchema, 'params'), controller.getProfile);
 router.get(
   '/:username/photos',
+  optionalAuthenticate,
   validate(usernameParamsSchema, 'params'),
   validate(paginationSchema, 'query'),
   controller.listPhotos,

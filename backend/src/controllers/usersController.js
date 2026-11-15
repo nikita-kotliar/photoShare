@@ -1,6 +1,7 @@
 const usersService = require('../services/usersService');
-const { toPublicUser, toProfile, toPhoto } = require('../utils/serializers');
+const { toPublicUser, toProfile } = require('../utils/serializers');
 const { toPage } = require('../utils/pagination');
+const { withRatings } = require('./photoResponse');
 
 function me(req, res) {
   res.json({ user: toPublicUser(req.user) });
@@ -18,7 +19,7 @@ async function getProfile(req, res) {
 
 async function listPhotos(req, res) {
   const { items, total } = await usersService.listPhotos(req.params.username, req.query);
-  res.json(toPage(items.map(toPhoto), total, req.query));
+  res.json(toPage(await withRatings(items, req.user), total, req.query));
 }
 
 module.exports = { me, updateMe, getProfile, listPhotos };

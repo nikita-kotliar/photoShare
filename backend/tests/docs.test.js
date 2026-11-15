@@ -20,6 +20,9 @@ const routes = [
   ['post', '/photos/{id}/comments', 'auth'],
   ['put', '/comments/{id}', 'auth'],
   ['delete', '/comments/{id}', 'auth'],
+  ['post', '/photos/{id}/ratings', 'auth'],
+  ['get', '/photos/{id}/ratings', 'auth'],
+  ['delete', '/ratings/{id}', 'auth'],
   ['get', '/admin/users', 'auth'],
   ['patch', '/admin/users/{id}/status', 'auth'],
 ];

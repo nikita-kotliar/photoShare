@@ -2,7 +2,7 @@ const { Router } = require('express');
 const controller = require('../controllers/photosController');
 const commentsController = require('../controllers/commentsController');
 const validate = require('../middleware/validate');
-const { authenticate } = require('../middleware/auth');
+const { authenticate, optionalAuthenticate } = require('../middleware/auth');
 const { uploadImage } = require('../middleware/upload');
 const { idParamsSchema, paginationSchema } = require('../validators/common');
 const {
@@ -22,7 +22,12 @@ router.post(
   validate(createPhotoSchema),
   controller.create,
 );
-router.get('/:idOrSlug', validate(idOrSlugParamsSchema, 'params'), controller.getOne);
+router.get(
+  '/:idOrSlug',
+  optionalAuthenticate,
+  validate(idOrSlugParamsSchema, 'params'),
+  controller.getOne,
+);
 router.put(
   '/:id',
   authenticate,
