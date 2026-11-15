@@ -1,4 +1,4 @@
-import { store } from '../store/index.js';
+import { pushToast, store } from '../store/index.js';
 
 const BASE_URL = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
 
@@ -79,8 +79,9 @@ export async function request(method, path, options = {}) {
 
 function toApiError(status, data, keepSession) {
   const err = data?.error;
-  if (status === 401 && !keepSession) {
+  if (status === 401 && !keepSession && store.get().user) {
     store.set({ user: null });
+    pushToast('Сесія завершилась, увійдіть знову', 'info');
   }
   if (status === 413 && !err) {
     return new ApiError(413, 'PAYLOAD_TOO_LARGE', 'Файл завеликий (максимум 10 МБ)');

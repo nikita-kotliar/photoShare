@@ -6,6 +6,7 @@ import { Icon } from '../components/icons.js';
 import { isStaff } from '../components/navigation.js';
 import { canManagePhoto, formatPhotoDate, plural, Stars } from '../components/PhotoCard.js';
 import { TagList } from '../components/Tag.js';
+import { pushToast } from '../store/index.js';
 import { bindForm } from '../validation/form.js';
 import { schemas } from '../validation/index.js';
 import { EFFECTS, transformationsPayload } from './UploadPage.js';
@@ -721,6 +722,7 @@ export function PhotoView(photo, { user, navigate } = {}) {
       toolsError.show('');
       try {
         await photosApi.remove(photo.id);
+        pushToast('Світлину видалено', 'success');
         navigate?.('/home');
       } catch (err) {
         toolsError.show(errorMessage(err, 'Не вдалося видалити світлину'));
