@@ -2,6 +2,7 @@ import './styles/index.css';
 import { mountSprite } from './components/icons.js';
 import { Footer } from './components/Footer.js';
 import { Header } from './components/Header.js';
+import { LoadingBar, Toasts } from './components/Toast.js';
 import { createRouter } from './router/index.js';
 import { routes } from './router/routes.js';
 import { store } from './store/index.js';
@@ -41,6 +42,7 @@ async function bootstrap() {
   const header = Header({ store, navigate: router.navigate });
   document.getElementById('app-header').replaceWith(header);
   document.getElementById('app-footer').replaceWith(Footer({ store }));
+  document.body.append(LoadingBar({ store }), Toasts({ store }));
 
   await router.start();
 }

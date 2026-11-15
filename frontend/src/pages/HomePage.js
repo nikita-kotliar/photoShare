@@ -2,6 +2,7 @@ import '../styles/pages/home.css';
 import { photosApi } from '../api/photos.js';
 import { Button } from '../components/Button.js';
 import { PhotoCard } from '../components/PhotoCard.js';
+import { pushToast } from '../store/index.js';
 
 export const FEED_LIMIT = 12;
 const PRIORITY_CARDS = 3;
@@ -108,9 +109,11 @@ export default function HomePage({ query, navigate, store }) {
     button.disabled = true;
     try {
       await photosApi.remove(photo.id);
+      pushToast('Світлину видалено', 'success');
       load();
     } catch (error) {
-      if (error.name !== 'AbortError') showError(error);
+      button.disabled = false;
+      pushToast(error.message || 'Не вдалося видалити світлину', 'error');
     }
   }
 
