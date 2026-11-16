@@ -71,6 +71,63 @@ paths:
                 properties: { user: { $ref: '#/components/schemas/User' } }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
+    put:
+      tags: [Користувачі]
+      summary: Редагувати свій профіль
+      description: >-
+        Потрібне хоча б одне поле. Роль, статус і пароль тут не змінюються.
+        Після зміни email вхід працює лише з новим, сесія лишається.
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              minProperties: 1
+              properties:
+                name: { type: string, minLength: 1, maxLength: 60, example: Нікіта }
+                username:
+                  {
+                    type: string,
+                    minLength: 3,
+                    maxLength: 30,
+                    pattern: '^[a-zA-Z0-9_.-]+$',
+                    example: nikita,
+                  }
+                email: { type: string, format: email, example: nikita@example.com }
+                bio:
+                  {
+                    type: string,
+                    maxLength: 300,
+                    description: 'Порожній рядок очищає поле',
+                    example: Люблю фотографувати море,
+                  }
+      responses:
+        '200':
+          description: Профіль оновлено
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { user: { $ref: '#/components/schemas/User' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409':
+          description: email або username вже зайняті
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                {
+                  error:
+                    {
+                      code: CONFLICT,
+                      message: Користувач вже існує,
+                      fields: { username: Цей юзернейм вже зайнятий },
+                    },
+                }
+        '422': { $ref: '#/components/responses/ValidationError' }
 
   /sessions:
     post:
