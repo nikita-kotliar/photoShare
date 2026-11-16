@@ -119,23 +119,9 @@
   color: var(--color-text-muted);
 }
 
-.photo-card__stars {
-  display: inline-flex;
-  gap: 0.125rem;
-}
-
-.photo-card__star {
-  position: relative;
-  display: inline-flex;
-  color: #7785a3;
-}
-
-.photo-card__star-fill {
-  position: absolute;
-  inset: 0;
-  display: inline-flex;
-  color: var(--color-title);
-  clip-path: inset(0 calc(100% - var(--fill, 0%)) 0 0);
+.photo-card__row > .rating {
+  flex: 1;
+  justify-content: space-between;
 }
 
 .photo-card__rating {

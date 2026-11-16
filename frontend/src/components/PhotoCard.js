@@ -1,5 +1,6 @@
 import { Button } from './Button.js';
 import { Icon } from './icons.js';
+import { Rating } from './Rating.js';
 import { TagList } from './Tag.js';
 import avatarPlaceholder from '../assets/images/avatar-placeholder.svg';
 import { withBase } from '../router/base.js';
@@ -40,21 +41,6 @@ function el(tag, className, text) {
   if (className) node.className = className;
   if (text !== undefined) node.textContent = text;
   return node;
-}
-
-export function Stars(value) {
-  const list = el('span', 'photo-card__stars');
-  list.setAttribute('aria-hidden', 'true');
-  for (let i = 0; i < 5; i += 1) {
-    const fill = Math.min(Math.max((value ?? 0) - i, 0), 1);
-    const star = el('span', 'photo-card__star');
-    star.style.setProperty('--fill', `${fill * 100}%`);
-    const filled = el('span', 'photo-card__star-fill');
-    filled.append(Icon('starFilled', { size: '1.375rem' }));
-    star.append(Icon('starFilled', { size: '1.375rem' }), filled);
-    list.append(star);
-  }
-  return list;
 }
 
 function metaRow(label, value, valueTag = 'span') {
@@ -107,16 +93,8 @@ export function PhotoCard(
   const heading = el(`h${level}`, 'photo-card__title', title);
 
   // Рейтинг і дати
-  const ratingsCount = photo.ratingsCount ?? 0;
-  const rating = el('p', 'photo-card__row');
-  rating.append(
-    Stars(photo.averageRating),
-    el(
-      'span',
-      'photo-card__rating',
-      `${photo.averageRating ?? '-'} (${ratingsCount} ${plural(ratingsCount, ['оцінка', 'оцінки', 'оцінок'])})`,
-    ),
-  );
+  const rating = el('div', 'photo-card__row');
+  rating.append(Rating(photo, { user, textClass: 'photo-card__rating' }));
 
   const published = metaRow('Опубліковано', formatPhotoDate(photo.createdAt), 'time');
   published.lastChild.dateTime = photo.createdAt ?? '';
