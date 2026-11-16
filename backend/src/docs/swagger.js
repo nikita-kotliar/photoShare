@@ -21,6 +21,7 @@ const spec = swaggerJsdoc({
     servers: [{ url: env.PUBLIC_API_PATH }],
     tags: [
       { name: 'Автентифікація' },
+      { name: 'Користувачі' },
       { name: 'Світлини' },
       { name: 'Трансформації і QR' },
       { name: 'Коментарі' },

@@ -6,6 +6,9 @@ const app = require('../src/app');
 const routes = [
   ['post', '/users', 'public'],
   ['get', '/users/me', 'auth'],
+  ['put', '/users/me', 'auth'],
+  ['get', '/users/{username}', 'public'],
+  ['get', '/users/{username}/photos', 'public'],
   ['post', '/sessions', 'public'],
   ['delete', '/sessions', 'public'],
   ['get', '/health', 'public'],
@@ -84,8 +87,17 @@ describe('GET /api/docs.json', () => {
 
   test('кожен описаний ендпоінт існує в застосунку', async () => {
     for (const [method, path] of routes) {
-      const res = await request(app)[method](`/api${path.replace('{id}', '1')}`);
+      const url = path.replace('{id}', '1').replace('{username}', 'nobody');
+      const res = await request(app)[method](`/api${url}`);
       expect(res.body?.error?.message).not.toBe('Ресурс не знайдено');
+    }
+  });
+
+  test('кожен тег ендпоінта оголошено в списку тегів', async () => {
+    const spec = await getSpec();
+    const declared = spec.tags.map((tag) => tag.name);
+    for (const [method, path] of routes) {
+      expect(declared).toContain(spec.paths[path][method].tags[0]);
     }
   });
 

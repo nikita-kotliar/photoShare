@@ -1,0 +1,37 @@
+paths:
+  /users/{username}:
+    get:
+      tags: [Користувачі]
+      summary: Публічний профіль
+      parameters:
+        - $ref: '#/components/parameters/Username'
+      responses:
+        '200':
+          description: Профіль користувача
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { user: { $ref: '#/components/schemas/Profile' } }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /users/{username}/photos:
+    get:
+      tags: [Користувачі]
+      summary: Світлини користувача
+      description: >-
+        Нові першими. Доступно без входу; з валідною сесією у світлинах
+        заповнено myRating.
+      parameters:
+        - $ref: '#/components/parameters/Username'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Сторінка світлин
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PhotoPage' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
