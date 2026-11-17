@@ -8,6 +8,11 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+/* Атрибут hidden ховає елемент, навіть якщо його клас задає display (.btn, .field тощо) */
+[hidden] {
+  display: none !important;
+}
+
 body {
   margin: 0;
   font-family: var(--font-main);

@@ -1,8 +1,9 @@
 import '../styles/pages/home.css';
 import '../styles/pages/admin.css';
 import { adminApi } from '../api/admin.js';
-import { Button, setButtonLoading } from '../components/Button.js';
+import { Button } from '../components/Button.js';
 import { Calendar } from '../components/Calendar.js';
+import { ConfirmDialog } from '../components/ConfirmDialog.js';
 import { Dropdown } from '../components/Dropdown.js';
 import { Icon } from '../components/icons.js';
 import { SearchInput } from '../components/SearchInput.js';
@@ -134,61 +135,6 @@ function Skeleton() {
   item.setAttribute('aria-hidden', 'true');
   item.append(el('span', 'user-row__avatar'), el('span', 'user-row__line'));
   return item;
-}
-
-// Підтвердження бану і розбану. Повертає dialog з методом ask(user, action) -> Promise<boolean>
-function ConfirmDialog() {
-  const dialog = el('dialog', 'admin-dialog');
-  dialog.setAttribute('aria-labelledby', 'admin-dialog-title');
-  dialog.setAttribute('aria-describedby', 'admin-dialog-text');
-
-  const close = el('button', 'admin-dialog__close');
-  close.type = 'button';
-  close.setAttribute('aria-label', 'Закрити');
-  close.append(Icon('close', { size: '1rem' }));
-  const title = el('h2', 'admin-dialog__title');
-  title.id = 'admin-dialog-title';
-  const text = el('p', 'admin-dialog__text');
-  text.id = 'admin-dialog-text';
-  const actions = el('div', 'admin-dialog__actions');
-  dialog.append(close, title, text, actions);
-
-  let pending = null;
-  close.addEventListener('click', () => dialog.close('cancel'));
-  dialog.addEventListener('close', () => {
-    pending?.(dialog.returnValue === 'confirm');
-    pending = null;
-  });
-
-  function ask(user, action, run) {
-    const copy = confirmText(user, action);
-    title.textContent = copy.title;
-    text.textContent = copy.text;
-    const cancel = Button({ text: 'Скасувати', variant: 'secondary', size: 'xs' });
-    cancel.addEventListener('click', () => dialog.close('cancel'));
-    const confirm = Button({
-      text: copy.button,
-      variant: action === 'ban' ? 'danger' : 'primary',
-      size: 'xs',
-    });
-    confirm.addEventListener('click', async () => {
-      setButtonLoading(confirm, true);
-      cancel.disabled = true;
-      const ok = await run();
-      setButtonLoading(confirm, false);
-      cancel.disabled = false;
-      if (ok) dialog.close('confirm');
-    });
-    actions.replaceChildren(cancel, confirm);
-    dialog.returnValue = '';
-    dialog.showModal();
-    cancel.focus();
-    return new Promise((resolve) => {
-      pending = resolve;
-    });
-  }
-
-  return Object.assign(dialog, { ask });
 }
 
 export default function AdminPage({ query, store }) {
@@ -458,24 +404,34 @@ export default function AdminPage({ query, store }) {
   }
 
   // Бан і розбан після підтвердження. Список оновлюється на місці, без перезавантаження
-  function onAction(user, action) {
-    dialog.ask(user, action, async () => {
-      try {
-        const updated = await adminApi.setStatus(user.id, action === 'unban');
-        items = replaceUser(items, updated);
-        const index = items.findIndex((item) => item.id === updated.id);
-        const old = list.querySelector(`[data-user-id="${updated.id}"]`);
-        old?.destroy?.();
-        const row = UserRow(items[index], { viewer: store.get().user, onAction });
-        old?.replaceWith(row);
-        pushToast(confirmText(user, action).done, 'success');
-        row.querySelector('.user-row__name')?.focus();
+  async function onAction(user, action) {
+    const copy = confirmText(user, action);
+    let row = null;
+    await dialog.ask({
+      title: copy.title,
+      text: copy.text,
+      confirm: copy.button,
+      variant: action === 'ban' ? 'danger' : 'primary',
+      run: async () => {
+        try {
+          const updated = await adminApi.setStatus(user.id, action === 'unban');
+          items = replaceUser(items, updated);
+          const old = list.querySelector(`[data-user-id="${updated.id}"]`);
+          old?.destroy?.();
+          row = UserRow(
+            items.find((item) => item.id === updated.id),
+            { viewer: store.get().user, onAction },
+          );
+          old?.replaceWith(row);
+          pushToast(copy.done, 'success');
+        } catch (error) {
+          pushToast(error.message || 'Не вдалося змінити статус', 'error');
+        }
         return true;
-      } catch (error) {
-        pushToast(error.message || 'Не вдалося змінити статус', 'error');
-        return true;
-      }
+      },
     });
+    // Кнопка, що відкрила діалог, замінена новим рядком: фокус на ім'я в ньому
+    row?.querySelector('.user-row__name')?.focus();
   }
 
   syncControls();
