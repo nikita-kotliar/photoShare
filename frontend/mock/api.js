@@ -618,7 +618,15 @@ export function createMockApi({ now = Date.now() } = {}) {
     if (role) list = list.filter((u) => u.role === role);
     if (from) list = list.filter((u) => u.createdAt.slice(0, 10) >= from);
     if (to) list = list.filter((u) => u.createdAt.slice(0, 10) <= to);
-    list.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    // Як у бекенді: sort=name - А-Я (order=desc - Я-А), sort=date - нові першими (order=asc - старіші)
+    const byName = ctx.query.get('sort') === 'name';
+    const order = ctx.query.get('order') || (byName ? 'asc' : 'desc');
+    const dir = order === 'asc' ? 1 : -1;
+    list.sort((a, b) =>
+      byName
+        ? a.name.localeCompare(b.name, 'uk') * dir || (a.id - b.id) * dir
+        : a.createdAt.localeCompare(b.createdAt) * dir,
+    );
     return { body: paginate(list.map(serializeUser), ctx.query) };
   });
 

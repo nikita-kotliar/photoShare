@@ -13,6 +13,9 @@ const usersQuerySchema = paginationSchema
     role: z
       .enum(['USER', 'MODERATOR', 'ADMIN'], { error: 'Роль може бути USER, MODERATOR або ADMIN' })
       .optional(),
+    // А-Я, Я-А або за датою реєстрації (за замовчуванням нові першими)
+    sort: z.enum(['date', 'name'], { error: 'Сортування: date або name' }).default('date'),
+    order: z.enum(['asc', 'desc'], { error: 'Порядок: asc або desc' }).optional(),
     registeredFrom: date.optional(),
     registeredTo: date.optional(),
   })

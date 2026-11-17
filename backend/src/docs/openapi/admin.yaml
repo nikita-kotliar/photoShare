@@ -13,6 +13,14 @@ paths:
         - name: role
           in: query
           schema: { $ref: '#/components/schemas/Role' }
+        - name: sort
+          in: query
+          description: date - за датою реєстрації, name - за іменем
+          schema: { type: string, enum: [date, name], default: date }
+        - name: order
+          in: query
+          description: За замовчуванням desc для date (нові першими) і asc для name (А-Я)
+          schema: { type: string, enum: [asc, desc] }
         - name: registeredFrom
           in: query
           schema: { type: string, format: date, example: '2026-10-01' }
