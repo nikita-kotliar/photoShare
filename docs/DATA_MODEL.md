@@ -216,6 +216,7 @@ UQ `(photo_id, user_id)`: одна оцінка на користувача, п�
 | `photo_tags(tag_id, photo_id)` | фільтр `tag`: від тега до світлин (PK покриває лише напрямок від світлини до тегів) |
 | `comments(photo_id, created_at DESC, id DESC)` | список коментарів світлини зі сторінками, лічильник `commentsCount` |
 | `comments(author_id)` | зовнішній ключ на `users`: швидка перевірка зв'язків і вибірка коментарів автора |
+| `ratings(photo_id, value)` | фільтр `ratingMin` і `sort=rating`: `AVG(value)` по світлинах читається лише з індексу (міграція TASK-043) |
 | `ratings(user_id)` | `myRating` і вибірка оцінок користувача (пошук за `photo_id` покриває UQ) |
 | `transformed_links(photo_id)` | `GET /api/photos/:id/links` |
 | `token_blacklist(expires_at)` | чистка прострочених токенів |
@@ -225,7 +226,7 @@ UQ `(photo_id, user_id)`: одна оцінка на користувача, п�
 
 Prisma не вміє описати GIN з `gin_trgm_ops` у схемі, тому ці індекси і розширення додаються вручну в SQL міграції TASK-009 (`prisma migrate dev --create-only`, потім правимо `migration.sql`). Решту індексів описуємо через `@@index`.
 
-Фільтр `ratingMin` і сортування `sort=rating` працюють через `GROUP BY photo_id` + `AVG(value)` по `ratings`. Для навчального обсягу цього досить, окремого стовпця з кешем середнього не заводимо.
+Фільтр `ratingMin` і сортування `sort=rating` працюють через `GROUP BY photo_id` + `AVG(value)` по `ratings` (на 300 тис. оцінок близько 0.3 с). Для навчального обсягу цього досить, окремого стовпця з кешем середнього не заводимо.
 
 ## Покриття вимог ТЗ
 
