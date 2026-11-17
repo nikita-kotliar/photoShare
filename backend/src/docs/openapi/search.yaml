@@ -1,0 +1,43 @@
+paths:
+  /search/photos:
+    get:
+      tags: [Пошук]
+      summary: Пошук світлин
+      description: >-
+        Фільтри поєднуються через «і». `q` шукає підрядок в описі або в назві тега без
+        урахування регістру (`%` і `_` - звичайні символи). `tag` - точний збіг тега.
+        `ratingMin` порівнюється з округленим до одного знака середнім, яке є у відповіді.
+        Дати за UTC, обидва дні включно. `sort=rating`: світлини без оцінок завжди в кінці,
+        при рівному середньому вище та, у якої більше оцінок. `username` доступний лише
+        MODERATOR і ADMIN, звичайному користувачу 403 (D-47).
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { name: q, in: query, schema: { type: string, maxLength: 100 }, example: море }
+        - { name: tag, in: query, schema: { type: string, maxLength: 30 }, example: sea }
+        - name: sort
+          in: query
+          schema: { type: string, enum: [date, rating], default: date }
+        - name: order
+          in: query
+          schema: { type: string, enum: [asc, desc], default: desc }
+        - name: ratingMin
+          in: query
+          schema: { type: number, minimum: 1, maximum: 5 }
+          example: 4
+        - { name: dateFrom, in: query, schema: { type: string, format: date } }
+        - { name: dateTo, in: query, schema: { type: string, format: date } }
+        - name: username
+          in: query
+          description: Автор світлин, лише MODERATOR і ADMIN
+          schema: { type: string, maxLength: 30 }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Сторінка знайдених світлин
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PhotoPage' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/ValidationError' }
