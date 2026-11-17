@@ -77,12 +77,8 @@ function findPhoto(where) {
   return findIn(photos, where);
 }
 
+// where: рівність полів або { in: [...] }
 function matches(record, where = {}) {
-  return Object.entries(where).every(([key, value]) => record[key] === value);
-}
-
-// where для оцінок: рівність полів або { in: [...] }
-function matchesRating(record, where = {}) {
   return Object.entries(where).every(([key, value]) =>
     value && typeof value === 'object' && Array.isArray(value.in)
       ? value.in.includes(record[key])
@@ -224,11 +220,11 @@ const fakeDb = {
     },
     findMany: async ({ where = {}, include, select, skip = 0, take = ratings.length } = {}) =>
       ratings
-        .filter((r) => matchesRating(r, where))
+        .filter((r) => matches(r, where))
         .sort(newest)
         .slice(skip, skip + take)
         .map((r) => shape(r, { include, select })),
-    count: async ({ where = {} } = {}) => ratings.filter((r) => matchesRating(r, where)).length,
+    count: async ({ where = {} } = {}) => ratings.filter((r) => matches(r, where)).length,
     create: async ({ data, include }) => {
       // Як UQ (photo_id, user_id) у PostgreSQL
       if (ratings.some((r) => r.photoId === data.photoId && r.userId === data.userId)) {
@@ -250,7 +246,7 @@ const fakeDb = {
     // Лише те, що використовує ratingsService: by photoId, _avg.value, _count._all
     groupBy: async ({ where = {} }) => {
       const groups = new Map();
-      for (const r of ratings.filter((item) => matchesRating(item, where))) {
+      for (const r of ratings.filter((item) => matches(item, where))) {
         if (!groups.has(r.photoId)) groups.set(r.photoId, []);
         groups.get(r.photoId).push(r.value);
       }
@@ -297,6 +293,11 @@ const fakeDb = {
       }
       return { count: data.length };
     },
+  },
+  // SQL фейкова БД не виконує: пошук перевіряється на PostgreSQL у search.db.test.js,
+  // а в search.test.js цей метод підміняється через jest.spyOn
+  $queryRaw: async () => {
+    throw new Error('fakeDb не виконує SQL');
   },
   // Інтерактивна транзакція: у тестах відкату немає, виконуємо одразу
   $transaction: async (callback) => callback(fakeDb),

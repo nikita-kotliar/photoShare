@@ -8,6 +8,20 @@ on:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    # Тести пошуку (search.db.test.js) виконують SQL на справжньому PostgreSQL
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U test -d test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     defaults:
       run:
         working-directory: backend
@@ -21,9 +35,13 @@ jobs:
       - run: npm ci
       - run: npx prisma generate
       - run: npm run lint
+      - run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
       - run: npm run test:coverage
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test
+          TEST_DATABASE_URL: postgresql://test:test@localhost:5432/test
           JWT_SECRET: ci-secret-ci-secret-ci-secret
 
   frontend:
