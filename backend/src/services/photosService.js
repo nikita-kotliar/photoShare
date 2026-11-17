@@ -105,4 +105,4 @@ async function remove(id, user) {
   });
 }
 
-module.exports = { findManageable, listFeed, getByIdOrSlug, create, update, remove };
+module.exports = { photoInclude, findManageable, listFeed, getByIdOrSlug, create, update, remove };

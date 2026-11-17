@@ -6,6 +6,7 @@ const comments = require('./comments');
 const links = require('./links');
 const { photoRatings, ratings } = require('./ratings');
 const admin = require('./admin');
+const search = require('./search');
 const docs = require('../docs/swagger');
 
 const router = Router();
@@ -21,6 +22,7 @@ router.use('/photos/:id/ratings', photoRatings);
 router.use('/photos', photos);
 router.use('/comments', comments);
 router.use('/ratings', ratings);
+router.use('/search', search);
 router.use('/admin', admin);
 
 module.exports = router;

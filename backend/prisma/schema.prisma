@@ -124,6 +124,7 @@ model Rating {
 
   @@unique([photoId, userId])
   @@index([userId])
+  @@index([photoId, value])
   @@map("ratings")
 }
 
