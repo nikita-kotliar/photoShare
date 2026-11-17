@@ -1,0 +1,100 @@
+/* Календар */
+.calendar {
+  color: var(--color-primary);
+}
+
+.calendar__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.calendar__title {
+  font-size: 0.875rem;
+  font-weight: var(--fw-medium);
+}
+
+.calendar__nav {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: transparent;
+  color: var(--color-primary);
+  cursor: pointer;
+}
+
+.calendar__nav:hover {
+  background: var(--color-white);
+}
+
+.calendar__grid {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0.125rem;
+  font-size: 0.6875rem;
+  text-align: center;
+}
+
+.calendar__grid th {
+  padding-bottom: 0.25rem;
+  color: var(--color-text-muted);
+  font-weight: var(--fw-regular);
+}
+
+.calendar__grid th.calendar__weekend {
+  color: var(--color-info);
+}
+
+td.calendar__week {
+  border-radius: var(--radius-s);
+  background: #6f7fa3;
+  color: var(--color-white);
+}
+
+.calendar__day {
+  width: 100%;
+  min-width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: transparent;
+  color: var(--color-title);
+  font-size: inherit;
+  cursor: pointer;
+}
+
+.calendar__day--weekend {
+  color: var(--color-info);
+}
+
+.calendar__day--outside {
+  color: var(--color-disabled);
+}
+
+.calendar__day:hover {
+  background: var(--color-white);
+  color: var(--color-hover);
+}
+
+.calendar__day--selected {
+  background: rgb(22 84 215 / 15%);
+}
+
+.calendar__day--edge,
+.calendar__day--edge:hover {
+  background: var(--color-primary);
+  color: var(--color-white);
+}
+
+.calendar__day:focus-visible,
+.calendar__nav:focus-visible {
+  outline: 2px solid var(--color-hover);
+  outline-offset: 1px;
+}
+
+/* Планшет: картки у дві колонки */

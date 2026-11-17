@@ -1,3 +1,4 @@
+import '../styles/components/calendar.css';
 import { Icon } from './icons.js';
 
 export const MONTHS = [
