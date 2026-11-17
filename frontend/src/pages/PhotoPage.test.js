@@ -1,12 +1,48 @@
 import { describe, expect, it } from 'vitest';
 import {
+  canModerateRatings,
   commentPermissions,
+  deleteCommentCopy,
+  deleteRatingCopy,
   errorMessage,
   formatCommentDate,
   mergeComments,
   photoPermissions,
+  ratingsCountText,
   transformationsLabel,
 } from './PhotoPage.js';
+
+describe('модерація оцінок і коментарів', () => {
+  it('оцінки переглядають і видаляють лише MODERATOR і ADMIN', () => {
+    expect(canModerateRatings({ id: 1, role: 'MODERATOR' })).toBe(true);
+    expect(canModerateRatings({ id: 1, role: 'ADMIN' })).toBe(true);
+    expect(canModerateRatings({ id: 1, role: 'USER' })).toBe(false);
+    expect(canModerateRatings(null)).toBe(false);
+  });
+
+  it('коментар видаляють лише MODERATOR і ADMIN, навіть не автор', () => {
+    const comment = { author: { id: 3 } };
+    expect(commentPermissions({ id: 3, role: 'USER' }, comment).canDelete).toBe(false);
+    expect(commentPermissions({ id: 9, role: 'MODERATOR' }, comment).canDelete).toBe(true);
+  });
+
+  it('кількість оцінок з відмінюванням', () => {
+    expect(ratingsCountText(1)).toBe('1 оцінка');
+    expect(ratingsCountText(3)).toBe('3 оцінки');
+    expect(ratingsCountText(12)).toBe('12 оцінок');
+  });
+
+  it('тексти підтвердження називають автора і оцінку', () => {
+    expect(deleteCommentCopy({ author: { name: 'Марина К.' } })).toMatchObject({
+      title: 'Видалити коментар?',
+      text: 'Коментар користувача Марина К. буде видалено назавжди.',
+    });
+    const copy = deleteRatingCopy({ value: 4, user: { username: 'ivan' } });
+    expect(copy.title).toBe('Видалити оцінку?');
+    expect(copy.text).toContain('Оцінку 4 з 5 користувача ivan');
+    expect(deleteCommentCopy({}).text).toContain('користувача');
+  });
+});
 
 describe('formatCommentDate', () => {
   const now = new Date(2026, 10, 8, 12, 0);

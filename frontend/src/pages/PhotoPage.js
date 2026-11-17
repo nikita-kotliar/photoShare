@@ -1,11 +1,13 @@
 import '../styles/pages/photo.css';
 import { commentsApi } from '../api/comments.js';
 import { photosApi } from '../api/photos.js';
+import { ratingsApi } from '../api/ratings.js';
 import { Button, setButtonLoading } from '../components/Button.js';
+import { ConfirmDialog } from '../components/ConfirmDialog.js';
 import { Icon } from '../components/icons.js';
 import { isStaff } from '../components/navigation.js';
 import { canManagePhoto, formatPhotoDate } from '../components/PhotoCard.js';
-import { Rating } from '../components/Rating.js';
+import { MAX_RATING, pluralRatings, Rating } from '../components/Rating.js';
 import { TagList } from '../components/Tag.js';
 import { pushToast } from '../store/index.js';
 import { bindForm } from '../validation/form.js';
@@ -16,6 +18,7 @@ import { withBase } from '../router/base.js';
 
 const IMAGE_SIZE = 636;
 const COMMENTS_LIMIT = 20;
+export const RATINGS_LIMIT = 10;
 const CONFIRM_LABEL = 'Точно видалити?';
 const CONFIRM_TIMEOUT = 4000;
 export const ANGLES = [0, 90, 180, 270];
@@ -113,10 +116,39 @@ export function transformationsLabel(transformations = {}) {
   return parts.join(' · ') || 'Оригінал';
 }
 
-// Об'єднує сторінки коментарів без дублікатів: після додавання чи видалення зсуваються offset-и
+// Об'єднує сторінки без дублікатів: після додавання чи видалення зсуваються offset-и
 export function mergeComments(current, incoming) {
   const seen = new Set(current.map((c) => c.id));
   return [...current, ...incoming.filter((c) => !seen.has(c.id))];
+}
+
+// Переглядати і видаляти оцінки можуть лише MODERATOR і ADMIN (як на бекенді)
+export function canModerateRatings(user) {
+  return isStaff(user);
+}
+
+export function ratingsCountText(total) {
+  return `${total} ${pluralRatings(total)}`;
+}
+
+function personName(person) {
+  return person?.name || person?.username || 'користувача';
+}
+
+export function deleteCommentCopy(comment) {
+  return {
+    title: 'Видалити коментар?',
+    text: `Коментар користувача ${personName(comment.author)} буде видалено назавжди.`,
+    confirm: 'Видалити',
+  };
+}
+
+export function deleteRatingCopy(rating) {
+  return {
+    title: 'Видалити оцінку?',
+    text: `Оцінку ${rating.value} з ${MAX_RATING} користувача ${personName(rating.user)} буде видалено, а середній рейтинг перераховано. Користувач зможе оцінити світлину знову.`,
+    confirm: 'Видалити',
+  };
 }
 
 // Видалення в два кліки: перший просить підтвердження, другий виконує дію
@@ -411,7 +443,6 @@ export function CommentItem(comment, { canEdit, canDelete, onSave, onDelete } = 
   head.append(author, created);
 
   const text = el('p', 'comment__text', comment.text);
-  const error = alertLine();
 
   if (canEdit || canDelete) {
     const actions = el('div', 'comment__actions');
@@ -435,21 +466,13 @@ export function CommentItem(comment, { canEdit, canDelete, onSave, onDelete } = 
       actions.append(edit);
     }
     if (canDelete) {
-      const remove = iconButton('photo-icon', 'trash', 'Видалити коментар');
-      confirmDelete(remove, 'Видалити коментар', async () => {
-        error.show('');
-        try {
-          await onDelete();
-        } catch (err) {
-          error.show(errorMessage(err, 'Не вдалося видалити коментар'));
-        }
-      });
-      actions.append(remove);
+      // Підтвердження і результат показує onDelete (діалог і toast)
+      actions.append(iconButton('photo-icon', 'trash', 'Видалити коментар', () => onDelete()));
     }
     head.append(actions);
   }
 
-  item.append(head, text, error);
+  item.append(head, text);
   if (comment.updatedAt && comment.updatedAt !== comment.createdAt) {
     const updated = el('p', 'comment__updated');
     const time2 = el('time', '', formatCommentDate(comment.updatedAt));
@@ -502,7 +525,7 @@ export function CommentForm({ onSubmit } = {}) {
   return form;
 }
 
-function CommentsSection(photo, user) {
+function CommentsSection(photo, user, confirm) {
   const section = el('section', 'photo-page__comments');
   section.setAttribute('aria-label', 'Коментарі');
   const list = el('ul', 'comment-list');
@@ -510,6 +533,7 @@ function CommentsSection(photo, user) {
   list.setAttribute('aria-busy', 'true');
   const status = el('p', 'comment-list__status', 'Завантаження коментарів…');
   status.setAttribute('role', 'status');
+  status.tabIndex = -1;
   const more = Button({ text: 'Показати ще', variant: 'secondary', size: 'xxs' });
   more.classList.add('comment-list__more');
   more.hidden = true;
@@ -533,11 +557,25 @@ function CommentsSection(photo, user) {
         list.querySelector(`[data-id="${updated.id}"] .photo-icon`)?.focus();
       },
       onDelete: async () => {
-        await commentsApi.remove(comment.id);
-        comments = comments.filter((c) => c.id !== comment.id);
-        total = Math.max(0, total - 1);
-        node.remove();
-        renderMeta();
+        const next = node.nextElementSibling ?? node.previousElementSibling;
+        await confirm.ask({
+          ...deleteCommentCopy(comment),
+          run: async () => {
+            try {
+              await commentsApi.remove(comment.id);
+              comments = comments.filter((c) => c.id !== comment.id);
+              total = Math.max(0, total - 1);
+              node.remove();
+              renderMeta();
+              pushToast('Коментар видалено', 'success');
+            } catch (err) {
+              pushToast(errorMessage(err, 'Не вдалося видалити коментар'), 'error');
+            }
+            return true;
+          },
+        });
+        // Видалений коментар зник разом з кнопкою: фокус на сусідній або на статус
+        if (!node.isConnected) (next?.querySelector('.photo-icon') ?? status).focus();
       },
     });
     return node;
@@ -603,9 +641,133 @@ function CommentsSection(photo, user) {
   return section;
 }
 
+// ====== Оцінки (модерація) ======
+
+function RatingItem(rating, { onDelete }) {
+  const item = el('li', 'rating-item');
+  item.dataset.id = rating.id;
+  const who = el('a', 'rating-item__user');
+  who.href = withBase(`/users/${encodeURIComponent(rating.user?.username ?? '')}`);
+  who.append(
+    avatar(rating.user, 36, 'rating-item__avatar'),
+    el('span', '', personName(rating.user)),
+  );
+
+  const value = el('p', 'rating-item__value');
+  value.setAttribute('role', 'img');
+  value.setAttribute('aria-label', `Оцінка ${rating.value} з ${MAX_RATING}`);
+  for (let i = 1; i <= MAX_RATING; i += 1) {
+    const star = Icon(i <= rating.value ? 'starFilled' : 'star', { size: '0.875rem' });
+    if (i <= rating.value) star.classList.add('rating-item__star--on');
+    value.append(star);
+  }
+  const date = el('time', 'rating-item__date', formatCommentDate(rating.createdAt));
+  date.dateTime = rating.createdAt ?? '';
+
+  const remove = iconButton(
+    'photo-icon rating-item__delete',
+    'trash',
+    `Видалити оцінку ${personName(rating.user)}`,
+    onDelete,
+  );
+  item.append(who, value, date, remove);
+  return item;
+}
+
+// Список оцінок світлини для MODERATOR і ADMIN: хто і скільки поставив, видалення з підтвердженням
+export function RatingsDialog(photo, { confirm, onChange } = {}) {
+  const dialog = el('dialog', 'qr-dialog ratings-dialog');
+  dialog.setAttribute('aria-labelledby', 'ratings-dialog-title');
+  const close = iconButton('qr-dialog__close', 'close', 'Закрити', () => dialog.close());
+  const title = el('h2', 'qr-dialog__title', 'Оцінки світлини');
+  title.id = 'ratings-dialog-title';
+  const summary = el('p', 'ratings-dialog__summary');
+  summary.setAttribute('role', 'status');
+  summary.tabIndex = -1;
+  const list = el('ul', 'ratings-dialog__list');
+  list.setAttribute('role', 'list');
+  const more = Button({ text: 'Показати ще', variant: 'secondary', size: 'xxs' });
+  more.classList.add('comment-list__more');
+  more.hidden = true;
+  const retry = Button({ text: 'Спробувати ще', variant: 'secondary', size: 'xxs' });
+  retry.classList.add('comment-list__more');
+  retry.hidden = true;
+  dialog.append(close, title, summary, list, retry, more);
+
+  let items = [];
+  let total = 0;
+  let page = 0;
+  let loaded = false;
+
+  function renderSummary() {
+    summary.textContent = total ? ratingsCountText(total) : 'Оцінок поки немає';
+    more.hidden = items.length >= total;
+  }
+
+  function item(rating) {
+    const node = RatingItem(rating, {
+      onDelete: async () => {
+        const next = node.nextElementSibling ?? node.previousElementSibling;
+        await confirm.ask({
+          ...deleteRatingCopy(rating),
+          run: async () => {
+            try {
+              await ratingsApi.remove(rating.id);
+              items = items.filter((r) => r.id !== rating.id);
+              total = Math.max(0, total - 1);
+              node.remove();
+              renderSummary();
+              pushToast('Оцінку видалено', 'success');
+              onChange?.();
+            } catch (err) {
+              pushToast(errorMessage(err, 'Не вдалося видалити оцінку'), 'error');
+            }
+            return true;
+          },
+        });
+        if (!node.isConnected) (next?.querySelector('.rating-item__delete') ?? summary).focus();
+      },
+    });
+    return node;
+  }
+
+  async function loadPage() {
+    setButtonLoading(more, true, 'Завантаження…');
+    retry.hidden = true;
+    if (!items.length) summary.textContent = 'Завантаження оцінок…';
+    try {
+      const data = await ratingsApi.list(photo.id, { page: page + 1, limit: RATINGS_LIMIT });
+      page += 1;
+      loaded = true;
+      total = data.total ?? data.items.length;
+      const fresh = mergeComments(items, data.items).slice(items.length);
+      items = [...items, ...fresh];
+      list.append(...fresh.map(item));
+      renderSummary();
+    } catch (err) {
+      summary.textContent = errorMessage(err, 'Не вдалося завантажити оцінки');
+      retry.hidden = false;
+    } finally {
+      setButtonLoading(more, false);
+    }
+  }
+
+  more.addEventListener('click', loadPage);
+  retry.addEventListener('click', loadPage);
+  dialog.addEventListener('click', (event) => {
+    if (event.target === dialog) dialog.close();
+  });
+
+  dialog.reveal = () => {
+    dialog.showModal();
+    if (!loaded) loadPage();
+  };
+  return dialog;
+}
+
 // ====== Інформація про світлину ======
 
-function PhotoMeta(photo, { user, canManage, onQr, onSave }) {
+function PhotoMeta(photo, { user, canManage, onQr, onSave, onRatings }) {
   const meta = el('div', 'photo-page__meta');
 
   const authorRow = el('div', 'photo-page__row');
@@ -630,6 +792,14 @@ function PhotoMeta(photo, { user, canManage, onQr, onSave }) {
   );
   const rating = el('div', 'photo-page__rating');
   rating.append(Rating(photo, { user, textClass: 'photo-page__rating-text' }));
+  if (canModerateRatings(user) && onRatings) {
+    const open = el('button', 'photo-page__ratings-open');
+    open.type = 'button';
+    open.setAttribute('aria-haspopup', 'dialog');
+    open.append(Icon('eye', { size: '1rem' }), el('span', '', 'Оцінки'));
+    open.addEventListener('click', onRatings);
+    rating.append(open);
+  }
   titleRow.append(heading, rating);
 
   meta.append(authorRow, titleRow, TagList(photo.tags ?? []));
@@ -677,14 +847,34 @@ export function PhotoView(photo, { user, navigate } = {}) {
   media.append(img);
 
   const qr = QrDialog(photo, { canCreate: canManage });
+  const confirm = ConfirmDialog();
+  let ratings = null;
   let editButton = null;
   let meta = createMeta(photo);
+
+  // Після видалення оцінки середнє рахує сервер: беремо світлину заново і оновлюємо рейтинг
+  async function refreshRating() {
+    try {
+      const next = createMeta(await photosApi.get(photo.id));
+      meta.replaceWith(next);
+      meta = next;
+    } catch {
+      // Рейтинг оновиться при наступному відкритті сторінки
+    }
+  }
+
+  function openRatings() {
+    ratings ??= RatingsDialog(photo, { confirm, onChange: refreshRating });
+    if (!ratings.isConnected) root.append(ratings);
+    ratings.reveal();
+  }
 
   function createMeta(current) {
     const node = PhotoMeta(current, {
       user,
       canManage,
       onQr: () => qr.reveal(),
+      onRatings: openRatings,
       onSave: async (description) => {
         const updated = await photosApi.update(current.id, { description });
         const next = { ...current, ...updated };
@@ -725,7 +915,7 @@ export function PhotoView(photo, { user, navigate } = {}) {
     tools.append(editButton, remove, toolsError);
   }
 
-  root.append(back, title, tools, media, meta, CommentsSection(photo, user), qr);
+  root.append(back, title, tools, media, meta, CommentsSection(photo, user, confirm), qr, confirm);
   return root;
 }
 
