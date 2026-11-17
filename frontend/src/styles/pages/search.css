@@ -1,0 +1,270 @@
+.search-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-block: 1.5rem 3rem;
+  color: var(--color-primary);
+}
+
+.search-page__title {
+  padding-bottom: 0.25rem;
+  border-bottom: 0.6px solid var(--color-primary-dark);
+  color: var(--color-text);
+  font-size: var(--fs-body);
+  line-height: 1.34;
+}
+
+/* Пошук, фільтр і сортування */
+.search-page__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.search-page__search {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+  height: 2.75rem;
+}
+
+.search-page__tools {
+  position: relative;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.search-page__tool {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-m);
+  background: var(--gradient-button);
+  color: var(--color-white);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.search-page__tool:active,
+.search-page__tool--active,
+.search-page__tool[aria-expanded='true'] {
+  background: var(--color-pressed);
+}
+
+.search-page__tool:focus-visible {
+  outline: 2px solid var(--color-hover);
+  outline-offset: 2px;
+}
+
+.search-page__sort .dropdown__menu {
+  right: 0;
+  left: auto;
+}
+
+/* Активні фільтри */
+.search-page__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: -0.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.search-page__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2rem;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--color-primary);
+  border-radius: 1rem;
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.search-page__chip:active {
+  border-color: var(--color-pressed);
+  color: var(--color-pressed);
+}
+
+.search-page__status {
+  margin-top: -0.5rem;
+  font-size: var(--fs-small);
+}
+
+.search-page__status:empty {
+  display: none;
+}
+
+/* Панель фільтрів */
+.filter-panel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: min(20rem, calc(100vw - 2 * var(--gutter)));
+  padding: 1rem 0.75rem;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-m);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.filter-panel__group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.filter-panel__title {
+  padding: 0;
+  color: var(--color-primary-dark);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-semibold);
+  line-height: 1.2;
+}
+
+.filter-panel__date {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filter-panel__field,
+.filter-panel__input {
+  flex: 1;
+  min-width: 0;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-m);
+  background: var(--color-white);
+  color: var(--color-primary);
+  font: inherit;
+  font-size: 0.75rem;
+}
+
+.filter-panel__field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filter-panel__field--empty {
+  color: var(--color-text-muted);
+}
+
+.filter-panel__calendar-button {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-m);
+  background: transparent;
+  color: var(--color-primary);
+  cursor: pointer;
+}
+
+.filter-panel__calendar-button[aria-expanded='true'] {
+  background: var(--color-white);
+}
+
+.filter-panel__stars {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.filter-panel__star {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-m);
+  background: transparent;
+  color: #7785a3;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.filter-panel__star--on {
+  color: var(--color-title);
+}
+
+.filter-panel__star:active {
+  color: var(--color-pressed);
+}
+
+.filter-panel__star:focus-visible,
+.filter-panel__calendar-button:focus-visible {
+  outline: 2px solid var(--color-hover);
+  outline-offset: -2px;
+}
+
+.filter-panel__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.filter-panel__actions .btn {
+  flex: 1;
+}
+
+@media (min-width: 768px) {
+  .search-page {
+    padding-block: 2.25rem 3rem;
+  }
+
+  .search-page__title {
+    font-size: 1.5rem;
+    text-transform: uppercase;
+  }
+
+  .search-page__search {
+    max-width: 22.25rem;
+    margin-right: auto;
+  }
+}
+
+@media (min-width: 1440px) {
+  .search-page__title {
+    font-size: 2rem;
+  }
+}
+
+/* Наведення */
+@media (hover: hover) and (pointer: fine) {
+  .search-page__tool:hover:not(:active) {
+    background: var(--color-hover);
+  }
+
+  .search-page__chip:hover:not(:active) {
+    border-color: var(--color-hover);
+    color: var(--color-hover);
+  }
+
+  .filter-panel__star:hover:not(:active),
+  .filter-panel__calendar-button:hover:not(:active) {
+    color: var(--color-hover);
+  }
+}

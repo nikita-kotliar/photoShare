@@ -1,5 +1,5 @@
 import { api } from './client.js';
 
 export const searchApi = {
-  photos: (query) => api.get('/search/photos', { query }),
+  photos: (query, options) => api.get('/search/photos', { ...options, query }),
 };
