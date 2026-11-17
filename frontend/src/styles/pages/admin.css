@@ -1,0 +1,652 @@
+/* Керування користувачами: мобілка - картки з меню ⋮ (макет User Management Page),
+   планшет - картки у дві колонки, десктоп - рядки таблиці з кнопкою дії */
+.admin {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-block: 1.5rem 3rem;
+}
+
+.admin__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 0 0.5rem;
+  border: 0;
+  border-bottom: 0.4px solid var(--color-primary);
+  background: transparent;
+  color: var(--color-primary);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+}
+
+.admin__back:active {
+  opacity: 0.7;
+}
+
+.admin__title {
+  margin-top: 1rem;
+  color: var(--color-text);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-semibold);
+  line-height: 1.34;
+}
+
+.admin__search {
+  max-width: none;
+  height: 2.5rem;
+}
+
+.admin__search .search__input {
+  font-size: 0.75rem;
+}
+
+/* Панель фільтрів */
+.admin__tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.admin__roles,
+.admin__tools-right {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.admin__tool {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--radius-m);
+  background: var(--color-accent);
+  color: var(--color-white);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    background var(--transition),
+    color var(--transition);
+}
+
+.admin__tool--outline {
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+  color: var(--color-primary);
+}
+
+.admin__tool:hover {
+  background: var(--color-hover);
+  color: var(--color-white);
+}
+
+.admin__tool--active,
+.admin__tool--active:hover {
+  background: var(--color-primary-dark);
+  color: var(--color-white);
+  box-shadow: inset 0 0 0 2px var(--color-info);
+}
+
+.admin__tool:focus-visible {
+  outline: 2px solid var(--color-hover);
+  outline-offset: 2px;
+}
+
+.admin__date {
+  position: relative;
+}
+
+.admin__popup {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: min(20rem, calc(100vw - 2 * var(--gutter)));
+  padding: 0.75rem;
+  border: 1px solid var(--color-hover);
+  border-radius: var(--radius-m);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.admin__popup[hidden] {
+  display: none;
+}
+
+.admin__popup .btn {
+  align-self: center;
+}
+
+.admin__sort .dropdown__menu {
+  right: 0;
+  left: auto;
+}
+
+.admin__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.admin__chips[hidden] {
+  display: none;
+}
+
+.admin__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2rem;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--color-primary);
+  border-radius: 1rem;
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.admin__chip:hover {
+  border-color: var(--color-hover);
+  color: var(--color-hover);
+}
+
+/* Список */
+.admin__columns {
+  display: none;
+}
+
+.admin__list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin__footer:empty {
+  display: none;
+}
+
+.admin__pagination {
+  margin-top: 1rem;
+}
+
+.user-row {
+  display: grid;
+  grid-template-columns: 3.75rem minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 1rem;
+  padding-block: 0.875rem;
+  border-bottom: 0.4px solid rgb(105 122 158 / 40%);
+}
+
+.user-row__avatar {
+  width: 3.75rem;
+  height: 3.75rem;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--color-bg-gray);
+}
+
+.user-row__main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.user-row__head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.user-row__name {
+  overflow: hidden;
+  color: var(--color-primary);
+  font-size: 0.875rem;
+  font-weight: var(--fw-semibold);
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-row__name:hover {
+  color: var(--color-hover);
+  text-decoration: underline;
+}
+
+.user-row__role {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+.user-row__role-text {
+  display: none;
+  font-size: 0.75rem;
+}
+
+.user-row__email,
+.user-row__date {
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: 0.6875rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-row__status {
+  font-size: 0.75rem;
+}
+
+/* Забанений: ім'я, іконка і підпис червоні, як у макеті */
+.user-row--banned .user-row__name,
+.user-row--banned .user-row__head .icon,
+.user-row--banned .user-row__status,
+.user-row--banned .user-row__col--status {
+  color: var(--color-danger);
+}
+
+.user-row__columns,
+.user-row__action {
+  display: none;
+}
+
+.user-row__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.user-row__more {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-right: -0.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-m);
+  background: transparent;
+  color: var(--color-primary);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.user-row__more:hover {
+  color: var(--color-hover);
+}
+
+.user-row__menu .dropdown__menu {
+  right: 0;
+  left: auto;
+  width: 15rem;
+}
+
+.user-row--skeleton .user-row__avatar,
+.user-row__line {
+  display: block;
+  background: linear-gradient(90deg, #eef1f7 25%, #f7f9fd 50%, #eef1f7 75%);
+  background-size: 200% 100%;
+  animation: admin-shimmer 1.2s infinite linear;
+}
+
+.user-row__line {
+  height: 2.5rem;
+  border-radius: var(--radius-m);
+}
+
+@keyframes admin-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .user-row--skeleton .user-row__avatar,
+  .user-row__line {
+    animation: none;
+  }
+}
+
+/* Календар */
+.calendar {
+  color: var(--color-primary);
+}
+
+.calendar__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.calendar__title {
+  font-size: 0.875rem;
+  font-weight: var(--fw-medium);
+}
+
+.calendar__nav {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: transparent;
+  color: var(--color-primary);
+  cursor: pointer;
+}
+
+.calendar__nav:hover {
+  background: var(--color-white);
+}
+
+.calendar__grid {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0.125rem;
+  font-size: 0.6875rem;
+  text-align: center;
+}
+
+.calendar__grid th {
+  padding-bottom: 0.25rem;
+  color: var(--color-text-muted);
+  font-weight: var(--fw-regular);
+}
+
+.calendar__grid th.calendar__weekend {
+  color: var(--color-info);
+}
+
+td.calendar__week {
+  border-radius: var(--radius-s);
+  background: #6f7fa3;
+  color: var(--color-white);
+}
+
+.calendar__day {
+  width: 100%;
+  min-width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: transparent;
+  color: var(--color-title);
+  font-size: inherit;
+  cursor: pointer;
+}
+
+.calendar__day--weekend {
+  color: var(--color-info);
+}
+
+.calendar__day--outside {
+  color: var(--color-disabled);
+}
+
+.calendar__day:hover {
+  background: var(--color-white);
+  color: var(--color-hover);
+}
+
+.calendar__day--selected {
+  background: rgb(22 84 215 / 15%);
+}
+
+.calendar__day--edge,
+.calendar__day--edge:hover {
+  background: var(--color-primary);
+  color: var(--color-white);
+}
+
+.calendar__day:focus-visible,
+.calendar__nav:focus-visible {
+  outline: 2px solid var(--color-hover);
+  outline-offset: 1px;
+}
+
+/* Підтвердження */
+.admin-dialog {
+  width: min(26rem, calc(100vw - 2rem));
+  padding: 2rem 1.5rem 1.5rem;
+  border: 1px solid var(--color-hover);
+  border-radius: var(--radius-m);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.admin-dialog::backdrop {
+  background: rgb(7 26 68 / 45%);
+}
+
+.admin-dialog__close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 0;
+  background: transparent;
+  color: var(--color-primary);
+  cursor: pointer;
+}
+
+.admin-dialog__title {
+  color: var(--color-primary-dark);
+  font-size: 1.125rem;
+  font-weight: var(--fw-semibold);
+}
+
+.admin-dialog__text {
+  margin-top: 0.75rem;
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+  line-height: var(--lh);
+}
+
+.admin-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+/* Планшет: картки у дві колонки */
+@media (min-width: 768px) {
+  .admin {
+    gap: 1.25rem;
+    padding-block: 2rem 4rem;
+  }
+
+  .admin__back {
+    padding-bottom: 0;
+    border-bottom: 0;
+    font-size: 1.25rem;
+  }
+
+  .admin__title {
+    margin-top: 0.5rem;
+    font-size: 1.5rem;
+    text-transform: uppercase;
+  }
+
+  .admin__search {
+    height: 3rem;
+  }
+
+  .admin__search .search__input {
+    font-size: var(--fs-small);
+  }
+
+  .admin__tool {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .admin__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .user-row {
+    padding: 1rem;
+    border: 1px solid rgb(105 122 158 / 30%);
+    border-radius: var(--radius-m);
+    background: var(--color-surface);
+  }
+
+  .user-row--banned {
+    border-color: rgb(187 5 5 / 40%);
+  }
+
+  .user-row__name {
+    font-size: var(--fs-body);
+  }
+
+  .user-row__email,
+  .user-row__date {
+    font-size: 0.75rem;
+  }
+}
+
+/* Десктоп: рядки таблиці, дія кнопкою в рядку замість меню */
+@media (min-width: 1440px) {
+  .admin__search {
+    max-width: 40rem;
+  }
+
+  .admin__columns,
+  .user-row {
+    display: grid;
+    grid-template-columns:
+      3.5rem minmax(10rem, 1.3fr) minmax(12rem, 1.6fr) 10rem 9rem 8rem
+      10rem;
+    align-items: center;
+    column-gap: 1.25rem;
+  }
+
+  .admin__columns {
+    padding: 0 1rem 0.75rem;
+    border-bottom: 1px solid var(--color-primary);
+    color: var(--color-text-muted);
+    font-size: var(--fs-small);
+  }
+
+  .admin__columns span:first-child {
+    grid-column: 1 / 3;
+  }
+
+  .admin__list {
+    display: flex;
+    gap: 0;
+  }
+
+  .user-row {
+    padding: 0.75rem 1rem;
+    border: 0;
+    border-bottom: 0.4px solid rgb(105 122 158 / 40%);
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .user-row:hover {
+    background: var(--color-surface);
+  }
+
+  .user-row--banned {
+    background: rgb(187 5 5 / 4%);
+  }
+
+  .user-row__avatar {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+
+  .user-row__main .user-row__email,
+  .user-row__main .user-row__date,
+  .user-row__main .user-row__status,
+  .user-row__head .user-row__role,
+  .user-row__head .icon {
+    display: none;
+  }
+
+  .user-row__columns {
+    display: contents;
+  }
+
+  .user-row__col {
+    overflow: hidden;
+    color: var(--color-text);
+    font-size: var(--fs-small);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .user-row__col .user-row__role-text {
+    display: inline;
+    color: var(--color-text);
+    font-size: var(--fs-small);
+  }
+
+  .user-row__actions {
+    justify-content: stretch;
+  }
+
+  .user-row__more,
+  .user-row__menu {
+    display: none;
+  }
+
+  .user-row__action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    white-space: nowrap;
+    min-height: 2.5rem;
+    padding: 0 1rem;
+    border: 1px solid var(--color-danger);
+    border-radius: var(--radius-m);
+    background: var(--color-white);
+    color: var(--color-danger);
+    font-size: var(--fs-small);
+    cursor: pointer;
+  }
+
+  .user-row__action--unban {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  .user-row__action:hover {
+    background: var(--color-danger);
+    color: var(--color-white);
+  }
+
+  .user-row__action--unban:hover {
+    background: var(--color-primary);
+  }
+
+  .user-row__line {
+    grid-column: 2 / -1;
+  }
+}

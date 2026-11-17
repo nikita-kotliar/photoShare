@@ -110,10 +110,10 @@ function notFound() {
 const fakeDb = {
   user: {
     findUnique: async ({ where }) => clone(findBy(where)),
-    findMany: async ({ where, skip = 0, take = users.length } = {}) =>
+    findMany: async ({ where, orderBy, skip = 0, take = users.length } = {}) =>
       users
         .filter((user) => matchesUser(user, where))
-        .sort(newest)
+        .sort(byOrder(orderBy))
         .slice(skip, skip + take)
         .map(clone),
     count: async ({ where } = {}) => users.filter((user) => matchesUser(user, where)).length,

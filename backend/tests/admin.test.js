@@ -100,9 +100,22 @@ describe('GET /api/admin/users', () => {
     expect(res.body).toMatchObject({ items: [], total: 0 });
   });
 
+  it('сортує за іменем А-Я і Я-А та за датою від старіших', async () => {
+    const { admin } = await team();
+    const ids = async (query) =>
+      (await admin.client.get('/api/admin/users').query(query)).body.items.map((u) => u.name);
+
+    expect(await ids({ sort: 'name' })).toEqual(['admin', 'owner', 'stranger']);
+    expect(await ids({ sort: 'name', order: 'desc' })).toEqual(['stranger', 'owner', 'admin']);
+    expect(await ids({ order: 'asc' })).toEqual(['admin', 'owner', 'stranger']);
+    expect(await ids({})).toEqual(['stranger', 'owner', 'admin']);
+  });
+
   it('некоректні фільтри повертають 422', async () => {
     const { admin } = await team();
     const cases = [
+      [{ sort: 'email' }, 'sort'],
+      [{ order: 'up' }, 'order'],
       [{ role: 'ROOT' }, 'role'],
       [{ registeredFrom: '01.10.2026' }, 'registeredFrom'],
       [{ registeredTo: '2026-13-01' }, 'registeredTo'],

@@ -20,12 +20,22 @@ function usersWhere({ q, role, registeredFrom, registeredTo }) {
   return where;
 }
 
+// name: за замовчуванням А-Я, date: нові першими. id в кінці, щоб сторінки не перетиналися
+function usersOrder({ sort, order }) {
+  if (sort === 'name') {
+    const dir = order ?? 'asc';
+    return [{ name: dir }, { username: dir }, { id: dir }];
+  }
+  const dir = order ?? 'desc';
+  return [{ createdAt: dir }, { id: dir }];
+}
+
 async function listUsers(query) {
   const where = usersWhere(query);
   const [items, total] = await Promise.all([
     db.user.findMany({
       where,
-      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      orderBy: usersOrder(query),
       skip: skipFor(query),
       take: query.limit,
     }),

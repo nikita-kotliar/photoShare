@@ -328,6 +328,16 @@ describe('профіль і адмінка', () => {
     expect(filtered.body.items).toHaveLength(1);
   });
 
+  it('сортує користувачів за іменем і датою, як бекенд', async () => {
+    const list = async (query) =>
+      (await call('GET', '/admin/users', { user: ADMIN, query: `limit=50&${query}` })).body.items;
+    const az = (await list('sort=name')).map((u) => u.name);
+    expect(az).toEqual([...az].sort((a, b) => a.localeCompare(b, 'uk')));
+    expect((await list('sort=name&order=desc')).map((u) => u.name)).toEqual([...az].reverse());
+    const dates = (await list('order=asc')).map((u) => u.createdAt);
+    expect(dates).toEqual([...dates].sort());
+  });
+
   it('бан і розбан лише для ADMIN, адміна банити не можна', async () => {
     expect(
       (await call('PATCH', '/admin/users/3/status', { user: MODERATOR, body: { isActive: false } }))
