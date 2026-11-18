@@ -180,6 +180,32 @@ describe('середній рейтинг', () => {
   });
 });
 
+describe('збої бази', () => {
+  it('помилка при збереженні оцінки дає 500, а не 409, і оцінка не зберігається', async () => {
+    const { stranger, photo } = await setup();
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.spyOn(fakeDb.rating, 'create').mockRejectedValueOnce(new Error('connection lost'));
+
+    const res = await rate(stranger.client, photo.id, 5);
+
+    expect(res.status).toBe(500);
+    expect(res.body.error.code).toBe('INTERNAL_ERROR');
+    expect((await agent().get(`/api/photos/${photo.slug}`)).body.photo.ratingsCount).toBe(0);
+  });
+
+  it('збій перевірки сесії на публічній сторінці дає 500, а не тихо відповідає як гостю', async () => {
+    const { stranger, photo } = await setup();
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest
+      .spyOn(fakeDb.tokenBlacklist, 'findUnique')
+      .mockRejectedValueOnce(new Error('connection lost'));
+
+    const res = await stranger.client.get(`/api/photos/${photo.slug}`);
+
+    expect(res.status).toBe(500);
+  });
+});
+
 describe('GET /api/photos/:id/ratings', () => {
   it('MODERATOR і ADMIN бачать пагінований список, нові першими', async () => {
     const { admin, moderator, stranger, photo } = await setup();

@@ -7,6 +7,7 @@ const env = require('../src/config/env');
 const blacklistService = require('../src/services/blacklistService');
 const { cleanBlacklist, startCleanBlacklist } = require('../src/jobs/cleanBlacklist');
 const { app, agent, register, defaultUser } = require('./helpers/app');
+const { signedIn, upload } = require('./helpers/fixtures');
 
 beforeEach(() => {
   fakeDb.reset();
@@ -105,6 +106,55 @@ describe('DELETE /api/sessions', () => {
 
     expect(res.status).toBe(401);
     expect(res.body.error.code).toBe('TOKEN_INVALID');
+  });
+});
+
+describe('старий токен після виходу', () => {
+  async function leaverWithPhoto() {
+    const owner = await signedIn('owner');
+    const { photo } = (await upload(owner.client)).body;
+    const cookie = tokenCookie(
+      await register(agent(), { username: 'leaver', email: 'leaver@example.com' }),
+    );
+    return { photo, cookie };
+  }
+
+  it('нічого не змінює: 401 TOKEN_INVALID, дані лишаються як були', async () => {
+    const { photo, cookie } = await leaverWithPhoto();
+    await logout(cookie).expect(204);
+
+    const attempts = [
+      request(app)
+        .post(`/api/photos/${photo.id}/comments`)
+        .set('Cookie', cookie)
+        .send({ text: 'привіт' }),
+      request(app).post(`/api/photos/${photo.id}/ratings`).set('Cookie', cookie).send({ value: 5 }),
+      request(app).put('/api/users/me').set('Cookie', cookie).send({ name: 'Змінено' }),
+      request(app).get('/api/photos').set('Cookie', cookie),
+      request(app).get('/api/search/photos?q=захід').set('Cookie', cookie),
+    ];
+    for (const res of await Promise.all(attempts)) {
+      expect(res.status).toBe(401);
+      expect(res.body.error.code).toBe('TOKEN_INVALID');
+    }
+
+    const fresh = (await agent().get(`/api/photos/${photo.slug}`)).body.photo;
+    expect(fresh).toMatchObject({ commentsCount: 0, ratingsCount: 0 });
+    expect((await agent().get('/api/users/leaver')).body.user.name).toBe('leaver');
+  });
+
+  it('на публічній сторінці світлини вважається гостем: без myRating, рейтинг лишається', async () => {
+    const { photo, cookie } = await leaverWithPhoto();
+    await request(app)
+      .post(`/api/photos/${photo.id}/ratings`)
+      .set('Cookie', cookie)
+      .send({ value: 4 });
+    await logout(cookie).expect(204);
+
+    const res = await request(app).get(`/api/photos/${photo.slug}`).set('Cookie', cookie);
+
+    expect(res.status).toBe(200);
+    expect(res.body.photo).toMatchObject({ averageRating: 4, ratingsCount: 1, myRating: null });
   });
 });
 

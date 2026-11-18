@@ -2,7 +2,7 @@ jest.mock('../src/config/db', () => require('./helpers/fakeDb'));
 
 const fakeDb = require('./helpers/fakeDb');
 const { agent } = require('./helpers/app');
-const { allRoles, upload } = require('./helpers/fixtures');
+const { allRoles, ban, upload } = require('./helpers/fixtures');
 const { buildQueries, likePattern } = require('../src/services/searchService');
 
 // Валідація, права і складання SQL. Як працюють самі фільтри на PostgreSQL - search.db.test.js
@@ -84,6 +84,53 @@ describe('GET /api/search/photos: доступ і валідація', () => {
 
     expect(res.status).toBe(200);
     expect(spy.mock.calls[0][0].values).toEqual([12, 0]);
+  });
+});
+
+describe('GET /api/search/photos: параметри запиту', () => {
+  it('усі фільтри разом доходять до SQL очищеними: пробіли обрізані, тег у нижньому регістрі', async () => {
+    const { moderator } = await allRoles();
+    const spy = stubSql([]);
+    const query = new URLSearchParams({
+      q: '  захід  ',
+      tag: ' SEA ',
+      ratingMin: '4',
+      dateFrom: '2026-03-01',
+      dateTo: '2026-03-31',
+      username: ' owner ',
+      sort: 'rating',
+      order: 'asc',
+      page: '2',
+      limit: '5',
+    });
+
+    const res = await moderator.client.get(`/api/search/photos?${query}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ page: 2, limit: 5 });
+    expect(spy.mock.calls[0][0].values).toEqual([
+      '%захід%',
+      '%захід%',
+      'sea',
+      '2026-03-01',
+      '2026-03-31',
+      'owner',
+      4,
+      5,
+      5,
+    ]);
+  });
+
+  it('забанений користувач шукати не може: 403 USER_BANNED, до SQL не доходить', async () => {
+    const people = await allRoles();
+    await ban(people.stranger);
+    const spy = jest.spyOn(fakeDb, '$queryRaw');
+
+    const res = await people.stranger.client.get('/api/search/photos?q=море');
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('USER_BANNED');
+    expect(spy).not.toHaveBeenCalled();
   });
 });
 
