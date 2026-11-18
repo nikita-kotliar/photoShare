@@ -19,8 +19,6 @@ import { withBase } from '../router/base.js';
 const IMAGE_SIZE = 636;
 const COMMENTS_LIMIT = 20;
 export const RATINGS_LIMIT = 10;
-const CONFIRM_LABEL = 'Точно видалити?';
-const CONFIRM_TIMEOUT = 4000;
 export const ANGLES = [0, 90, 180, 270];
 
 function el(tag, className, text) {
@@ -143,38 +141,23 @@ export function deleteCommentCopy(comment) {
   };
 }
 
+export function deletePhotoCopy(photo, user) {
+  const own = user?.id === photo.author?.id;
+  return {
+    title: 'Видалити світлину?',
+    text: own
+      ? 'Світлину разом з коментарями, оцінками і QR-посиланнями буде видалено назавжди.'
+      : `Світлину користувача ${personName(photo.author)} разом з коментарями, оцінками і QR-посиланнями буде видалено назавжди.`,
+    confirm: 'Видалити',
+  };
+}
+
 export function deleteRatingCopy(rating) {
   return {
     title: 'Видалити оцінку?',
     text: `Оцінку ${rating.value} з ${MAX_RATING} користувача ${personName(rating.user)} буде видалено, а середній рейтинг перераховано. Користувач зможе оцінити світлину знову.`,
     confirm: 'Видалити',
   };
-}
-
-// Видалення в два кліки: перший просить підтвердження, другий виконує дію
-function confirmDelete(button, label, action) {
-  let timer;
-  const reset = () => {
-    clearTimeout(timer);
-    button.setAttribute('aria-label', label);
-    button.classList.remove('photo-icon--confirm');
-  };
-  button.addEventListener('click', async () => {
-    if (!button.classList.contains('photo-icon--confirm')) {
-      button.setAttribute('aria-label', CONFIRM_LABEL);
-      button.classList.add('photo-icon--confirm');
-      timer = setTimeout(reset, CONFIRM_TIMEOUT);
-      return;
-    }
-    reset();
-    button.disabled = true;
-    try {
-      await action();
-    } finally {
-      button.disabled = false;
-    }
-  });
-  button.addEventListener('blur', reset);
 }
 
 // Inline-форма редагування тексту (опис світлини, коментар)
@@ -902,15 +885,21 @@ export function PhotoView(photo, { user, navigate } = {}) {
     });
 
     const remove = iconButton('photo-icon', 'trash', 'Видалити світлину');
-    confirmDelete(remove, 'Видалити світлину', async () => {
+    remove.addEventListener('click', () => {
       toolsError.show('');
-      try {
-        await photosApi.remove(photo.id);
-        pushToast('Світлину видалено', 'success');
-        navigate?.('/home');
-      } catch (err) {
-        toolsError.show(errorMessage(err, 'Не вдалося видалити світлину'));
-      }
+      confirm.ask({
+        ...deletePhotoCopy(photo, user),
+        run: async () => {
+          try {
+            await photosApi.remove(photo.id);
+            pushToast('Світлину видалено', 'success');
+            navigate?.('/home');
+          } catch (err) {
+            toolsError.show(errorMessage(err, 'Не вдалося видалити світлину'));
+          }
+          return true;
+        },
+      });
     });
     tools.append(editButton, remove, toolsError);
   }

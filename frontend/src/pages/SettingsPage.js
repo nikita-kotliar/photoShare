@@ -41,7 +41,7 @@ export function formatJoined(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
   const pad = (n) => String(n).padStart(2, '0');
-  return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${String(date.getFullYear()).slice(-2)}`;
+  return `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()}`;
 }
 
 // Помилки сервера: 409 і 422 з полями показуємо під полями, решту одним повідомленням

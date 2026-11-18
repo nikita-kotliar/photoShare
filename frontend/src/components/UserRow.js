@@ -15,12 +15,11 @@ export const ROLE_ICONS = { USER: 'award', MODERATOR: 'shieldPlus', ADMIN: 'user
 
 export const BANNED_TEXT = 'Користувач заблокований';
 
-// Дата реєстрації як у макеті: 10.02.25 20:40
 export function formatUserDate(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
   const pad = (n) => String(n).padStart(2, '0');
-  const day = `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${String(date.getFullYear()).slice(2)}`;
+  const day = `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()}`;
   return `${day} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
@@ -39,6 +38,20 @@ export function statusAction(user) {
         label: 'Розблокувати користувача',
         short: 'Розблокувати',
         icon: 'checkbox',
+      };
+}
+
+export function roleAction(user) {
+  return user.role === 'MODERATOR'
+    ? {
+        value: 'demote',
+        label: 'Зняти роль модератора',
+        icon: 'award',
+      }
+    : {
+        value: 'promote',
+        label: 'Призначити модератором',
+        icon: 'shieldPlus',
       };
 }
 
@@ -126,6 +139,7 @@ export function UserRow(user, { viewer, onAction } = {}) {
   const actions = el('div', 'user-row__actions');
   if (canChangeStatus(viewer, user)) {
     const action = statusAction(user);
+    const role = user.isActive ? roleAction(user) : null;
     const who = user.name || user.username;
 
     const trigger = el('button', 'user-row__more');
@@ -136,7 +150,9 @@ export function UserRow(user, { viewer, onAction } = {}) {
       trigger,
       label: `Дії з користувачем ${who}`,
       selectable: false,
-      options: [{ value: action.value, label: action.label, icon: action.icon }],
+      options: [action, role]
+        .filter(Boolean)
+        .map(({ value, label, icon }) => ({ value, label, icon })),
       onChange: (value) => onAction?.(user, value),
     });
     menu.classList.add('user-row__menu');
@@ -148,6 +164,15 @@ export function UserRow(user, { viewer, onAction } = {}) {
     button.addEventListener('click', () => onAction?.(user, action.value));
 
     actions.append(menu, button);
+    if (role) {
+      const roleButton = el('button', 'user-row__action user-row__action--role');
+      roleButton.type = 'button';
+      roleButton.title = role.label;
+      roleButton.setAttribute('aria-label', `${role.label}: ${who}`);
+      roleButton.append(Icon(role.icon, { size: '1rem' }));
+      roleButton.addEventListener('click', () => onAction?.(user, role.value));
+      actions.append(roleButton);
+    }
     item.destroy = () => menu.destroy();
   }
   item.append(actions);

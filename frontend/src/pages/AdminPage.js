@@ -99,6 +99,22 @@ export function replaceUser(items, updated) {
 
 export function confirmText(user, action) {
   const who = user.name || user.username;
+  if (action === 'promote') {
+    return {
+      title: 'Призначити модератором?',
+      text: `${who} (@${user.username}) зможе видаляти коментарі й оцінки, бачити список користувачів і шукати світлини за автором.`,
+      button: 'Призначити',
+      done: `${who} тепер модератор`,
+    };
+  }
+  if (action === 'demote') {
+    return {
+      title: 'Зняти роль модератора?',
+      text: `${who} (@${user.username}) стане звичайним користувачем з наступного запиту.`,
+      button: 'Зняти роль',
+      done: `${who} більше не модератор`,
+    };
+  }
   return action === 'ban'
     ? {
         title: 'Забанити користувача?',
@@ -158,7 +174,7 @@ export default function AdminPage({ query, store }) {
   // Пошук за ім'ям, username або email (поле q в API)
   const search = SearchInput({
     value: state.q,
-    placeholder: "Пошук користувачів за ім'ям, поштою",
+    placeholder: "Ім'я або пошта",
     label: "Пошук користувачів за ім'ям, юзернеймом або поштою",
     onSearch: (q) => update({ q }),
   });
@@ -414,7 +430,10 @@ export default function AdminPage({ query, store }) {
       variant: action === 'ban' ? 'danger' : 'primary',
       run: async () => {
         try {
-          const updated = await adminApi.setStatus(user.id, action === 'unban');
+          const updated =
+            action === 'promote' || action === 'demote'
+              ? await adminApi.setRole(user.id, action === 'promote' ? 'MODERATOR' : 'USER')
+              : await adminApi.setStatus(user.id, action === 'unban');
           items = replaceUser(items, updated);
           const old = list.querySelector(`[data-user-id="${updated.id}"]`);
           old?.destroy?.();
@@ -425,7 +444,7 @@ export default function AdminPage({ query, store }) {
           old?.replaceWith(row);
           pushToast(copy.done, 'success');
         } catch (error) {
-          pushToast(error.message || 'Не вдалося змінити статус', 'error');
+          pushToast(error.message || 'Не вдалося зберегти зміни', 'error');
         }
         return true;
       },

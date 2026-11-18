@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canChangeStatus, formatUserDate, statusAction } from './UserRow.js';
+import { canChangeStatus, formatUserDate, roleAction, statusAction } from './UserRow.js';
 
 const admin = { id: 1, role: 'ADMIN' };
 const moderator = { id: 2, role: 'MODERATOR' };
@@ -28,9 +28,19 @@ describe('statusAction', () => {
   });
 });
 
+describe('roleAction', () => {
+  it('користувача призначають модератором, модератора повертають у користувачі', () => {
+    expect(roleAction({ role: 'USER' }).value).toBe('promote');
+    expect(roleAction({ role: 'MODERATOR' })).toMatchObject({
+      value: 'demote',
+      label: 'Зняти роль модератора',
+    });
+  });
+});
+
 describe('formatUserDate', () => {
   it('дата як у макеті: дд.мм.рр гг:хх', () => {
-    expect(formatUserDate(new Date(2025, 1, 10, 20, 40).toISOString())).toBe('10.02.25 20:40');
+    expect(formatUserDate(new Date(2025, 1, 10, 20, 40).toISOString())).toBe('10.02.2025 20:40');
     expect(formatUserDate('bad')).toBe('');
   });
 });

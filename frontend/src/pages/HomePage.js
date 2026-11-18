@@ -1,8 +1,11 @@
 import '../styles/pages/home.css';
 import { photosApi } from '../api/photos.js';
 import { Button } from '../components/Button.js';
+import { isStaff } from '../components/navigation.js';
 import { PhotoCard } from '../components/PhotoCard.js';
+import { SearchBar } from '../components/SearchBar.js';
 import { pushToast } from '../store/index.js';
+import { SEARCH_SORTS, parseSearchQuery, searchHref } from './SearchPage.js';
 
 export const FEED_LIMIT = 12;
 const PRIORITY_CARDS = 3;
@@ -63,7 +66,16 @@ export default function HomePage({ query, navigate, store }) {
   status.setAttribute('role', 'status');
   status.textContent = 'Завантаження світлин';
 
-  root.append(title, status, list);
+  const staff = isStaff(store.get().user);
+  const searchState = parseSearchQuery({}, { staff });
+  const bar = SearchBar({
+    state: searchState,
+    staff,
+    sorts: SEARCH_SORTS,
+    onChange: (patch) => navigate(searchHref({ ...searchState, ...patch })),
+  });
+
+  root.append(title, bar, status, list);
 
   // Пагінація
   function Pagination(pages) {
@@ -174,5 +186,11 @@ export default function HomePage({ query, navigate, store }) {
   }
 
   load();
-  return { el: root, destroy: () => controller.abort() };
+  return {
+    el: root,
+    destroy: () => {
+      controller.abort();
+      bar.destroy();
+    },
+  };
 }

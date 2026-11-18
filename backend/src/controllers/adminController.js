@@ -12,4 +12,9 @@ async function setStatus(req, res) {
   res.json({ user: toPublicUser(user) });
 }
 
-module.exports = { listUsers, setStatus };
+async function setRole(req, res) {
+  const user = await adminService.setRole(req.params.id, req.body, req.user);
+  res.json({ user: toPublicUser(user) });
+}
+
+module.exports = { listUsers, setStatus, setRole };

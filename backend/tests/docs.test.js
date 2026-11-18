@@ -29,6 +29,7 @@ const routes = [
   ['get', '/search/photos', 'auth'],
   ['get', '/admin/users', 'auth'],
   ['patch', '/admin/users/{id}/status', 'auth'],
+  ['patch', '/admin/users/{id}/role', 'auth'],
 ];
 
 async function getSpec() {

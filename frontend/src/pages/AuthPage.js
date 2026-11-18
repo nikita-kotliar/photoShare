@@ -27,7 +27,7 @@ const MODES = {
   },
   register: {
     title: 'Реєстрація',
-    submit: 'Зареєструватись',
+    submit: 'Зареєструватися',
     switchText: 'Вже маєте акаунт?',
     switchLink: 'Увійти',
   },

@@ -78,7 +78,7 @@ describe('schemas.profile', () => {
 
 describe('formatJoined', () => {
   it('форматує дату реєстрації як у макеті', () => {
-    expect(formatJoined(new Date(2025, 2, 3).toISOString())).toBe('03/03/25');
+    expect(formatJoined(new Date(2025, 2, 3).toISOString())).toBe('03.03.2025');
     expect(formatJoined('bad')).toBe('');
   });
 });

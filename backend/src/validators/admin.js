@@ -29,4 +29,8 @@ const statusSchema = z.object({
   isActive: z.boolean({ error: 'Вкажіть true або false' }),
 });
 
-module.exports = { usersQuerySchema, statusSchema };
+const roleSchema = z.object({
+  role: z.enum(['USER', 'MODERATOR'], { error: 'Роль може бути USER або MODERATOR' }),
+});
+
+module.exports = { usersQuerySchema, statusSchema, roleSchema };

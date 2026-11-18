@@ -3,12 +3,11 @@ import '../styles/pages/search.css';
 import { photosApi } from '../api/photos.js';
 import { searchApi } from '../api/search.js';
 import { Button } from '../components/Button.js';
-import { Dropdown } from '../components/Dropdown.js';
-import { FilterPanel, rangeLabel } from '../components/FilterPanel.js';
+import { rangeLabel } from '../components/FilterPanel.js';
 import { Icon } from '../components/icons.js';
 import { isStaff } from '../components/navigation.js';
 import { PhotoCard } from '../components/PhotoCard.js';
-import { SearchInput } from '../components/SearchInput.js';
+import { SearchBar } from '../components/SearchBar.js';
 import { pushToast } from '../store/index.js';
 import { parsePage } from './HomePage.js';
 
@@ -111,15 +110,6 @@ function el(tag, className, text) {
   return node;
 }
 
-function toolButton(icon, label) {
-  const button = el('button', 'search-page__tool');
-  button.type = 'button';
-  button.setAttribute('aria-label', label);
-  button.title = label;
-  button.append(Icon(icon, { size: '1.25rem' }));
-  return button;
-}
-
 function Skeleton() {
   const item = el('li', 'home__item');
   const card = el('div', 'home-skeleton');
@@ -155,68 +145,8 @@ export default function SearchPage({ query, store, navigate }) {
     navigate(searchHref({ ...state, page: 1, ...patch }));
   }
 
-  // Пошук, фільтр і сортування
-  const bar = el('div', 'search-page__bar');
-  const search = SearchInput({
-    placeholder: 'Пошук за описом або тегом',
-    value: state.q,
-    onSearch: (q) => update({ q: q.trim() }),
-  });
-  search.classList.add('search-page__search');
-
-  const tools = el('div', 'search-page__tools');
-  const filterWrap = el('div', 'search-page__filter');
-  const filterButton = toolButton('filter', 'Фільтри');
-  filterButton.setAttribute('aria-haspopup', 'dialog');
-  filterButton.setAttribute('aria-expanded', 'false');
-  const panel = FilterPanel({
-    value: state,
-    staff,
-    onApply: (value) => {
-      togglePanel(false);
-      update({
-        from: value.from,
-        to: value.to,
-        ratingMin: value.ratingMin,
-        author: staff ? value.author : '',
-      });
-    },
-    onReset: () => {},
-  });
-  panel.hidden = true;
-  filterWrap.append(filterButton, panel);
-
-  function togglePanel(open = panel.hidden) {
-    panel.hidden = !open;
-    filterButton.setAttribute('aria-expanded', String(open));
-    filterButton.classList.toggle('search-page__tool--active', open);
-    if (open) document.addEventListener('click', onOutside, true);
-    else document.removeEventListener('click', onOutside, true);
-  }
-  function onOutside(event) {
-    if (!filterWrap.contains(event.target)) togglePanel(false);
-  }
-  filterButton.addEventListener('click', () => togglePanel());
-  panel.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') {
-      togglePanel(false);
-      filterButton.focus();
-    }
-  });
-  cleanups.push(() => document.removeEventListener('click', onOutside, true));
-
-  const sortButton = toolButton('sort', 'Сортування');
-  const sort = Dropdown({
-    trigger: sortButton,
-    label: 'Сортування',
-    options: SEARCH_SORTS.map(({ value, label }) => ({ value, label })),
-    value: state.sort,
-    onChange: (value) => update({ sort: value }),
-  });
-  sort.classList.add('search-page__sort');
-  cleanups.push(() => sort.destroy());
-  tools.append(filterWrap, sort);
-  bar.append(search, tools);
+  const bar = SearchBar({ state, staff, sorts: SEARCH_SORTS, onChange: update });
+  cleanups.push(() => bar.destroy());
 
   // Активні фільтри
   const chips = el('ul', 'search-page__chips');

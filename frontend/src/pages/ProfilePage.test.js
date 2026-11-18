@@ -3,7 +3,7 @@ import { formatJoinDate, isOwnProfile, photosCountText, profilePageHref } from '
 
 describe('formatJoinDate', () => {
   it('показує дату як у макеті: дд/мм/рр', () => {
-    expect(formatJoinDate(new Date(2025, 2, 3).toISOString())).toBe('03/03/25');
+    expect(formatJoinDate(new Date(2025, 2, 3).toISOString())).toBe('03.03.2025');
     expect(formatJoinDate('bad')).toBe('');
   });
 });

@@ -3,6 +3,7 @@ import {
   canModerateRatings,
   commentPermissions,
   deleteCommentCopy,
+  deletePhotoCopy,
   deleteRatingCopy,
   errorMessage,
   formatCommentDate,
@@ -41,6 +42,13 @@ describe('модерація оцінок і коментарів', () => {
     expect(copy.title).toBe('Видалити оцінку?');
     expect(copy.text).toContain('Оцінку 4 з 5 користувача ivan');
     expect(deleteCommentCopy({}).text).toContain('користувача');
+  });
+
+  it('видалення світлини підтверджується діалогом, для чужої названо автора', () => {
+    const photo = { author: { id: 3, name: 'Олег' } };
+    expect(deletePhotoCopy(photo, { id: 3 }).title).toBe('Видалити світлину?');
+    expect(deletePhotoCopy(photo, { id: 3 }).text).not.toContain('Олег');
+    expect(deletePhotoCopy(photo, { id: 1, role: 'ADMIN' }).text).toContain('користувача Олег');
   });
 });
 
