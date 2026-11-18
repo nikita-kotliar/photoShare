@@ -154,4 +154,17 @@ describe('confirmText', () => {
     });
     expect(confirmText(user, 'unban').text).toContain('@valeria');
   });
+
+  it('тексти призначення і зняття модератора', () => {
+    const user = { name: 'Валерія', username: 'valeria' };
+    expect(confirmText(user, 'promote')).toMatchObject({
+      title: 'Призначити модератором?',
+      button: 'Призначити',
+      done: 'Валерія тепер модератор',
+    });
+    expect(confirmText(user, 'demote')).toMatchObject({
+      title: 'Зняти роль модератора?',
+      done: 'Валерія більше не модератор',
+    });
+  });
 });

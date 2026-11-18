@@ -69,3 +69,33 @@ paths:
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '422': { $ref: '#/components/responses/ValidationError' }
+
+  /admin/users/{id}/role:
+    patch:
+      tags: [Адміністрування]
+      summary: Призначити або зняти модератора
+      description: Лише ADMIN. Роль USER або MODERATOR, призначити ADMIN не можна. Себе й іншого ADMIN змінювати не можна. Нова роль діє одразу на наступному запиті користувача (D-03, D-51).
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [role]
+              properties:
+                role: { type: string, enum: [USER, MODERATOR], example: MODERATOR }
+      responses:
+        '200':
+          description: Оновлений користувач
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { user: { $ref: '#/components/schemas/User' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }

@@ -4,7 +4,7 @@ const validate = require('../middleware/validate');
 const { authenticate } = require('../middleware/auth');
 const { requireRole } = require('../middleware/roles');
 const { idParamsSchema } = require('../validators/common');
-const { usersQuerySchema, statusSchema } = require('../validators/admin');
+const { usersQuerySchema, statusSchema, roleSchema } = require('../validators/admin');
 
 const router = Router();
 
@@ -22,6 +22,13 @@ router.patch(
   validate(idParamsSchema, 'params'),
   validate(statusSchema),
   controller.setStatus,
+);
+router.patch(
+  '/users/:id/role',
+  requireRole('ADMIN'),
+  validate(idParamsSchema, 'params'),
+  validate(roleSchema),
+  controller.setRole,
 );
 
 module.exports = router;

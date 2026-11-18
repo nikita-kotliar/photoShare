@@ -390,7 +390,7 @@
     display: grid;
     grid-template-columns:
       3.5rem minmax(10rem, 1.3fr) minmax(12rem, 1.6fr) 10rem 9rem 8rem
-      10rem;
+      13rem;
     align-items: center;
     column-gap: 1.25rem;
   }
@@ -460,6 +460,7 @@
 
   .user-row__actions {
     justify-content: stretch;
+    gap: 0.5rem;
   }
 
   .user-row__more,
@@ -495,6 +496,18 @@
   }
 
   .user-row__action--unban:hover {
+    background: var(--color-primary);
+  }
+
+  .user-row__action--role {
+    flex: none;
+    width: 2.5rem;
+    padding: 0;
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  .user-row__action--role:hover {
     background: var(--color-primary);
   }
 
