@@ -158,7 +158,7 @@ export default function AdminPage({ query, store }) {
   // Пошук за ім'ям, username або email (поле q в API)
   const search = SearchInput({
     value: state.q,
-    placeholder: "Пошук користувачів за ім'ям, поштою",
+    placeholder: "Ім'я або пошта",
     label: "Пошук користувачів за ім'ям, юзернеймом або поштою",
     onSearch: (q) => update({ q }),
   });

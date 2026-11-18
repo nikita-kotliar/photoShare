@@ -87,7 +87,7 @@
 .welcome__contact a {
   position: relative;
   color: inherit;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   text-decoration: none;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;

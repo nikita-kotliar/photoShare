@@ -67,7 +67,8 @@ export default function WelcomePage({ store }) {
   values.append(...VALUES.map((value) => el('li', '', value)));
 
   const contacts = el('div', 'welcome__contacts');
-  const mail = el('a', '', 'support@photoshare.com');
+  const mail = el('a');
+  mail.append('support@', document.createElement('wbr'), 'photoshare.com');
   mail.href = 'mailto:support@photoshare.com';
   const phone = el('a', '', '+380 44 290 16 83');
   phone.href = 'tel:+380442901683';

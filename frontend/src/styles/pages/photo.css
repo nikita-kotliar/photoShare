@@ -79,11 +79,6 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-.photo-icon--confirm {
-  color: var(--color-danger);
-  outline: 1px solid var(--color-danger);
-}
-
 .photo-page__back:active,
 .photo-page__edit:active,
 .photo-icon:active {
@@ -614,6 +609,12 @@
   margin-top: 2rem;
   padding-bottom: 2rem;
   border-bottom: 0.4px solid var(--color-primary);
+}
+
+.link-form .btn {
+  width: auto;
+  min-width: 198px;
+  max-width: 100%;
 }
 
 .link-form__title {

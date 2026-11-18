@@ -555,6 +555,12 @@
   .header__user .dropdown__menu {
     right: 0;
     left: auto;
+    width: max-content;
+    min-width: 202px;
+  }
+
+  .header__user .dropdown__item {
+    white-space: nowrap;
   }
 
   .header__icon-link {

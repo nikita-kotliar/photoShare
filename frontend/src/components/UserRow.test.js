@@ -30,7 +30,7 @@ describe('statusAction', () => {
 
 describe('formatUserDate', () => {
   it('дата як у макеті: дд.мм.рр гг:хх', () => {
-    expect(formatUserDate(new Date(2025, 1, 10, 20, 40).toISOString())).toBe('10.02.25 20:40');
+    expect(formatUserDate(new Date(2025, 1, 10, 20, 40).toISOString())).toBe('10.02.2025 20:40');
     expect(formatUserDate('bad')).toBe('');
   });
 });

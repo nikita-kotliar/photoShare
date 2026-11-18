@@ -15,12 +15,11 @@ export const ROLE_ICONS = { USER: 'award', MODERATOR: 'shieldPlus', ADMIN: 'user
 
 export const BANNED_TEXT = 'Користувач заблокований';
 
-// Дата реєстрації як у макеті: 10.02.25 20:40
 export function formatUserDate(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
   const pad = (n) => String(n).padStart(2, '0');
-  const day = `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${String(date.getFullYear()).slice(2)}`;
+  const day = `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()}`;
   return `${day} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 

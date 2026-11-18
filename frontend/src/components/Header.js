@@ -187,7 +187,7 @@ export function Header({ store, navigate }) {
       const login = link('menu__login', '/auth');
       login.append(Icon('exit', { size: '1.125rem' }), el('span', '', 'Вхід'));
       const register = link('menu__register', '/auth?tab=register');
-      register.append(Icon('chevrons', { size: '1.125rem' }), el('span', '', 'Зареєструватись'));
+      register.append(Icon('chevrons', { size: '1.125rem' }), el('span', '', 'Зареєструватися'));
       auth.append(login, register);
       menu.append(auth);
     }

@@ -4,7 +4,6 @@ export const routes = [
   {
     path: '/',
     access: 'guest',
-    title: 'PhotoShare',
     load: () => import('../pages/WelcomePage.js'),
   },
   { path: '/auth', access: 'guest', title: 'Вхід', load: () => import('../pages/AuthPage.js') },
