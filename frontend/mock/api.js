@@ -645,6 +645,21 @@ export function createMockApi({ now = Date.now() } = {}) {
     return { body: { user: serializeUser(target) } };
   });
 
+  route('PATCH', '/admin/users/:id/role', (ctx) => {
+    const admin = requireAuth(ctx);
+    if (admin.role !== 'ADMIN') fail(403, 'FORBIDDEN', 'Недостатньо прав для цієї дії');
+    const target = db.users.find((u) => String(u.id) === ctx.params.id);
+    if (!target) fail(404, 'NOT_FOUND', 'Користувача не знайдено');
+    if (!['USER', 'MODERATOR'].includes(ctx.body?.role)) {
+      validationError({ role: 'Роль може бути USER або MODERATOR' });
+    }
+    if (target.id === admin.id || target.role === 'ADMIN') {
+      fail(403, 'FORBIDDEN', 'Не можна змінювати роль адміністратора');
+    }
+    target.role = ctx.body.role;
+    return { body: { user: serializeUser(target) } };
+  });
+
   async function handle({ method, path, query, cookies, body, form, origin }) {
     try {
       if (failNext && path !== '/dev/fail-next' && path !== '/dev/reset') {

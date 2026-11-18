@@ -208,3 +208,67 @@ describe('PATCH /api/admin/users/:id/status', () => {
     expect(noBody.status).toBe(422);
   });
 });
+
+function setRole(client, id, role) {
+  return client.patch(`/api/admin/users/${id}/role`).send({ role });
+}
+
+describe('PATCH /api/admin/users/:id/role', () => {
+  it('ADMIN призначає модератора і знімає роль', async () => {
+    const { admin, owner } = await team();
+    const promoted = await setRole(admin.client, owner.user.id, 'MODERATOR');
+    const demoted = await setRole(admin.client, owner.user.id, 'USER');
+
+    expect(promoted.status).toBe(200);
+    expect(promoted.body.user).toMatchObject({ id: owner.user.id, role: 'MODERATOR' });
+    expect(demoted.body.user.role).toBe('USER');
+  });
+
+  it('нова роль діє одразу в поточній сесії', async () => {
+    const { admin, owner } = await team();
+    expect((await owner.client.get('/api/admin/users')).status).toBe(403);
+
+    await setRole(admin.client, owner.user.id, 'MODERATOR');
+    expect((await owner.client.get('/api/admin/users')).status).toBe(200);
+
+    await setRole(admin.client, owner.user.id, 'USER');
+    expect((await owner.client.get('/api/admin/users')).status).toBe(403);
+  });
+
+  it('MODERATOR і звичайний користувач ролі не змінюють', async () => {
+    const { owner, moderator } = await withModerator();
+    const byModerator = await setRole(moderator.client, owner.user.id, 'MODERATOR');
+    const byUser = await setRole(owner.client, owner.user.id, 'MODERATOR');
+
+    expect(byModerator.status).toBe(403);
+    expect(byUser.status).toBe(403);
+    expect((await fakeDb.user.findUnique({ where: { id: owner.user.id } })).role).toBe('USER');
+  });
+
+  it('не можна змінити роль собі чи іншому ADMIN', async () => {
+    const { admin, owner } = await team();
+    await setUser(owner.user.id, { role: 'ADMIN' });
+
+    const self = await setRole(admin.client, admin.user.id, 'USER');
+    const otherAdmin = await setRole(admin.client, owner.user.id, 'USER');
+
+    expect(self.status).toBe(403);
+    expect(otherAdmin.status).toBe(403);
+    expect((await fakeDb.user.findUnique({ where: { id: admin.user.id } })).role).toBe('ADMIN');
+  });
+
+  it('призначити ADMIN не можна, некоректні дані 422, неіснуючий 404', async () => {
+    const { admin, owner } = await team();
+    const toAdmin = await setRole(admin.client, owner.user.id, 'ADMIN');
+    const unknown = await setRole(admin.client, owner.user.id, 'BOSS');
+    const missing = await setRole(admin.client, 999, 'MODERATOR');
+    const badId = await setRole(admin.client, 'abc', 'MODERATOR');
+
+    expect(toAdmin.status).toBe(422);
+    expect(toAdmin.body.error.fields.role).toBeDefined();
+    expect(unknown.status).toBe(422);
+    expect(missing.status).toBe(404);
+    expect(badId.status).toBe(422);
+    expect((await fakeDb.user.findUnique({ where: { id: owner.user.id } })).role).toBe('USER');
+  });
+});

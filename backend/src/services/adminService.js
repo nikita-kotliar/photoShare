@@ -44,15 +44,25 @@ async function listUsers(query) {
   return { items, total };
 }
 
-async function setStatus(id, { isActive }, admin) {
+async function editableUser(id, admin, message) {
   const user = await db.user.findUnique({ where: { id } });
   if (!user) {
     throw new AppError(404, 'NOT_FOUND', 'Користувача не знайдено');
   }
   if (user.id === admin.id || user.role === 'ADMIN') {
-    throw new AppError(403, 'FORBIDDEN', 'Не можна змінювати статус адміністратора');
+    throw new AppError(403, 'FORBIDDEN', message);
   }
+  return user;
+}
+
+async function setStatus(id, { isActive }, admin) {
+  await editableUser(id, admin, 'Не можна змінювати статус адміністратора');
   return db.user.update({ where: { id }, data: { isActive } });
 }
 
-module.exports = { listUsers, setStatus };
+async function setRole(id, { role }, admin) {
+  await editableUser(id, admin, 'Не можна змінювати роль адміністратора');
+  return db.user.update({ where: { id }, data: { role } });
+}
+
+module.exports = { listUsers, setStatus, setRole };
