@@ -853,3 +853,29 @@
 .ratings-dialog .comment-list__more {
   margin: 1rem auto 0;
 }
+
+/* Порівняння з оригіналом (TASK-076) */
+.photo-page__compare {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.25rem;
+  margin-top: 0.75rem;
+  padding: 0 1rem;
+  border: 1px solid var(--color-primary);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-primary);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+}
+
+.photo-page__compare[aria-pressed='true'] {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.photo-page__compare:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}

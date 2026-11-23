@@ -1,0 +1,90 @@
+.before-after {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-m);
+  user-select: none;
+  touch-action: pan-y;
+}
+
+.before-after__img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 328 / 300;
+  object-fit: cover;
+}
+
+.before-after__before {
+  position: absolute;
+  inset: 0;
+  clip-path: inset(0 calc(100% - var(--pos)) 0 0);
+}
+
+.before-after__line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--pos);
+  width: 2px;
+  background: var(--color-white);
+  box-shadow: 0 0 6px rgb(0 0 0 / 45%);
+  transform: translateX(-1px);
+  pointer-events: none;
+}
+
+.before-after__line::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 2px solid var(--color-white);
+  border-radius: 50%;
+  background: rgb(19 45 98 / 55%);
+  transform: translate(-50%, -50%);
+}
+
+.before-after__labels {
+  position: absolute;
+  inset: auto 0.75rem 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.before-after__labels span {
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  background: rgb(7 26 68 / 65%);
+  color: var(--color-white);
+  font-size: 0.75rem;
+  font-weight: var(--fw-semibold);
+}
+
+.before-after__range {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: ew-resize;
+}
+
+.before-after:has(.before-after__range:focus-visible) {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@media (min-width: 768px) {
+  .before-after__img {
+    aspect-ratio: 696 / 504;
+  }
+}
+
+@media (min-width: 1440px) {
+  .before-after__img {
+    aspect-ratio: 1;
+  }
+}

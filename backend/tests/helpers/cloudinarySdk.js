@@ -21,7 +21,7 @@ const uploader = {
         files.set(publicId, buffer);
         return callback(null, {
           public_id: publicId,
-          secure_url: `https://res.cloudinary.com/demo/image/upload/${publicId}.png`,
+          secure_url: `https://res.cloudinary.com/demo/image/upload/v1700000000/${publicId}.png`,
           colors: cloud.colors,
         });
       });

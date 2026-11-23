@@ -116,7 +116,24 @@ components:
         id: { type: integer, example: 7 }
         slug: { type: string, example: aB3_xY9-kLmN, description: 12 випадкових символів }
         url: { type: string, format: uri }
+        originalUrl:
+          type: string
+          format: uri
+          nullable: true
+          description: Оригінал без трансформацій, лише якщо світлину трансформовано
         description: { type: string }
+        colors:
+          type: array
+          maxItems: 5
+          description: Головні кольори від Cloudinary
+          items:
+            type: object
+            properties:
+              hex: { type: string, example: '#2b59ba' }
+              family:
+                type: string
+                enum:
+                  [red, orange, yellow, green, teal, blue, purple, pink, brown, black, gray, white]
         tags:
           type: array
           maxItems: 5

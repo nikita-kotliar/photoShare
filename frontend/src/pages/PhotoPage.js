@@ -8,6 +8,7 @@ import { Icon } from '../components/icons.js';
 import { isStaff } from '../components/navigation.js';
 import { canManagePhoto, formatPhotoDate } from '../components/PhotoCard.js';
 import { MAX_RATING, pluralRatings, Rating } from '../components/Rating.js';
+import { BeforeAfter } from '../components/BeforeAfter.js';
 import { Palette } from '../components/Palette.js';
 import { TagList } from '../components/Tag.js';
 import { pushToast } from '../store/index.js';
@@ -161,6 +162,29 @@ export function deleteRatingCopy(rating) {
     text: `Оцінку ${rating.value} з ${MAX_RATING} користувача ${personName(rating.user)} буде видалено, а середній рейтинг перераховано. Користувач зможе оцінити світлину знову.`,
     confirm: 'Видалити',
   };
+}
+
+export function compareLabel(open) {
+  return open ? 'Сховати порівняння' : 'Порівняти з оригіналом';
+}
+
+function CompareToggle(photo, img) {
+  const button = el('button', 'photo-page__compare', compareLabel(false));
+  button.type = 'button';
+  button.setAttribute('aria-pressed', 'false');
+  let slider = null;
+  button.addEventListener('click', () => {
+    const open = button.getAttribute('aria-pressed') !== 'true';
+    button.setAttribute('aria-pressed', String(open));
+    button.textContent = compareLabel(open);
+    if (open) {
+      slider ??= BeforeAfter({ before: photo.originalUrl, after: photo.url, alt: img.alt });
+      img.replaceWith(slider);
+    } else {
+      slider.replaceWith(img);
+    }
+  });
+  return button;
 }
 
 // Inline-форма редагування тексту (опис світлини, коментар)
@@ -832,6 +856,7 @@ export function PhotoView(photo, { user, navigate } = {}) {
   img.fetchPriority = 'high';
   img.style.viewTransitionName = HERO_NAME;
   media.append(img);
+  if (photo.originalUrl) media.append(CompareToggle(photo, img));
 
   const qr = QrDialog(photo, { canCreate: canManage });
   const confirm = ConfirmDialog();
