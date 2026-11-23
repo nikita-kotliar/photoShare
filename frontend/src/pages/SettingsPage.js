@@ -218,6 +218,14 @@ function ProfileCover(user) {
   }
 
   cover.append(picture, avatar, joined);
+  if (user?.googleLinked) {
+    const google = el('p', 'settings__google');
+    google.append(
+      el('span', 'settings__google-mark', 'G'),
+      el('span', '', 'Акаунт пов’язано з Google'),
+    );
+    cover.append(google);
+  }
   return cover;
 }
 

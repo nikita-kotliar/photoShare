@@ -196,3 +196,30 @@
     padding-right: 2.25rem;
   }
 }
+
+/* Позначка «Акаунт пов'язано з Google» (TASK-067) */
+.settings__google {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.25rem 0.75rem 0.25rem 0.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.75rem;
+}
+
+.settings__google-mark {
+  display: grid;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #4285f4;
+  font-weight: var(--fw-semibold);
+  box-shadow: 0 0 0 1px #dadce0;
+}

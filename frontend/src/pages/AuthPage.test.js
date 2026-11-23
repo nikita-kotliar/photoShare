@@ -1,5 +1,23 @@
 import { describe, expect, it } from 'vitest';
-import { authMode, registerPayload } from './AuthPage.js';
+import { authMode, GOOGLE_ERRORS, googleErrorMessage, registerPayload } from './AuthPage.js';
+
+describe('googleErrorMessage', () => {
+  it('без коду - без повідомлення', () => {
+    expect(googleErrorMessage(undefined)).toBe('');
+    expect(googleErrorMessage('')).toBe('');
+  });
+
+  it('відомі коди мають свої тексти', () => {
+    expect(googleErrorMessage('cancelled')).toBe(GOOGLE_ERRORS.cancelled);
+    expect(googleErrorMessage('banned')).toContain('заблоковано');
+  });
+
+  it('невідомий код - загальне повідомлення', () => {
+    expect(googleErrorMessage('something_new')).toBe(
+      'Не вдалося увійти через Google. Спробуйте ще раз.',
+    );
+  });
+});
 
 describe('authMode', () => {
   it('відкриває реєстрацію за ?tab=register', () => {
