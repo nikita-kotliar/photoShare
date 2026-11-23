@@ -12,6 +12,8 @@ let nextLinkId = 1;
 let blacklist = [];
 let ratings = [];
 let nextRatingId = 1;
+let notifications = [];
+let nextNotificationId = 1;
 
 function clone(user) {
   return user ? { ...user } : null;
@@ -178,6 +180,7 @@ const fakeDb = {
       photoTags = photoTags.filter((link) => link.photoId !== photo.id);
       links = links.filter((link) => link.photoId !== photo.id);
       ratings = ratings.filter((rating) => rating.photoId !== photo.id);
+      notifications = notifications.filter((item) => item.photoId !== photo.id);
       return { ...photo };
     },
   },
@@ -333,6 +336,32 @@ const fakeDb = {
       return { count: before - blacklist.length };
     },
   },
+  // Сповіщення (TASK-068). where: userId, readAt: null, id: { in }
+  notification: {
+    create: async ({ data }) => {
+      const item = { id: nextNotificationId++, readAt: null, createdAt: new Date(), ...data };
+      notifications.push(item);
+      return { ...item };
+    },
+    findMany: async ({ where = {}, orderBy, skip = 0, take = notifications.length } = {}) =>
+      notifications
+        .filter((item) => matches(item, where))
+        .sort(byOrder(orderBy))
+        .slice(skip, skip + take)
+        .map((item) => ({
+          ...item,
+          actor: item.actorId ? clone(users.find((u) => u.id === item.actorId)) : null,
+          photo: item.photoId ? { ...photos.find((p) => p.id === item.photoId) } : null,
+        })),
+    count: async ({ where = {} } = {}) =>
+      notifications.filter((item) => matches(item, where)).length,
+    updateMany: async ({ where = {}, data }) => {
+      const list = notifications.filter((item) => matches(item, where));
+      list.forEach((item) => Object.assign(item, data));
+      return { count: list.length };
+    },
+    all: () => notifications.map((item) => ({ ...item })),
+  },
   $disconnect: async () => {},
   reset() {
     users = [];
@@ -349,6 +378,8 @@ const fakeDb = {
     blacklist = [];
     ratings = [];
     nextRatingId = 1;
+    notifications = [];
+    nextNotificationId = 1;
   },
 };
 

@@ -179,6 +179,23 @@ erDiagram
 
 UQ `(photo_id, user_id)`: одна оцінка на користувача, повторна дає 409. Заборону оцінювати власну світлину (403) перевіряє сервіс. `averageRating` і `ratingsCount` рахуються агрегатом (`AVG`, `COUNT`), окремо не зберігаються, щоб не розходитися з даними.
 
+### notifications
+
+TASK-068, міграція `20261123010000_notifications`.
+
+| Стовпець | Тип | Обмеження | Опис |
+|---|---|---|---|
+| id | serial | PK | |
+| user_id | int | NN, FK `users.id`, ON DELETE CASCADE | отримувач |
+| type | enum `NotificationType` | NN | `COMMENT`, `RATING`, `ACHIEVEMENT`, `MODERATOR` |
+| actor_id | int | NULL, FK `users.id`, ON DELETE SET NULL | хто зробив дію; `NULL` для системних (досягнення) |
+| photo_id | int | NULL, FK `photos.id`, ON DELETE CASCADE | про яку світлину |
+| data | jsonb | NULL | деталі для тексту: `value`, `commentId` і `text`, `code` |
+| read_at | timestamp(3) | NULL | `NULL` - не прочитано |
+| created_at | timestamp(3) | NN, default now | |
+
+Індекси: `(user_id, created_at DESC, id DESC)` для списку, `(user_id, read_at)` для лічильника непрочитаних, `actor_id` і `photo_id` для зовнішніх ключів.
+
 ### token_blacklist
 
 Токени, які більше не приймаємо після виходу ([D-04](DECISIONS.md), [D-05](DECISIONS.md)). Використовується з Sprint-4.

@@ -28,6 +28,7 @@ const spec = swaggerJsdoc({
       { name: 'Оцінки' },
       { name: 'Пошук' },
       { name: 'Адміністрування' },
+      { name: 'Сповіщення' },
       { name: 'Сервіс' },
     ],
   },

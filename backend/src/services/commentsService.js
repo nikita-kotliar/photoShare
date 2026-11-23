@@ -1,16 +1,21 @@
 const db = require('../config/db');
 const AppError = require('../utils/AppError');
 const { skipFor } = require('../utils/pagination');
+const notificationsService = require('./notificationsService');
 
 const commentInclude = {
   author: { select: { id: true, username: true, name: true } },
 };
 
 async function ensurePhoto(photoId) {
-  const photo = await db.photo.findUnique({ where: { id: photoId }, select: { id: true } });
+  const photo = await db.photo.findUnique({
+    where: { id: photoId },
+    select: { id: true, authorId: true },
+  });
   if (!photo) {
     throw new AppError(404, 'NOT_FOUND', 'Світлину не знайдено');
   }
+  return photo;
 }
 
 async function findComment(id) {
@@ -38,11 +43,20 @@ async function listForPhoto(photoId, pagination) {
 }
 
 async function create(photoId, { text }, author) {
-  await ensurePhoto(photoId);
-  return db.comment.create({
+  const photo = await ensurePhoto(photoId);
+  const comment = await db.comment.create({
     data: { text, photoId, authorId: author.id },
     include: commentInclude,
   });
+  // Автору світлини, якщо коментує не він сам
+  await notificationsService.notify({
+    userId: photo.authorId,
+    type: 'COMMENT',
+    actorId: author.id,
+    photoId,
+    data: { commentId: comment.id, text: text.slice(0, 100) },
+  });
+  return comment;
 }
 
 async function update(id, { text }, user) {
