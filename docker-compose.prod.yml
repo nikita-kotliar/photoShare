@@ -28,6 +28,8 @@ services:
       COOKIE_NAME: photoshare_token
       COOKIE_PATH: /photoshare-api/
       PUBLIC_API_PATH: /photoshare-api
+      APP_URL: ${PUBLIC_ORIGIN:-https://kotdenik.cx.ua}/photoshare
+      GOOGLE_REDIRECT_URI: ${PUBLIC_ORIGIN:-https://kotdenik.cx.ua}/photoshare-api/auth/google/callback
     ports:
       - '127.0.0.1:${API_PORT:-8100}:3000'
     depends_on:
