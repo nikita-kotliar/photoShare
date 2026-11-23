@@ -196,6 +196,19 @@ TASK-068, міграція `20261123010000_notifications`.
 
 Індекси: `(user_id, created_at DESC, id DESC)` для списку, `(user_id, read_at)` для лічильника непрочитаних, `actor_id` і `photo_id` для зовнішніх ключів.
 
+### user_achievements
+
+TASK-070, міграція `20261123020000_achievements`.
+
+| Стовпець | Тип | Обмеження | Опис |
+|---|---|---|---|
+| id | serial | PK | |
+| user_id | int | NN, FK `users.id`, ON DELETE CASCADE | |
+| code | enum `AchievementCode` | NN | `FIRST_PHOTO`, `TEN_PHOTOS`, `COMMENTATOR`, `CRITIC`, `FAVORITE` |
+| created_at | timestamp(3) | NN, default now | коли отримано |
+
+UQ `(user_id, code)`: одне досягнення один раз, навіть якщо два запити перевіряють його одночасно (другий отримує P2002 і пропускає). Умови отримання - у `achievementsService`, у таблиці лише факт отримання.
+
 ### token_blacklist
 
 Токени, які більше не приймаємо після виходу ([D-04](DECISIONS.md), [D-05](DECISIONS.md)). Використовується з Sprint-4.

@@ -1,14 +1,18 @@
 const ratingsService = require('../services/ratingsService');
+const achievementsService = require('../services/achievementsService');
 const { toRating } = require('../utils/serializers');
 const { toPage } = require('../utils/pagination');
 
 async function create(req, res) {
-  const { rating, averageRating, ratingsCount } = await ratingsService.rate(
+  const { rating, averageRating, ratingsCount, photoAuthorId } = await ratingsService.rate(
     req.params.id,
     req.body,
     req.user,
   );
-  res.status(201).json({ rating: toRating(rating), averageRating, ratingsCount });
+  // «Критик» - тому, хто оцінив (тост), «Улюбленець» - автору світлини (лише сповіщення)
+  const newAchievements = await achievementsService.check(req.user.id, 'ratingGiven');
+  await achievementsService.check(photoAuthorId, 'ratingReceived');
+  res.status(201).json({ rating: toRating(rating), averageRating, ratingsCount, newAchievements });
 }
 
 async function list(req, res) {

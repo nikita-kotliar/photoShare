@@ -13,6 +13,8 @@ beforeEach(() => {
 async function setup() {
   const people = await allRoles();
   const { photo } = (await upload(people.owner.client, 'Захід сонця')).body;
+  // Перша публікація дає досягнення (TASK-070) і його сповіщення: тут воно лише заважає
+  fakeDb.notification.clear();
   return { ...people, photo };
 }
 

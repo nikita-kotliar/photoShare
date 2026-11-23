@@ -8,6 +8,8 @@ import avatarPlaceholder from '../assets/images/avatar-placeholder.svg';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 export const POLL_INTERVAL = 60000;
 export const PAGE_SIZE = 10;
+// Подія, після якої лічильник оновлюється одразу, а не за хвилину (наприклад, нове досягнення)
+export const REFRESH_EVENT = 'notifications:refresh';
 
 // ====== Чисті функції (покриті тестами) ======
 
@@ -275,6 +277,7 @@ export function NotificationBell({ store, navigate, api = notificationsApi } = {
   readAll.addEventListener('click', () => markRead());
   more.addEventListener('click', () => loadPage());
   document.addEventListener('visibilitychange', onVisible);
+  window.addEventListener(REFRESH_EVENT, refreshCount);
 
   setCount(0);
   refreshCount();
@@ -287,6 +290,7 @@ export function NotificationBell({ store, navigate, api = notificationsApi } = {
       clearInterval(timer);
       close();
       document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener(REFRESH_EVENT, refreshCount);
     },
   });
 }
