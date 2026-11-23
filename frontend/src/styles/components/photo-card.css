@@ -38,10 +38,10 @@
   place-items: center;
   width: 1.875rem;
   height: 1.875rem;
-  border: 2px solid var(--color-bg);
+  border: 2px solid var(--color-on-primary);
   border-radius: 0.4375rem;
-  color: var(--color-bg);
-  filter: drop-shadow(0 4px 2px rgb(0 0 0 / 25%));
+  color: var(--color-on-primary);
+  filter: drop-shadow(0 4px 2px color-mix(in srgb, var(--color-black) 25%, transparent));
 }
 
 .photo-card__expand::before {
@@ -50,7 +50,7 @@
   inset: 0;
   z-index: -1;
   border-radius: 0.3125rem;
-  background: var(--expand-bg, var(--color-hover));
+  background: var(--expand-bg, var(--color-hover-fill));
   opacity: 0;
   transition: opacity var(--transition);
 }
@@ -60,7 +60,7 @@
 }
 
 .photo-card__media:active .photo-card__expand::before {
-  --expand-bg: var(--color-pressed);
+  --expand-bg: var(--color-pressed-fill);
   opacity: 1;
 }
 

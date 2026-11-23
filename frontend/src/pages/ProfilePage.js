@@ -110,6 +110,7 @@ function ProfileInfo(profile, { owner, onLogout, navigate }) {
 
   const avatar = el('img', 'profile__avatar');
   avatar.src = profile.avatarUrl || avatarPlaceholder;
+  if (!profile.avatarUrl) avatar.classList.add('avatar-placeholder');
   avatar.alt = '';
   avatar.width = 86;
   avatar.height = 86;

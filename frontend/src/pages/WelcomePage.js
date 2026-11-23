@@ -1,6 +1,8 @@
 import '../styles/pages/welcome.css';
 import { Button } from '../components/Button.js';
+import { ThemedImages } from '../components/theme.js';
 import logo from '../assets/images/logo-dark.svg';
+import logoLight from '../assets/images/logo.svg';
 import photoJpg from '../assets/images/welcome@1x.jpg';
 import photo1x from '../assets/images/welcome@1x.webp';
 import photo2x from '../assets/images/welcome@2x.webp';
@@ -48,12 +50,9 @@ export default function WelcomePage({ store }) {
 
   // Логотип і слоган
   const title = el('h1', 'welcome__logo');
-  const image = el('img');
-  image.src = logo;
-  image.alt = 'PhotoShare';
-  image.width = 177;
-  image.height = 38;
-  title.append(image);
+  title.append(
+    ...ThemedImages({ light: logo, dark: logoLight, alt: 'PhotoShare', width: 177, height: 38 }),
+  );
 
   const tagline = el('p', 'welcome__tagline', 'Місце, де кожен кадр має значення');
   const band = el(

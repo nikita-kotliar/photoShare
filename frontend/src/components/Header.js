@@ -4,6 +4,7 @@ import { Dropdown } from './Dropdown.js';
 import { Icon } from './icons.js';
 import { navItems, profileHref } from './navigation.js';
 import { SearchInput } from './SearchInput.js';
+import { ThemeToggle } from './theme.js';
 import avatarPlaceholder from '../assets/images/avatar-placeholder.svg';
 import logo from '../assets/images/logo.svg';
 import { stripBase, withBase } from '../router/base.js';
@@ -34,6 +35,7 @@ function iconLink(className, href, icon, label, size) {
 function Avatar(user) {
   const img = el('img', 'header__avatar');
   img.src = user.avatarUrl || avatarPlaceholder;
+  if (!user.avatarUrl) img.classList.add('avatar-placeholder');
   img.alt = '';
   img.width = AVATAR_SIZE;
   img.height = AVATAR_SIZE;
@@ -71,6 +73,7 @@ export function Header({ store, navigate }) {
   let path = stripBase(window.location.pathname);
   let links = [];
   let dropdown = null;
+  let toggles = [];
   let closeMenu = () => {};
 
   function setPath(next) {
@@ -108,6 +111,12 @@ export function Header({ store, navigate }) {
     },
   });
 
+  function Toggle(className) {
+    const toggle = ThemeToggle({ className });
+    toggles.push(toggle);
+    return toggle;
+  }
+
   // Меню користувача на десктопі
   function UserMenu(user) {
     const box = el('div', 'header__user');
@@ -131,6 +140,7 @@ export function Header({ store, navigate }) {
     box.append(
       avatar,
       dropdown,
+      Toggle('header__icon-link'),
       iconLink('header__icon-link', '/settings', 'award', 'Налаштування', '1.375rem'),
     );
     return box;
@@ -162,6 +172,7 @@ export function Header({ store, navigate }) {
       profile.append(
         person,
         iconLink('menu__icon-link', '/settings', 'award', 'Налаштування', '1.125rem'),
+        Toggle('menu__icon-link'),
         el('span', 'menu__spacer'),
         iconLink('menu__icon-link', '/settings', 'pencil', 'Редагувати профіль', '1.125rem'),
         exit,
@@ -197,6 +208,8 @@ export function Header({ store, navigate }) {
   function render(user) {
     dropdown?.destroy();
     dropdown = null;
+    toggles.forEach((toggle) => toggle.destroy());
+    toggles = [];
     closeMenu();
     links = [];
 
@@ -224,7 +237,7 @@ export function Header({ store, navigate }) {
         link('auth-switch__login', '/auth', 'Увійти'),
         link('auth-switch__register', '/auth?tab=register', 'Зареєструватися'),
       );
-      actions.append(auth);
+      actions.append(Toggle('header__icon-link header__theme'), auth);
     }
 
     const burger = el('button', 'header__burger');

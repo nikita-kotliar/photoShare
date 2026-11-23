@@ -1,5 +1,5 @@
 .footer {
-  background: var(--color-primary-dark);
+  background: var(--color-primary-dark-fill);
   color: var(--color-white);
   font-size: var(--fs-small);
 }
@@ -103,12 +103,12 @@
 .footer__copyright {
   margin-top: 3rem;
   padding-top: 1.5rem;
-  border-top: 0.4px solid var(--color-bg-gray);
+  border-top: 0.4px solid var(--color-on-primary);
   text-align: center;
 }
 
 .footer a:focus-visible {
-  outline: 2px solid var(--color-bg);
+  outline: 2px solid var(--color-on-primary);
   outline-offset: 2px;
 }
 

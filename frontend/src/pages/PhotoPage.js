@@ -40,6 +40,7 @@ function iconButton(className, icon, label, onClick) {
 function avatar(author, size, className) {
   const img = el('img', className);
   img.src = author?.avatarUrl || avatarPlaceholder;
+  if (!author?.avatarUrl) img.classList.add('avatar-placeholder');
   img.alt = '';
   img.width = size;
   img.height = size;

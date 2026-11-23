@@ -81,13 +81,13 @@
 }
 
 .admin__tool:hover {
-  background: var(--color-hover);
+  background: var(--color-hover-fill);
   color: var(--color-white);
 }
 
 .admin__tool--active,
 .admin__tool--active:hover {
-  background: var(--color-primary-dark);
+  background: var(--color-primary-dark-fill);
   color: var(--color-white);
   box-shadow: inset 0 0 0 2px var(--color-info);
 }
@@ -186,7 +186,7 @@
   align-items: center;
   column-gap: 1rem;
   padding-block: 0.875rem;
-  border-bottom: 0.4px solid rgb(105 122 158 / 40%);
+  border-bottom: 0.4px solid color-mix(in srgb, var(--color-muted) 40%, transparent);
 }
 
 .user-row__avatar {
@@ -298,7 +298,12 @@
 .user-row--skeleton .user-row__avatar,
 .user-row__line {
   display: block;
-  background: linear-gradient(90deg, #eef1f7 25%, #f7f9fd 50%, #eef1f7 75%);
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-muted) 25%,
+    var(--color-surface-soft) 50%,
+    var(--color-surface-muted) 75%
+  );
   background-size: 200% 100%;
   animation: admin-shimmer 1.2s infinite linear;
 }
@@ -360,13 +365,13 @@
 
   .user-row {
     padding: 1rem;
-    border: 1px solid rgb(105 122 158 / 30%);
+    border: 1px solid color-mix(in srgb, var(--color-muted) 30%, transparent);
     border-radius: var(--radius-m);
     background: var(--color-surface);
   }
 
   .user-row--banned {
-    border-color: rgb(187 5 5 / 40%);
+    border-color: color-mix(in srgb, var(--color-danger) 40%, transparent);
   }
 
   .user-row__name {
@@ -414,7 +419,7 @@
   .user-row {
     padding: 0.75rem 1rem;
     border: 0;
-    border-bottom: 0.4px solid rgb(105 122 158 / 40%);
+    border-bottom: 0.4px solid color-mix(in srgb, var(--color-muted) 40%, transparent);
     border-radius: 0;
     background: transparent;
   }
@@ -424,7 +429,7 @@
   }
 
   .user-row--banned {
-    background: rgb(187 5 5 / 4%);
+    background: color-mix(in srgb, var(--color-danger) 4%, transparent);
   }
 
   .user-row__avatar {
@@ -479,7 +484,7 @@
     padding: 0 1rem;
     border: 1px solid var(--color-danger);
     border-radius: var(--radius-m);
-    background: var(--color-white);
+    background: var(--color-card);
     color: var(--color-danger);
     font-size: var(--fs-small);
     cursor: pointer;
@@ -491,12 +496,12 @@
   }
 
   .user-row__action:hover {
-    background: var(--color-danger);
+    background: var(--color-danger-fill);
     color: var(--color-white);
   }
 
   .user-row__action--unban:hover {
-    background: var(--color-primary);
+    background: var(--color-primary-fill);
   }
 
   .user-row__action--role {
@@ -508,7 +513,7 @@
   }
 
   .user-row__action--role:hover {
-    background: var(--color-primary);
+    background: var(--color-primary-fill);
   }
 
   .user-row__line {

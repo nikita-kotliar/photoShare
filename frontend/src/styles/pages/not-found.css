@@ -44,7 +44,7 @@
   font-size: 6.25rem;
   font-weight: var(--fw-semibold);
   line-height: 1;
-  text-shadow: 0 4px 4px rgb(7 26 68 / 32%);
+  text-shadow: 0 4px 4px color-mix(in srgb, var(--color-backdrop) 32%, transparent);
 }
 
 /* Ілюстрація */
@@ -93,7 +93,7 @@
 }
 
 .not-found__text {
-  background: linear-gradient(90deg, #1041aa 0%, #071a44 100%);
+  background: var(--gradient-title);
   background-clip: text;
   color: var(--color-primary-dark);
   font-size: var(--fs-small);

@@ -10,7 +10,7 @@
   font-size: var(--fs-body);
   line-height: 1.4;
   letter-spacing: 0.004em;
-  color: rgb(36 68 138 / 80%);
+  color: color-mix(in srgb, var(--color-primary) 80%, transparent);
 }
 
 .field__control {
@@ -21,13 +21,13 @@
   border: 1px solid transparent;
   border-radius: var(--radius-m);
   background:
-    linear-gradient(var(--color-white), var(--color-white)) padding-box,
+    linear-gradient(var(--color-card), var(--color-card)) padding-box,
     var(--gradient-field) border-box;
   transition: box-shadow var(--transition);
 }
 
 .field__control:focus-within {
-  box-shadow: 0 0 0 3px rgb(22 84 215 / 15%);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-hover) 15%, transparent);
 }
 
 .field__input {
@@ -44,7 +44,7 @@
 }
 
 .field__input::placeholder {
-  color: rgb(36 68 138 / 80%);
+  color: color-mix(in srgb, var(--color-primary) 80%, transparent);
 }
 
 .field__input:focus {
@@ -78,7 +78,7 @@
 
 .field--error .field__control {
   background:
-    linear-gradient(var(--color-white), var(--color-white)) padding-box,
+    linear-gradient(var(--color-card), var(--color-card)) padding-box,
     linear-gradient(var(--color-danger), var(--color-danger)) border-box;
 }
 
@@ -98,7 +98,7 @@
   font-size: 12px;
   font-weight: var(--fw-semibold);
   color: var(--color-white);
-  background: var(--color-danger);
+  background: var(--color-danger-fill);
 }
 
 .field--error .field__icon {
@@ -120,7 +120,7 @@
 }
 
 .search:focus-within {
-  box-shadow: 0 0 0 3px rgb(22 84 215 / 15%);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-hover) 15%, transparent);
 }
 
 .search__input {

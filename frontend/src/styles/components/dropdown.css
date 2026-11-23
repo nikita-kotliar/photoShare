@@ -29,7 +29,7 @@
   align-items: center;
   gap: 10px;
   padding: var(--space-1);
-  border-bottom: 0.4px solid rgb(105 122 158 / 64%);
+  border-bottom: 0.4px solid color-mix(in srgb, var(--color-muted) 64%, transparent);
   font-size: var(--fs-small);
   color: var(--color-primary);
   cursor: pointer;

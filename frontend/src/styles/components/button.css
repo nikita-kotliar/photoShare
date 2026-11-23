@@ -32,13 +32,13 @@
 }
 
 .btn--primary:active {
-  background: var(--color-pressed);
+  background: var(--color-pressed-fill);
 }
 
 .btn--secondary {
   color: var(--color-primary);
   background:
-    linear-gradient(var(--color-bg), var(--color-bg)) padding-box,
+    linear-gradient(var(--btn-fill, var(--color-bg)), var(--btn-fill, var(--color-bg))) padding-box,
     var(--gradient-button) border-box;
 }
 
@@ -56,7 +56,7 @@
 
 .btn--danger:active {
   color: var(--color-white);
-  background: var(--color-danger);
+  background: var(--color-danger-fill);
 }
 
 /* Неактивна */
@@ -123,11 +123,11 @@
 }
 
 .icon-btn[aria-expanded='true'] {
-  background: var(--color-hover);
+  background: var(--color-hover-fill);
 }
 
 .icon-btn:active {
-  background: var(--color-pressed);
+  background: var(--color-pressed-fill);
 }
 
 .icon-btn:disabled {
@@ -138,7 +138,7 @@
 /* Наведення */
 @media (hover: hover) and (pointer: fine) {
   .btn--primary:hover:not(:active, :disabled, [aria-disabled='true']) {
-    background: var(--color-hover);
+    background: var(--color-hover-fill);
   }
 
   .btn--secondary:hover:not(:active, :disabled, [aria-disabled='true']) {
@@ -149,10 +149,10 @@
 
   .btn--danger:hover:not(:active, :disabled, [aria-disabled='true']) {
     color: var(--color-white);
-    background: var(--color-danger);
+    background: var(--color-danger-fill);
   }
 
   .icon-btn:hover:not(:active, :disabled, [aria-disabled='true']) {
-    background: var(--color-hover);
+    background: var(--color-hover-fill);
   }
 }

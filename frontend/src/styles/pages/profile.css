@@ -218,7 +218,7 @@
   width: 1.25rem;
   height: 1.25rem;
   border-radius: 50%;
-  background: var(--color-bg);
+  background: var(--color-on-primary);
 }
 
 .profile__add-plus::before,
@@ -230,7 +230,7 @@
   width: 0.625rem;
   height: 2px;
   border-radius: 1px;
-  background: var(--color-primary);
+  background: var(--color-primary-fill);
   transform: translate(-50%, -50%);
 }
 

@@ -28,7 +28,7 @@
 }
 
 .calendar__nav:hover {
-  background: var(--color-white);
+  background: var(--color-card);
 }
 
 .calendar__grid {
@@ -51,7 +51,7 @@
 
 td.calendar__week {
   border-radius: var(--radius-s);
-  background: #6f7fa3;
+  background: var(--color-muted);
   color: var(--color-white);
 }
 
@@ -77,17 +77,17 @@ td.calendar__week {
 }
 
 .calendar__day:hover {
-  background: var(--color-white);
+  background: var(--color-card);
   color: var(--color-hover);
 }
 
 .calendar__day--selected {
-  background: rgb(22 84 215 / 15%);
+  background: color-mix(in srgb, var(--color-hover) 15%, transparent);
 }
 
 .calendar__day--edge,
 .calendar__day--edge:hover {
-  background: var(--color-primary);
+  background: var(--color-primary-fill);
   color: var(--color-white);
 }
 
