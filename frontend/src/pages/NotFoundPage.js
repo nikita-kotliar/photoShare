@@ -45,18 +45,26 @@ function Illustration() {
   let player = null;
   let destroyed = false;
 
-  if (canAnimate()) {
+  // Анімація в окремому потоці, коли сторінка вже показана
+  function start() {
     Promise.all([
       import('@lottiefiles/dotlottie-web'),
       import('@lottiefiles/dotlottie-web/dotlottie-player.wasm?url'),
+      import('@lottiefiles/dotlottie-web/dotlottie.worker.js?url'),
     ])
-      .then(([{ DotLottie }, { default: wasmUrl }]) => {
+      .then(([{ DotLottieWorker }, { default: wasmUrl }, { default: workerUrl }]) => {
         if (destroyed) return;
-        DotLottie.setWasmUrl(wasmUrl);
-        player = new DotLottie({ canvas, src: animationUrl, autoplay: true, loop: true });
+        DotLottieWorker.setWasmUrl(wasmUrl);
+        DotLottieWorker.setWorkerUrl(workerUrl);
+        player = new DotLottieWorker({ canvas, src: animationUrl, autoplay: true, loop: true });
         player.addEventListener('load', () => box.classList.add('not-found__image--animated'));
       })
       .catch(() => {});
+  }
+
+  if (canAnimate()) {
+    if (window.requestIdleCallback) window.requestIdleCallback(start, { timeout: 2000 });
+    else setTimeout(start, 500);
   }
 
   return Object.assign(box, {

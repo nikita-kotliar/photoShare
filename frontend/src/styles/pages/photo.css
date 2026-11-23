@@ -12,6 +12,11 @@
   color: var(--color-primary);
 }
 
+/* Місце під світлину, поки вона вантажиться */
+.photo-page-wrapper[aria-busy='true'] {
+  min-height: 100vh;
+}
+
 .photo-page__status {
   padding-block: 3rem;
   text-align: center;
@@ -223,7 +228,6 @@
   color: var(--color-text);
   font: inherit;
   font-size: var(--fs-body);
-  resize: vertical;
 }
 
 .comment-form__input:focus-visible {
@@ -566,7 +570,6 @@
   color: var(--color-text);
   font: inherit;
   font-size: var(--fs-body);
-  resize: vertical;
 }
 
 .inline-edit__input:focus-visible {

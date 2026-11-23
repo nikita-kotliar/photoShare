@@ -85,13 +85,12 @@
   color: var(--color-text);
   font: inherit;
   font-size: var(--fs-body);
-  resize: vertical;
   transition: box-shadow var(--transition);
 }
 
 .settings__textarea:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-hover) 15%, transparent);
+  box-shadow: 0 0 0 2px var(--color-accent);
 }
 
 .settings__bio.field--error .settings__textarea {

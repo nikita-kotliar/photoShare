@@ -380,7 +380,7 @@
       color-mix(in srgb, var(--color-white) 60%, transparent),
       color-mix(in srgb, var(--color-white) 50%, transparent)
     );
-    color: var(--color-title);
+    color: var(--color-ink);
   }
 
   .auth-switch__login:active,
