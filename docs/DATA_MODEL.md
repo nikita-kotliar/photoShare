@@ -27,7 +27,8 @@ erDiagram
         string username UK
         string email UK
         string name
-        string password_hash
+        string password_hash "NULL"
+        string google_id UK "NULL"
         Role role
         boolean is_active
         string avatar_url "NULL"
@@ -99,13 +100,16 @@ erDiagram
 | username | text | NN, UQ | 3-30 символів `[a-zA-Z0-9_.-]` (перевіряє zod) |
 | email | text | NN, UQ | у нижньому регістрі (нормалізує сервер) |
 | name | text | NN | 1-60 символів, за замовчуванням = `username` |
-| password_hash | text | NN | bcrypt |
+| password_hash | text | NULL | bcrypt. `NULL` лише в акаунтах, створених через Google (TASK-066); реєстрація з паролем його вимагає |
+| google_id | text | NULL, UQ | ідентифікатор акаунта Google (`sub`), TASK-066. Назовні не віддається, API показує лише `googleLinked` |
 | role | enum `Role` | NN, default `USER` | `USER`, `MODERATOR`, `ADMIN` |
 | is_active | boolean | NN, default `true` | `false` = забанений |
 | avatar_url | text | NULL | нова колонка |
 | bio | varchar(300) | NULL | «Про себе», TASK-039 |
 | created_at | timestamp(3) | NN, default now | |
 | updated_at | timestamp(3) | NN | |
+
+CHECK `users_login_method_check`: `password_hash IS NOT NULL OR google_id IS NOT NULL`. Користувач без пароля і без Google не зміг би увійти, тож база такого рядка не прийме. Prisma не описує CHECK у схемі, тому обмеження є лише в міграції `20261123000000_google_auth`.
 
 ### photos
 

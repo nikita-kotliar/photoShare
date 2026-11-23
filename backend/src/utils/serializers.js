@@ -8,6 +8,8 @@ function toPublicUser(user) {
     isActive: user.isActive,
     avatarUrl: user.avatarUrl ?? null,
     bio: user.bio ?? null,
+    // Сам google_id назовні не віддаємо, лише факт зв'язку (позначка в налаштуваннях)
+    googleLinked: Boolean(user.googleId),
     createdAt: user.createdAt,
   };
 }

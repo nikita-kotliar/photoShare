@@ -49,6 +49,7 @@ describe('GET /api/admin/users', () => {
       isActive: true,
       avatarUrl: null,
       bio: null,
+      googleLinked: false,
       createdAt: expect.any(String),
     });
     expect(byModerator.status).toBe(200);

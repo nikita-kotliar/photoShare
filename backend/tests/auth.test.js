@@ -82,6 +82,35 @@ describe('POST /api/sessions', () => {
     await register(agent());
   });
 
+  it('акаунт лише з Google (без пароля) паролем не входить: 401, як з невірним паролем', async () => {
+    await fakeDb.user.create({
+      data: {
+        username: 'googler',
+        email: 'googler@example.com',
+        name: 'Googler',
+        passwordHash: null,
+        googleId: 'google-sub-1',
+      },
+    });
+    const res = await agent()
+      .post('/api/sessions')
+      .send({ email: 'googler@example.com', password: 'password123' });
+
+    expect(res.status).toBe(401);
+    expect(res.body.error.code).toBe('INVALID_CREDENTIALS');
+  });
+
+  it('у відповіді є googleLinked, а сам googleId - ні', async () => {
+    const me = agent();
+    await me
+      .post('/api/sessions')
+      .send({ email: defaultUser.email, password: defaultUser.password });
+    const res = await me.get('/api/users/me');
+
+    expect(res.body.user.googleLinked).toBe(false);
+    expect(res.body.user.googleId).toBeUndefined();
+  });
+
   it('входить з правильними даними і ставить cookie', async () => {
     const res = await agent()
       .post('/api/sessions')

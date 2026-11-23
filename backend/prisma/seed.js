@@ -18,6 +18,16 @@ const USERS = [
   { username: 'dmytro', name: 'Дмитро Поліщук', role: 'USER' },
   { username: 'banned_user', name: 'Заблокований Користувач', role: 'USER', isActive: false },
   { username: 'newbie', name: 'Новачок Без Аватара', role: 'USER' },
+  // Акаунт лише з Google (TASK-066): пароля немає, увійти можна тільки через Google
+  { username: 'google_user', name: 'Гугл Користувач', role: 'USER', googleId: 'seed-google-1' },
+  // Звичайний акаунт, пов'язаний з Google: працюють обидва способи входу
+  {
+    username: 'linked',
+    name: 'Пов’язаний Акаунт',
+    role: 'USER',
+    googleId: 'seed-google-2',
+    password: true,
+  },
 ];
 
 // Теги завжди в нижньому регістрі (D-09), довжина до 30 символів
@@ -30,12 +40,14 @@ const TAGS = [
 async function seedUsers() {
   const passwordHash = await bcrypt.hash(TEST_PASSWORD, 10);
 
-  for (const { username, name, role, isActive = true } of USERS) {
+  for (const { username, name, role, isActive = true, googleId = null, password } of USERS) {
     const email = `${username}@example.com`;
+    // Без googleId пароль є завжди; з googleId - лише якщо password: true
+    const hash = !googleId || password ? passwordHash : null;
     await db.user.upsert({
       where: { email },
-      update: { name, role, isActive },
-      create: { username, email, name, role, isActive, passwordHash },
+      update: { name, role, isActive, googleId, passwordHash: hash },
+      create: { username, email, name, role, isActive, googleId, passwordHash: hash },
     });
   }
   return USERS.length;
@@ -56,7 +68,9 @@ async function main() {
 
   const users = await seedUsers();
   const newTags = await seedTags();
-  console.log(`Seed готовий: користувачів ${users} (пароль ${TEST_PASSWORD}), нових тегів ${newTags}`);
+  console.log(
+    `Seed готовий: користувачів ${users} (пароль ${TEST_PASSWORD}, у google_user пароля немає), нових тегів ${newTags}`,
+  );
 }
 
 main()

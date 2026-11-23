@@ -70,6 +70,7 @@ components:
         isActive: { type: boolean }
         avatarUrl: { type: string, nullable: true }
         bio: { type: string, nullable: true, maxLength: 300 }
+        googleLinked: { type: boolean, description: Акаунт пов'язано з Google }
         createdAt: { type: string, format: date-time }
 
     Notification:

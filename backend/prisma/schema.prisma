@@ -36,7 +36,10 @@ model User {
   username     String   @unique
   email        String   @unique
   name         String
-  passwordHash String   @map("password_hash")
+  // NULL лише для акаунтів, створених через Google (TASK-066). CHECK у міграції
+  // users_login_method_check: має бути пароль або google_id
+  passwordHash String?  @map("password_hash")
+  googleId     String?  @unique @map("google_id")
   role         Role     @default(USER)
   isActive     Boolean  @default(true) @map("is_active")
   avatarUrl    String?  @map("avatar_url")

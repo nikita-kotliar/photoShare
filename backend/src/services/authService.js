@@ -46,7 +46,8 @@ async function register({ username, email, password, name }) {
 
 async function login({ email, password }) {
   const user = await db.user.findUnique({ where: { email } });
-  const valid = user ? await bcrypt.compare(password, user.passwordHash) : false;
+  // Акаунт, створений через Google, пароля не має: вхід паролем для нього неможливий
+  const valid = user?.passwordHash ? await bcrypt.compare(password, user.passwordHash) : false;
 
   if (!user || !valid) {
     throw new AppError(401, 'INVALID_CREDENTIALS', 'Невірний email або пароль');
