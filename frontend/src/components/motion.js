@@ -1,5 +1,7 @@
 import '../styles/components/motion.css';
 
+let hero = { id: null, node: null };
+
 export const REVEAL_STEP = 70;
 export const REVEAL_MAX_STEPS = 6;
 export const REVEAL_THRESHOLD = 0.1;
@@ -44,6 +46,7 @@ export function reveal(items, { win = globalThis.window } = {}) {
     { threshold: [0, REVEAL_THRESHOLD] },
   );
   for (const node of nodes) {
+    if (hero.node && node.contains?.(hero.node)) continue;
     node.classList.add('reveal');
     observer.observe(node);
   }
@@ -128,4 +131,54 @@ export function confetti({ count = CONFETTI_COUNT, doc = document } = {}) {
   doc.body.append(layer);
   setTimeout(() => layer.remove(), 4000);
   return layer;
+}
+
+// Перехід між сторінками
+export const HERO_NAME = 'photo-hero';
+export const TRANSITION_WAIT = 500;
+
+export function canTransition(doc = globalThis.document) {
+  return Boolean(doc?.startViewTransition) && !reducedMotion(doc.defaultView);
+}
+
+export function markHero(node, id) {
+  if (hero.node && hero.node !== node) hero.node.style.viewTransitionName = '';
+  hero = { id, node };
+  if (node) node.style.viewTransitionName = HERO_NAME;
+}
+
+export function isHero(id) {
+  return id !== null && id !== undefined && hero.id === id;
+}
+
+export function withTimeout(promise, ms = TRANSITION_WAIT) {
+  return Promise.race([
+    Promise.resolve(promise).catch(() => {}),
+    new Promise((resolve) => setTimeout(resolve, ms)),
+  ]);
+}
+
+// Колаж пливе при прокрутці
+export function drift(node, { win = globalThis.window, strength = 0.08 } = {}) {
+  if (!node || reducedMotion(win) || !win?.requestAnimationFrame) return () => {};
+  let frame = 0;
+  function update() {
+    frame = 0;
+    const rect = node.getBoundingClientRect();
+    const view = win.innerHeight || 1;
+    const progress = Math.min(Math.max((view - rect.top) / (view + rect.height), 0), 1);
+    node.style.setProperty('--drift', `${((progress - 0.5) * strength * 100).toFixed(2)}%`);
+  }
+  function onScroll() {
+    if (!frame) frame = win.requestAnimationFrame(update);
+  }
+  win.addEventListener('scroll', onScroll, { passive: true });
+  win.addEventListener('resize', onScroll, { passive: true });
+  node.classList.add('drift');
+  update();
+  return () => {
+    win.removeEventListener('scroll', onScroll);
+    win.removeEventListener('resize', onScroll);
+    if (frame) win.cancelAnimationFrame?.(frame);
+  };
 }

@@ -1,9 +1,11 @@
 import { matchRoute, parseQuery, resolveAccess } from './match.js';
 import { stripBase, withBase } from './base.js';
+import { canTransition, withTimeout } from '../components/motion.js';
 
 export function createRouter({ routes, outlet, store, onRoute }) {
   let cleanup = null;
   let renderToken = 0;
+  let started = false;
 
   function isInternalLink(anchor) {
     if (!anchor || anchor.target === '_blank' || anchor.hasAttribute('download')) return false;
@@ -41,10 +43,6 @@ export function createRouter({ routes, outlet, store, onRoute }) {
     const module = await found.route.load();
     if (token !== renderToken) return;
 
-    if (cleanup) cleanup();
-    cleanup = null;
-    outlet.replaceChildren();
-
     const ctx = {
       params: found.params,
       query: parseQuery(search),
@@ -52,17 +50,33 @@ export function createRouter({ routes, outlet, store, onRoute }) {
       navigate,
       store,
     };
-    const result = await module.default(ctx);
-    if (token !== renderToken) {
-      if (result?.destroy) result.destroy();
-      return;
+
+    // Нова сторінка
+    async function swap() {
+      if (cleanup) cleanup();
+      cleanup = null;
+      outlet.replaceChildren();
+
+      const result = await module.default(ctx);
+      if (token !== renderToken) {
+        if (result?.destroy) result.destroy();
+        return;
+      }
+
+      const element = result instanceof Node ? result : result.el;
+      cleanup = result instanceof Node ? null : result.destroy || null;
+      outlet.append(element);
+      document.title = found.route.title ? `${found.route.title} | PhotoShare` : 'PhotoShare';
+      window.scrollTo(0, 0);
+      if (result?.ready) await withTimeout(result.ready);
     }
 
-    const element = result instanceof Node ? result : result.el;
-    cleanup = result instanceof Node ? null : result.destroy || null;
-    outlet.append(element);
-    document.title = found.route.title ? `${found.route.title} | PhotoShare` : 'PhotoShare';
-    window.scrollTo(0, 0);
+    if (started && canTransition()) {
+      await document.startViewTransition(swap).updateCallbackDone.catch(() => {});
+    } else {
+      await swap();
+    }
+    started = true;
   }
 
   function navigate(to, { replace = false } = {}) {

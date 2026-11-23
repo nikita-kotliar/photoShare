@@ -15,6 +15,7 @@ import { schemas } from '../validation/index.js';
 import { EFFECTS, transformationsPayload } from './UploadPage.js';
 import avatarPlaceholder from '../assets/images/avatar-placeholder.svg';
 import { withBase } from '../router/base.js';
+import { HERO_NAME } from '../components/motion.js';
 
 const IMAGE_SIZE = 636;
 const COMMENTS_LIMIT = 20;
@@ -828,6 +829,7 @@ export function PhotoView(photo, { user, navigate } = {}) {
   img.width = IMAGE_SIZE;
   img.height = IMAGE_SIZE;
   img.fetchPriority = 'high';
+  img.style.viewTransitionName = HERO_NAME;
   media.append(img);
 
   const qr = QrDialog(photo, { canCreate: canManage });
@@ -927,6 +929,10 @@ export default function PhotoPage({ params, store, navigate }) {
     try {
       photo = await photosApi.get(params.id);
       render();
+      await wrapper
+        .querySelector('.photo-page__img')
+        ?.decode?.()
+        .catch(() => {});
     } catch (error) {
       if (!alive) return;
       status.textContent =
@@ -953,9 +959,10 @@ export default function PhotoPage({ params, store, navigate }) {
   // Вхід або вихід змінюють доступні дії, тому перебудовуємо сторінку
   const unsubscribe = store.subscribe(render, (s) => `${s.user?.id ?? ''}:${s.user?.role ?? ''}`);
 
-  load();
+  const ready = load();
   return {
     el: wrapper,
+    ready,
     destroy: () => {
       alive = false;
       unsubscribe();

@@ -189,9 +189,10 @@ export default function HomePage({ query, navigate, store }) {
     }
   }
 
-  load();
+  const ready = load();
   return {
     el: root,
+    ready,
     destroy: () => {
       controller.abort();
       stopReveal();

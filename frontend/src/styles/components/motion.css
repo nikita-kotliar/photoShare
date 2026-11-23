@@ -132,3 +132,47 @@
     animation: none;
   }
 }
+
+/* Перехід між сторінками */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.25s;
+}
+
+::view-transition-group(photo-hero) {
+  animation-duration: 0.45s;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+::view-transition-old(photo-hero),
+::view-transition-new(photo-hero) {
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Колаж пливе */
+.drift {
+  display: block;
+  overflow: hidden;
+  border: 1px solid var(--color-hover);
+  border-radius: var(--radius-m);
+}
+
+.drift img {
+  border: 0;
+  border-radius: 0;
+  transform: translateY(var(--drift, 0)) scale(1.1);
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+
+  .drift img {
+    transform: none;
+  }
+}

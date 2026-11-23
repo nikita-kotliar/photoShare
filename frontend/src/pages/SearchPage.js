@@ -285,6 +285,6 @@ export default function SearchPage({ query, store, navigate }) {
     }
   }
 
-  load();
-  return { el: root, destroy: () => cleanups.forEach((fn) => fn()) };
+  const ready = load();
+  return { el: root, ready, destroy: () => cleanups.forEach((fn) => fn()) };
 }

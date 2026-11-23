@@ -49,6 +49,7 @@
   --gradient-button: linear-gradient(90deg, #2b59ba 0%, #083494 100%);
   --gradient-field: linear-gradient(90deg, #4965a1 0%, #072f86 100%);
   --gradient-title: linear-gradient(90deg, #1041aa 0%, #071a44 100%);
+  --gradient-band: linear-gradient(90deg, #2b59ba 0%, #083494 50%, #2b59ba 100%);
 }
 
 /* Кольори: темна тема */
