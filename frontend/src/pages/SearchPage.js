@@ -6,6 +6,7 @@ import { Button } from '../components/Button.js';
 import { rangeLabel } from '../components/FilterPanel.js';
 import { Icon } from '../components/icons.js';
 import { isStaff } from '../components/navigation.js';
+import { reveal } from '../components/motion.js';
 import { PhotoCard } from '../components/PhotoCard.js';
 import { SearchBar } from '../components/SearchBar.js';
 import { pushToast } from '../store/index.js';
@@ -272,6 +273,7 @@ export default function SearchPage({ query, store, navigate }) {
         }),
       );
       current.replaceWith(grid);
+      cleanups.push(reveal(grid.children));
       if (data.pages > 1) root.append(Pagination(data.pages));
     } catch (error) {
       if (error.name === 'AbortError') return;

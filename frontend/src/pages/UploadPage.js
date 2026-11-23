@@ -5,6 +5,7 @@ import { Icon } from '../components/icons.js';
 import { Tag } from '../components/Tag.js';
 import { bindForm, clearFieldError, showFieldError } from '../validation/form.js';
 import { normalizeTags, schemas, validateTags } from '../validation/index.js';
+import { confetti } from '../components/motion.js';
 import { pushToast } from '../store/index.js';
 import sampleWebp from '../assets/images/welcome@1x.webp';
 
@@ -466,6 +467,7 @@ export function UploadForm({ onSubmit } = {}) {
       preview.style.transform = '';
       frame.classList.remove('upload__frame--square');
       frame.classList.add('upload__frame--result');
+      confetti();
       preview.alt = 'Світлина після обробки в Cloudinary';
       preview.src = photo.url;
       statusText.textContent = 'Готово! Так світлина виглядає після обробки в Cloudinary';
