@@ -13,12 +13,33 @@ enum Role {
   ADMIN
 }
 
+// Досягнення (TASK-070): умови отримання в achievementsService
+enum AchievementCode {
+  FIRST_PHOTO
+  TEN_PHOTOS
+  COMMENTATOR
+  CRITIC
+  FAVORITE
+}
+
+// Про що сповіщення (TASK-068): коментар і оцінка твоєї світлини, нове досягнення,
+// призначення модератором
+enum NotificationType {
+  COMMENT
+  RATING
+  ACHIEVEMENT
+  MODERATOR
+}
+
 model User {
   id           Int      @id @default(autoincrement())
   username     String   @unique
   email        String   @unique
   name         String
-  passwordHash String   @map("password_hash")
+  // NULL лише для акаунтів, створених через Google (TASK-066). CHECK у міграції
+  // users_login_method_check: має бути пароль або google_id
+  passwordHash String?  @map("password_hash")
+  googleId     String?  @unique @map("google_id")
   role         Role     @default(USER)
   isActive     Boolean  @default(true) @map("is_active")
   avatarUrl    String?  @map("avatar_url")
@@ -26,9 +47,13 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  photos   Photo[]
-  comments Comment[]
-  ratings  Rating[]
+  photos              Photo[]
+  comments            Comment[]
+  ratings             Rating[]
+  // Сповіщення, які отримав користувач, і ті, причиною яких він став
+  notifications       Notification[]    @relation("NotificationRecipient")
+  notificationsCaused Notification[]    @relation("NotificationActor")
+  achievements        UserAchievement[]
 
   @@index([role])
   @@index([createdAt])
@@ -52,6 +77,7 @@ model Photo {
   ratings          Rating[]
   tags             PhotoTag[]
   transformedLinks TransformedLink[]
+  notifications    Notification[]
 
   @@index([createdAt(sort: Desc), id(sort: Desc)])
   @@index([authorId, createdAt(sort: Desc)])
@@ -126,6 +152,42 @@ model Rating {
   @@index([userId])
   @@index([photoId, value])
   @@map("ratings")
+}
+
+// Сповіщення (TASK-068). actor - хто зробив дію (NULL для системних, наприклад досягнення),
+// photo - про яку світлину. data - деталі для тексту: оцінка, код досягнення
+model Notification {
+  id        Int              @id @default(autoincrement())
+  userId    Int              @map("user_id")
+  type      NotificationType
+  actorId   Int?             @map("actor_id")
+  photoId   Int?             @map("photo_id")
+  data      Json?
+  readAt    DateTime?        @map("read_at")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user  User   @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  actor User?  @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+  photo Photo? @relation(fields: [photoId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([userId, readAt])
+  @@index([actorId])
+  @@index([photoId])
+  @@map("notifications")
+}
+
+// Отримані досягнення (TASK-070). UQ (user_id, code): одне досягнення не дається двічі
+model UserAchievement {
+  id        Int             @id @default(autoincrement())
+  userId    Int             @map("user_id")
+  code      AchievementCode
+  createdAt DateTime        @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, code])
+  @@map("user_achievements")
 }
 
 model TokenBlacklist {

@@ -49,6 +49,87 @@ describe('вхід через Google', () => {
   it('звичайні акаунти не пов’язані з Google', async () => {
     const me = await call('GET', '/users/me', { user: ADMIN });
     expect(me.body.user.googleLinked).toBe(false);
+describe('досягнення', () => {
+  it('у авторів світлин є «Перша світлина», решта не отримані', async () => {
+    const res = await call('GET', '/users/oleksandr/achievements');
+    expect(res.body.items.map((a) => [a.code, a.earned])).toEqual([
+      ['FIRST_PHOTO', true],
+      ['TEN_PHOTOS', false],
+      ['COMMENTATOR', false],
+      ['CRITIC', false],
+      ['FAVORITE', false],
+    ]);
+    expect((await call('GET', '/users/nobody/achievements')).status).toBe(404);
+  });
+
+  it('перша публікація повертає newAchievements і сповіщення', async () => {
+    const form = {
+      fields: { description: 'Перша' },
+      file: { type: 'image/png', size: 10, data: Buffer.from('png') },
+    };
+    const res = await call('POST', '/photos', { user: 10, form });
+    expect(res.body.newAchievements).toEqual(['FIRST_PHOTO']);
+    const again = await call('POST', '/photos', { user: 10, form });
+    expect(again.body.newAchievements).toEqual([]);
+    const [notice] = (await call('GET', '/notifications', { user: 10 })).body.items;
+    expect(notice).toMatchObject({ type: 'ACHIEVEMENT', data: { code: 'FIRST_PHOTO' } });
+  });
+
+  it('коментар і оцінка повертають newAchievements', async () => {
+    const photo = (await call('GET', '/users/oleksandr/photos')).body.items[0];
+    const comment = await call('POST', `/photos/${photo.id}/comments`, {
+      user: 10,
+      body: { text: 'Гарно' },
+    });
+    expect(comment.body.newAchievements).toEqual([]);
+  });
+});
+
+describe('сповіщення', () => {
+  it('у oleksandr є стартові сповіщення, 3 непрочитані', async () => {
+    const list = await call('GET', '/notifications', { user: OLEKSANDR });
+    expect(list.body.total).toBe(4);
+    expect(list.body.items[0]).toMatchObject({ type: 'ACHIEVEMENT', actor: null, read: false });
+    const count = await call('GET', '/notifications/unread-count', { user: OLEKSANDR });
+    expect(count.body.count).toBe(3);
+  });
+
+  it('коментар і оцінка чужої світлини сповіщають автора, власні дії - ні', async () => {
+    const NEWBIE = 10; // ще нічого не оцінював
+    const photos = (await call('GET', '/users/oleksandr/photos')).body.items;
+    const before = (await call('GET', '/notifications/unread-count', { user: OLEKSANDR })).body
+      .count;
+    await call('POST', `/photos/${photos[0].id}/comments`, {
+      user: NEWBIE,
+      body: { text: 'Клас' },
+    });
+    await call('POST', `/photos/${photos[0].id}/ratings`, { user: NEWBIE, body: { value: 5 } });
+    await call('POST', `/photos/${photos[0].id}/comments`, {
+      user: OLEKSANDR,
+      body: { text: 'Дякую' },
+    });
+    const after = (await call('GET', '/notifications/unread-count', { user: OLEKSANDR })).body
+      .count;
+    // коментар, оцінка і «Улюбленець» (10 оцінок світлин oleksandr, середнє вище 4.5)
+    expect(after - before).toBe(3);
+    const [achievement, rating] = (await call('GET', '/notifications', { user: OLEKSANDR })).body
+      .items;
+    expect(achievement).toMatchObject({ type: 'ACHIEVEMENT', data: { code: 'FAVORITE' } });
+    expect(rating).toMatchObject({ type: 'RATING', data: { value: 5 }, actor: { id: NEWBIE } });
+  });
+
+  it('позначає прочитаними вибрані і всі', async () => {
+    const one = await call('POST', '/notifications/read', { user: OLEKSANDR, body: { ids: [2] } });
+    expect(one.body).toEqual({ updated: 1, unread: 2 });
+    const all = await call('POST', '/notifications/read', { user: OLEKSANDR, body: {} });
+    expect(all.body.unread).toBe(0);
+    expect(
+      (await call('POST', '/notifications/read', { user: OLEKSANDR, body: { ids: [] } })).status,
+    ).toBe(422);
+  });
+
+  it('без входу 401', async () => {
+    expect((await call('GET', '/notifications')).status).toBe(401);
   });
 });
 
@@ -101,6 +182,38 @@ describe('автентифікація', () => {
   it('GET /users/me без сесії - 401, із сесією - 200', async () => {
     expect((await call('GET', '/users/me')).status).toBe(401);
     expect((await call('GET', '/users/me', { user: IVAN })).body.user.username).toBe('ivan');
+  });
+});
+
+describe('AI-підказка опису', () => {
+  const image = (size = 3) => ({ fields: {}, file: { type: 'image/png', size, name: 'a.png' } });
+  const ask = (user = IVAN, form = image()) => call('POST', '/ai/describe', { user, form });
+
+  it('повертає опис і теги', async () => {
+    const res = await ask();
+    expect(res.status).toBe(200);
+    expect(res.body.description).toEqual(expect.any(String));
+    expect(res.body.tags.length).toBeGreaterThan(0);
+  });
+
+  it('без входу 401, без файлу 422', async () => {
+    expect((await call('POST', '/ai/describe', { form: image() })).status).toBe(401);
+    expect((await ask(IVAN, { fields: {}, file: null })).status).toBe(422);
+  });
+
+  it('після 5 запитів - 429 AI_LIMIT, в іншого користувача ліміт свій', async () => {
+    for (let i = 0; i < 5; i += 1) expect((await ask(OLEKSANDR)).status).toBe(200);
+    const limited = await ask(OLEKSANDR);
+    expect(limited.status).toBe(429);
+    expect(limited.body.error.code).toBe('AI_LIMIT');
+    expect((await ask(ADMIN)).status).toBe(200);
+  });
+
+  it('fail-next імітує недоступний AI', async () => {
+    await call('POST', '/dev/fail-next', { body: { status: 503, code: 'AI_UNAVAILABLE' } });
+    const res = await ask();
+    expect(res.status).toBe(503);
+    expect(res.body.error.code).toBe('AI_UNAVAILABLE');
   });
 });
 

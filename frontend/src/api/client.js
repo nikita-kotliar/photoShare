@@ -2,6 +2,17 @@ import { pushToast, store } from '../store/index.js';
 
 const BASE_URL = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
 
+// Нові досягнення приходять у відповідях на дії (newAchievements, TASK-070). Обробник
+// (анімований тост) реєструє main.js, тож окремі виклики API про це не знають
+let achievementsHandler = null;
+export function onAchievements(handler) {
+  achievementsHandler = handler;
+}
+function announceAchievements(data) {
+  const codes = data?.newAchievements;
+  if (Array.isArray(codes) && codes.length) achievementsHandler?.(codes);
+}
+
 export class ApiError extends Error {
   constructor(status, code, message, fields) {
     super(message);
@@ -76,6 +87,7 @@ export async function request(method, path, options = {}) {
 
     const data = await parseBody(response);
     if (!response.ok) throw toApiError(response.status, data, keepSession);
+    announceAchievements(data);
     return data;
   } finally {
     changePending(-1);
@@ -135,8 +147,10 @@ export function upload(path, formData, { onProgress, signal, keepSession = false
     xhr.addEventListener('load', () => {
       done();
       const data = parseText(xhr.responseText);
-      if (xhr.status >= 200 && xhr.status < 300) resolve(data);
-      else reject(toApiError(xhr.status, data, keepSession));
+      if (xhr.status >= 200 && xhr.status < 300) {
+        announceAchievements(data);
+        resolve(data);
+      } else reject(toApiError(xhr.status, data, keepSession));
     });
     xhr.addEventListener('error', () => {
       done();

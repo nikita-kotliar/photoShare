@@ -1,6 +1,7 @@
 const db = require('../config/db');
 const AppError = require('../utils/AppError');
 const { skipFor } = require('../utils/pagination');
+const notificationsService = require('./notificationsService');
 
 const ratingInclude = {
   user: { select: { id: true, username: true, name: true, avatarUrl: true } },
@@ -85,8 +86,17 @@ async function rate(photoId, { value }, user) {
     throw err;
   }
 
+  // Свою світлину оцінити не можна (403 вище), тож отримувач завжди інший
+  await notificationsService.notify({
+    userId: photo.authorId,
+    type: 'RATING',
+    actorId: user.id,
+    photoId,
+    data: { value },
+  });
+
   const { averageRating, ratingsCount } = (await statsFor([photoId])).get(photoId);
-  return { rating, averageRating, ratingsCount };
+  return { rating, averageRating, ratingsCount, photoAuthorId: photo.authorId };
 }
 
 async function listForPhoto(photoId, pagination) {

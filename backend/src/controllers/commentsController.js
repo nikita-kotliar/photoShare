@@ -1,4 +1,5 @@
 const commentsService = require('../services/commentsService');
+const achievementsService = require('../services/achievementsService');
 const { toComment } = require('../utils/serializers');
 const { toPage } = require('../utils/pagination');
 
@@ -9,7 +10,8 @@ async function list(req, res) {
 
 async function create(req, res) {
   const comment = await commentsService.create(req.params.id, req.body, req.user);
-  res.status(201).json({ comment: toComment(comment) });
+  const newAchievements = await achievementsService.check(req.user.id, 'comment');
+  res.status(201).json({ comment: toComment(comment), newAchievements });
 }
 
 async function update(req, res) {

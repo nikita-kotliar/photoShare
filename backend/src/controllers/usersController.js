@@ -1,4 +1,5 @@
 const usersService = require('../services/usersService');
+const achievementsService = require('../services/achievementsService');
 const { toPublicUser, toProfile } = require('../utils/serializers');
 const { toPage } = require('../utils/pagination');
 const { withRatings } = require('./photoResponse');
@@ -22,4 +23,9 @@ async function listPhotos(req, res) {
   res.json(toPage(await withRatings(items, req.user), total, req.query));
 }
 
-module.exports = { me, updateMe, getProfile, listPhotos };
+// Усі досягнення користувача: отримані з датою, решта з earned: false (TASK-070)
+async function achievements(req, res) {
+  res.json({ items: await achievementsService.listForUsername(req.params.username) });
+}
+
+module.exports = { me, updateMe, getProfile, listPhotos, achievements };

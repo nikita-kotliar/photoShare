@@ -194,5 +194,43 @@ export function createSeed(now = Date.now()) {
     },
   ];
 
-  return { users, photos, comments, ratings, links };
+  // Кілька сповіщень для oleksandr (id 3, автор світлин), щоб дзвіночок не був порожнім
+  const authorPhoto = photos.find((p) => p.authorId === 3);
+  const ago = (minutes) => new Date(now - minutes * 60000).toISOString();
+  const notifications = authorPhoto
+    ? [
+        { type: 'MODERATOR', actorId: 1, photoId: null, data: {}, at: ago(60 * 26), read: true },
+        { type: 'RATING', actorId: 4, photoId: authorPhoto.id, data: { value: 5 }, at: ago(90) },
+        {
+          type: 'COMMENT',
+          actorId: 5,
+          photoId: authorPhoto.id,
+          data: { commentId: 1, text: 'Неймовірні кольори! Де це знято?' },
+          at: ago(25),
+        },
+        {
+          type: 'ACHIEVEMENT',
+          actorId: null,
+          photoId: null,
+          data: { code: 'FIRST_PHOTO' },
+          at: ago(5),
+        },
+      ].map(({ at, read, ...item }, index) => ({
+        id: index + 1,
+        userId: 3,
+        ...item,
+        readAt: read ? at : null,
+        createdAt: at,
+      }))
+    : [];
+
+  // Досягнення (TASK-070): «Перша світлина» у всіх, хто вже має світлини
+  const achievements = [...new Set(photos.map((p) => p.authorId))].map((userId, index) => ({
+    id: index + 1,
+    userId,
+    code: 'FIRST_PHOTO',
+    createdAt: new Date(now - 30 * DAY).toISOString(),
+  }));
+
+  return { users, photos, comments, ratings, links, notifications, achievements };
 }
