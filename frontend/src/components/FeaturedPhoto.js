@@ -20,7 +20,6 @@ export function FeaturedCard(photo) {
   const title = photo.description || 'Без назви';
   const card = el('a', 'featured');
   card.href = withBase(`/photos/${photo.slug ?? photo.id}`);
-  card.setAttribute('aria-label', `Світлина тижня: «${title}»`);
 
   const media = el('span', 'featured__media');
   const img = el('img', 'featured__img');
@@ -46,15 +45,18 @@ export function FeaturedCard(photo) {
 }
 
 export function FeaturedPhoto({ signal } = {}) {
-  const slot = el('div', 'featured-slot');
-  slot.hidden = true;
+  const slot = el('div', 'featured-slot featured-slot--loading');
+  slot.setAttribute('aria-hidden', 'true');
   photosApi
     .featured({ signal })
     .then((photo) => {
-      if (!photo) return;
-      slot.append(FeaturedCard(photo));
-      slot.hidden = false;
+      slot.classList.remove('featured-slot--loading');
+      slot.removeAttribute('aria-hidden');
+      if (photo) slot.append(FeaturedCard(photo));
+      else slot.hidden = true;
     })
-    .catch(() => {});
+    .catch(() => {
+      slot.hidden = true;
+    });
   return slot;
 }

@@ -24,7 +24,7 @@ export const authApi = {
   },
 
   async me() {
-    const { user } = await api.get('/users/me', { keepSession: true });
+    const { user } = await api.get('/sessions', { keepSession: true });
     return user;
   },
 };

@@ -10,6 +10,7 @@ const routes = [
   ['get', '/users/{username}', 'public'],
   ['get', '/users/{username}/photos', 'public'],
   ['get', '/users/{username}/achievements', 'public'],
+  ['get', '/sessions', 'public'],
   ['post', '/sessions', 'public'],
   ['delete', '/sessions', 'public'],
   ['get', '/auth/google', 'public'],

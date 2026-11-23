@@ -20,8 +20,12 @@ async function logout(req, res) {
   res.status(204).end();
 }
 
+function current(req, res) {
+  res.json({ user: req.user ? toPublicUser(req.user) : null });
+}
+
 function me(req, res) {
   res.json({ user: toPublicUser(req.user) });
 }
 
-module.exports = { register, login, logout, me };
+module.exports = { register, login, logout, current, me };

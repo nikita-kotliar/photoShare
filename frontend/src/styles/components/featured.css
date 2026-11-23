@@ -100,3 +100,15 @@
     font-size: 1.25rem;
   }
 }
+
+.featured-slot--loading {
+  min-height: 7.5rem;
+  border-radius: var(--radius-m);
+  background: var(--color-surface);
+}
+
+@media (min-width: 768px) {
+  .featured-slot--loading {
+    min-height: 11rem;
+  }
+}

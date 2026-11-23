@@ -130,6 +130,21 @@ paths:
         '422': { $ref: '#/components/responses/ValidationError' }
 
   /sessions:
+    get:
+      tags: [Автентифікація]
+      summary: Поточна сесія
+      description: >-
+        Для старту сайту. Гостю, після виходу і забаненому - 200 з user null (а не 401), тож
+        браузер не пише помилку в консоль.
+      responses:
+        '200':
+          description: Користувач або null
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user: { allOf: [{ $ref: '#/components/schemas/User' }], nullable: true }
     post:
       tags: [Автентифікація]
       summary: Вхід

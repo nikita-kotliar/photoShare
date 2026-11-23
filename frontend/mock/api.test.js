@@ -550,3 +550,11 @@ describe('палітра в моку', () => {
     }
   });
 });
+
+describe('поточна сесія', () => {
+  it('гостю user null зі статусом 200, з сесією - користувач', async () => {
+    expect(await call('GET', '/sessions')).toMatchObject({ status: 200, body: { user: null } });
+    expect((await call('GET', '/sessions', { user: IVAN })).body.user.id).toBe(IVAN);
+    expect((await call('GET', '/sessions', { user: BANNED })).body.user).toBeNull();
+  });
+});

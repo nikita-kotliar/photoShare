@@ -73,3 +73,25 @@ describe('заголовки безпеки', () => {
     expect(JSON.stringify(res.body)).not.toMatch(/passwordHash|password_hash|googleId/);
   });
 });
+
+describe('GET /api/sessions', () => {
+  it('гостю 200 з user null, а не 401: на сайті немає помилки в консолі', async () => {
+    const res = await agent().get('/api/sessions');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ user: null });
+  });
+
+  it('з сесією повертає користувача; після виходу і для забаненого - null', async () => {
+    const client = agent();
+    const { body } = await register(client, { username: 'owner', email: 'owner@example.com' });
+    expect((await client.get('/api/sessions')).body.user).toMatchObject({ id: body.user.id });
+
+    await fakeDb.user.update({ where: { id: body.user.id }, data: { isActive: false } });
+    expect((await client.get('/api/sessions')).body).toEqual({ user: null });
+
+    await fakeDb.user.update({ where: { id: body.user.id }, data: { isActive: true } });
+    await client.delete('/api/sessions').expect(204);
+    expect((await client.get('/api/sessions')).body).toEqual({ user: null });
+  });
+});

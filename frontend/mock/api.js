@@ -380,6 +380,10 @@ export function createMockApi({ now = Date.now() } = {}) {
 
   route('GET', '/users/me', (ctx) => ({ body: { user: serializeUser(requireAuth(ctx)) } }));
 
+  route('GET', '/sessions', (ctx) => ({
+    body: { user: ctx.user?.isActive ? serializeUser(ctx.user) : null },
+  }));
+
   route('PUT', '/users/me', (ctx) => {
     const user = requireAuth(ctx);
     const data = validateUserFields(ctx.body || {}, { requireAll: false, exceptId: user.id });
