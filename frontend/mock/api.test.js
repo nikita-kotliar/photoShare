@@ -49,6 +49,9 @@ describe('вхід через Google', () => {
   it('звичайні акаунти не пов’язані з Google', async () => {
     const me = await call('GET', '/users/me', { user: ADMIN });
     expect(me.body.user.googleLinked).toBe(false);
+  });
+});
+
 describe('досягнення', () => {
   it('у авторів світлин є «Перша світлина», решта не отримані', async () => {
     const res = await call('GET', '/users/oleksandr/achievements');
