@@ -1,194 +1,127 @@
 # API
 
-Базовий URL: `/api`. Формат: JSON (завантаження світлини: `multipart/form-data`). Автентифікація: JWT в httpOnly cookie `token`, яку ставить сервер при реєстрації і логіні. Клієнт надсилає запити з `credentials: include`. На проді API доступне за `/photoshare-api`, а cookie називається `photoshare_token` ([DEPLOY.md](DEPLOY.md), [D-43](DECISIONS.md)).
+REST API на `/api` (на проді `/photoshare-api`). Повний опис зі схемами і прикладами - Swagger: `/api/docs`, специфікація `/api/docs.json`.
 
-Swagger UI: `/api/docs`, специфікація OpenAPI 3: `/api/docs.json`. Описи лежать у `backend/src/docs/openapi/*.yaml` ([D-41](DECISIONS.md)), при зміні контракту їх оновлюють разом із цим файлом.
+## Основне
 
+- **Формат:** JSON; завантаження світлини - `multipart/form-data`.
+- **Сесія:** JWT у httpOnly cookie (`token`, на проді `photoshare_token`), ставить сервер після реєстрації, входу або Google. Клієнт шле запити з `credentials: include`.
+- **Ролі:** `USER`, `MODERATOR`, `ADMIN`; перший зареєстрований - `ADMIN`. У таблицях: `public` - без входу, `auth` - будь-хто з сесією, `owner` - власник, `staff` - модератор і адмін.
+- **Пагінація:** `?page=1&limit=12` (`limit` до 50) → `{ items, total, page, limit, pages }`.
+- **Помилки** однакові ([D-06](DECISIONS.md)): `{ "error": { "code", "message", "fields"? } }`.
 
-**Помилки** (усі однакового формату):
-```json
-{ "error": { "code": "VALIDATION_ERROR", "message": "Помилка валідації", "fields": { "email": "Некоректний email" } } }
-```
-
-| Код HTTP | code | Коли |
+| HTTP | code | Коли |
 |---|---|---|
-| 400 | BAD_REQUEST | некоректний JSON або multipart |
-| 401 | UNAUTHORIZED, TOKEN_INVALID, INVALID_CREDENTIALS | немає сесії, токен недійсний, невірний логін/пароль |
-| 403 | FORBIDDEN, USER_BANNED | немає прав, акаунт заблоковано |
-| 404 | NOT_FOUND | ресурс не знайдено |
-| 409 | CONFLICT | дублікат (email, username, оцінка) |
-| 413 | PAYLOAD_TOO_LARGE | завеликий запит або файл |
-| 422 | VALIDATION_ERROR | помилки валідації, `fields` по полях |
-| 500 | INTERNAL_ERROR | внутрішня помилка |
+| 400 | `BAD_REQUEST` | некоректний JSON або multipart |
+| 401 | `UNAUTHORIZED`, `TOKEN_INVALID`, `INVALID_CREDENTIALS` | немає сесії, токен недійсний, невірний email або пароль |
+| 403 | `FORBIDDEN`, `USER_BANNED` | немає прав, акаунт заблоковано |
+| 404 | `NOT_FOUND` | не знайдено |
+| 409 | `CONFLICT` | зайнятий email чи юзернейм, повторна оцінка |
+| 413 | `PAYLOAD_TOO_LARGE` | файл чи запит завеликий |
+| 422 | `VALIDATION_ERROR` | помилки полів у `fields` |
+| 429 | `RATE_LIMIT`, `AI_LIMIT` | забагато спроб входу чи реєстрації, вичерпано AI-ліміт |
+| 503 | `AI_UNAVAILABLE` | AI недоступний |
 
-**Пагінація:** `?page=1&limit=12` (limit до 50). Відповідь: `{ "items": [], "total": 0, "page": 1, "limit": 12, "pages": 0 }`.
+## Об'єкти
 
-**Ролі:** `USER`, `MODERATOR`, `ADMIN`. Перший зареєстрований користувач - `ADMIN`. Стовпець "Доступ": `public` без входу, `auth` будь-який користувач, `owner` власник ресурсу, `staff` MODERATOR і ADMIN.
-
-**Користувач** (`user`): `{ id, username, name, email, role, isActive, avatarUrl, bio, googleLinked, createdAt }`. `avatarUrl` і `bio` («про себе») - рядок або `null`. `googleLinked` - `true`, якщо акаунт пов'язано з Google (сам ідентифікатор Google API не віддає). Вхід паролем в акаунт, створений через Google без пароля, дає 401 `INVALID_CREDENTIALS`, як і невірний пароль. 
+- **user:** `{ id, username, name, email, role, isActive, avatarUrl, bio, googleLinked, createdAt }`
+- **photo:** `{ id, slug, url, originalUrl, description, tags, colors: [{ hex, family }], author, averageRating, ratingsCount, commentsCount, myRating, createdAt, updatedAt }`. `originalUrl` - оригінал, лише якщо світлину трансформовано; `myRating` - лише з сесією.
+- **comment:** `{ id, photoId, text, author, createdAt, updatedAt }`
+- **author:** `{ id, username, name, avatarUrl }`
 
 ## Автентифікація
 
 | Метод і шлях | Доступ | Тіло | Відповідь |
 |---|---|---|---|
-| POST `/api/users` | public | `{ username, email, password, name? }` | 201 `{ user }`, ставить cookie |
-| POST `/api/sessions` | public | `{ email, password }` | 200 `{ user }`, ставить cookie |
-| DELETE `/api/sessions` | public | - | 204, очищає cookie, токен з cookie потрапляє в blacklist до кінця свого життя |
-| GET `/api/users/me` | auth | - | 200 `{ user }` |
-| GET `/api/health` | public | - | 200 `{ status, uptime }` |
+| POST `/users` | public | `{ username, email, password, name? }` | 201 `{ user }` + cookie |
+| POST `/sessions` | public | `{ email, password }` | 200 `{ user }` + cookie |
+| GET `/sessions` | public | - | 200 `{ user }` або `{ user: null }` для гостя |
+| DELETE `/sessions` | public | - | 204, токен у blacklist ([D-36](DECISIONS.md)) |
+| GET `/auth/google` | public | - | 302 на Google ([D-57](DECISIONS.md)) |
+| GET `/auth/google/callback` | public | - | 302 на `/home` з cookie або на `/auth?googleError=cancelled\|banned\|email_unverified\|unavailable` |
 
-Правила валідації: `username` 3-30 символів `[a-zA-Z0-9_.-]`, `email` валідний (зберігається в нижньому регістрі), `password` 8-72 символи, `name` 1-60 символів (за замовчуванням дорівнює `username`). Забанений користувач не може увійти (403 `USER_BANNED`). Після виходу цей токен повертає 401 `TOKEN_INVALID`, інші сесії користувача працюють далі ([D-36](DECISIONS.md)).
+`username` 3-30 символів `[a-zA-Z0-9_.-]`, `password` 8-72, `name` 1-60. Вхід: 10 спроб за 15 хв, реєстрація: 20 за годину з однієї адреси. Забанений не входить; бан діє одразу на всі його сесії ([D-03](DECISIONS.md)).
 
-### Вхід через Google
-
-`GET /api/auth/google` - перехід браузером (посилання, не `fetch`): сервер перенаправляє на сторінку згоди Google, а Google повертає на callback бекенду. Після успіху сервер ставить cookie сесії, як `POST /api/sessions`, і перенаправляє на `/home` сайту. Після помилки - на `/auth?googleError=<код>` без cookie. Фронтенд показує повідомлення для кодів:
-
-| Код | Коли |
-|---|---|
-| `cancelled` | користувач відмовився на сторінці Google (`error=access_denied`) |
-| `banned` | акаунт заблоковано |
-| `email_unverified` | пошта акаунта Google не підтверджена |
-| `unavailable` | Google або сервер недоступні, неправильний `state` |
-
-Інший код фронтенд показує загальним повідомленням «Не вдалося увійти через Google». У відповідях API користувач має `googleLinked` ([D-57](DECISIONS.md)).
-
-## Користувачі і профіль
+## Користувачі
 
 | Метод і шлях | Доступ | Тіло / query | Відповідь |
 |---|---|---|---|
-| PUT `/api/users/me` | auth | `{ name?, username?, email?, bio? }` | 200 `{ user }`; `bio` до 300 символів, `""` очищає поле |
-| GET `/api/users/:username` | public | - | 200 `{ user: { username, name, avatarUrl, bio, createdAt, photosCount } }` |
-| GET `/api/users/:username/photos` | public | `page, limit` | 200 пагінований список світлин |
+| GET `/users/me` | auth | - | 200 `{ user }` |
+| PUT `/users/me` | auth | `{ name?, username?, email?, bio? }` | 200 `{ user }`; `bio` до 300, `""` очищає |
+| GET `/users/:username` | public | - | 200 `{ user: { username, name, avatarUrl, bio, createdAt, photosCount } }` |
+| GET `/users/:username/photos` | public | `page, limit` | 200 сторінка світлин |
+| GET `/users/:username/achievements` | public | - | 200 `{ items: [{ code, earned, earnedAt }] }` |
+
+Досягнення: `FIRST_PHOTO` (1 світлина), `TEN_PHOTOS` (10), `COMMENTATOR` (20 коментарів), `CRITIC` (50 оцінок), `FAVORITE` (середній рейтинг 4.5+ від 5 оцінок). Видаються один раз ([D-60](DECISIONS.md)); дії, що їх дають, повертають `newAchievements`.
 
 ## Світлини
 
-`photo`: `{ id, slug, url, description, tags: [string], author: { id, username, name, avatarUrl }, averageRating, ratingsCount, commentsCount, myRating, createdAt, updatedAt }`. `averageRating` - число з одним знаком або `null`, якщо оцінок немає. `myRating` - оцінка поточного користувача або `null`, лише для авторизованих запитів.
+| Метод і шлях | Доступ | Тіло / query | Відповідь |
+|---|---|---|---|
+| GET `/photos` | auth | `page, limit` | 200 стрічка, нові першими |
+| POST `/photos` | auth | form-data: `image`, `description`, `tags` (JSON, до 5), `transformations` (JSON) | 201 `{ photo }` |
+| GET `/photos/featured` | public | - | 200 `{ photo }` або `{ photo: null }` ([D-62](DECISIONS.md)) |
+| GET `/photos/:idOrSlug` | public | - | 200 `{ photo }` |
+| PUT `/photos/:id` | owner, ADMIN | `{ description, tags? }` | 200 `{ photo }` |
+| DELETE `/photos/:id` | owner, ADMIN | - | 204, разом з коментарями, оцінками й посиланнями |
+| POST `/photos/:id/links` | owner, ADMIN | `{ transformations }` | 201 `{ link: { id, url, qrCode, transformations, createdAt } }` |
+| GET `/photos/:id/links` | public | - | 200 `{ items }` |
+| POST `/ai/describe` | auth | form-data: `image` до 5 МБ | 200 `{ description, tags }` ([D-59](DECISIONS.md)) |
+
+Зображення: JPEG, PNG, WEBP або GIF до 10 МБ (тип перевіряється за вмістом). Теги - до 30 символів, зберігаються малими літерами ([D-09](DECISIONS.md)). Трансформації: `effect` = `grayscale` / `sepia` / `blur`, `angle` 0-359, `crop` = `square`; оригінал не змінюється ([D-22](DECISIONS.md)). `qrCode` - PNG у data URL з посиланням на трансформоване зображення.
+
+## Коментарі й оцінки
 
 | Метод і шлях | Доступ | Тіло / query | Відповідь |
 |---|---|---|---|
-| GET `/api/photos` | auth | `page, limit` | 200 стрічка, нові першими |
-| POST `/api/photos` | auth | form-data: `image` (файл), `description`, `tags` (до 5, необов'язково), `transformations` (JSON, необов'язково) | 201 `{ photo }` |
-| GET `/api/photos/:idOrSlug` | public | - | 200 `{ photo }`, доступний за унікальним посиланням |
-| PUT `/api/photos/:id` | owner, ADMIN | `{ description, tags? }` | 200 `{ photo }` |
-| DELETE `/api/photos/:id` | owner, ADMIN | - | 204 |
+| GET `/photos/:id/comments` | public | `page, limit` | 200 сторінка коментарів |
+| POST `/photos/:id/comments` | auth | `{ text }` 1-1000 | 201 `{ comment }` |
+| PUT `/comments/:id` | автор | `{ text }` | 200 `{ comment }` |
+| DELETE `/comments/:id` | staff | - | 204 |
+| POST `/photos/:id/ratings` | auth | `{ value }` 1-5 | 201 `{ rating, averageRating, ratingsCount }` |
+| GET `/photos/:id/ratings` | staff | `page, limit` | 200 сторінка оцінок |
+| DELETE `/ratings/:id` | staff | - | 204 |
 
-Файл `image`: один, до 10 МБ (більше: 413), JPEG / PNG / WEBP / GIF. Тип перевіряється за вмістом файлу, а не за розширенням (інше: 422 з `fields.image`). `description`: 1-1000 символів. `slug`: випадковий рядок з 12 символів `[A-Za-z0-9_-]`, `:idOrSlug` приймає або числовий `id`, або `slug`.
-
-Теги: до 5 на світлину, унікальні в усьому застосунку (існуючий береться, нового немає - створюється), нормалізуються до нижнього регістру. Довжина тега 1-30 символів (після обрізання пробілів і приведення до нижнього регістру). Шостий тег або тег неприпустимої довжини: 422.
-
-### AI-підказка опису і тегів
-
-`POST /api/ai/describe`, доступ: auth, `multipart/form-data` з полем `image` (ті самі обмеження, що в `POST /api/photos`). Відповідь 200 `{ description, tags }`: опис до 1000 символів і теги-рядки. Світлину ця дія не зберігає, результат лише підставляється у форму, де його можна змінити.
-
-| Код | code | Коли |
-|---|---|---|
-| 413 | PAYLOAD_TOO_LARGE | файл більший за 10 МБ |
-| 422 | VALIDATION_ERROR | немає файлу або це не зображення (`fields.image`) |
-| 429 | AI_LIMIT | вичерпано ліміт запитів; `message` показується користувачу як є |
-| 503 | AI_UNAVAILABLE | модель недоступна або не відповіла вчасно |
-
-Фронтенд замінює опис (попередній текст можна повернути) і додає теги до введених: без дублікатів, не довші за 30 символів, до 5 ([D-59](DECISIONS.md)).
-
-## Трансформації і QR
-
-| Метод і шлях | Доступ | Тіло | Відповідь |
-|---|---|---|---|
-| POST `/api/photos/:id/links` | owner, ADMIN | `{ transformations: { effect?, angle?, crop? } }` | 201 `{ link: { id, photoId, url, qrCode, transformations, createdAt } }` |
-| GET `/api/photos/:id/links` | public | - | 200 `{ items: [link] }`, нові першими |
-
-Набір трансформацій: `effect` = `grayscale` / `sepia` / `blur`, `angle` = ціле число 0-359, `crop` = `square`. Усі поля необов'язкові, інших полів бути не може (422 з `fields["transformations.<поле>"]` або `fields.transformations`). Порядок застосування фіксований: спершу квадратна обрізка, потім поворот, потім ефект ([D-22](DECISIONS.md)).
-
-`transformations` у `POST /api/photos` передається JSON-рядком у form-data. Оригінал у Cloudinary не змінюється, у `photo.url` записується URL з трансформаціями. `qrCode` - PNG у форматі data URL, QR відкриває `url` трансформованого зображення. Кожен POST створює окремий збережений запис, навіть з тим самим набором. Для посилання потрібна хоча б одна трансформація, порожній набір: 422. Посилання будується від оригіналу світлини, а не від `photo.url` ([D-22](DECISIONS.md)), і видаляється разом зі світлиною.
-
-## Коментарі
-
-`comment`: `{ id, photoId, text, author: { id, username, name, avatarUrl }, createdAt, updatedAt }`.
-
-| Метод і шлях | Доступ | Тіло | Відповідь |
-|---|---|---|---|
-| GET `/api/photos/:id/comments` | public | `page, limit` | 200 пагінований список |
-| POST `/api/photos/:id/comments` | auth | `{ text }` (1-1000) | 201 `{ comment }` |
-| PUT `/api/comments/:id` | автор | `{ text }` | 200 `{ comment }`, оновлює `updatedAt` |
-| DELETE `/api/comments/:id` | staff | - | 204; автор свій коментар видаляти не може |
-
-`text`: 1-1000 символів після обрізання пробілів. Чужий коментар не редагує ніхто, зокрема ADMIN (403). Коментарі видаляються разом зі світлиною.
-
-## Рейтинг (MVP2)
-
-| Метод і шлях | Доступ | Тіло | Відповідь |
-|---|---|---|---|
-| POST `/api/photos/:id/ratings` | auth | `{ value }` (ціле 1-5) | 201 `{ rating, averageRating, ratingsCount }` |
-| GET `/api/photos/:id/ratings` | staff | `page, limit` | 200 пагінований список оцінок, нові першими |
-| DELETE `/api/ratings/:id` | staff | - | 204 |
-
-`rating`: `{ id, photoId, value, user: { id, username, name, avatarUrl }, createdAt }`.
-
-Одна оцінка на користувача (повторна: 409), власну світлину оцінювати не можна навіть ADMIN (403). Змінити свою оцінку не можна; MODERATOR або ADMIN може її видалити, після чого користувач оцінює знову. Рейтинг світлини - середнє всіх оцінок з одним знаком після коми, рахується агрегатом під час запиту. `averageRating`, `ratingsCount` і `myRating` є в кожній світлині: у стрічці, на сторінці світлини і в профілі. `GET /api/photos/:idOrSlug` і `GET /api/users/:username/photos` публічні, але з валідною сесією повертають `myRating`; недійсна сесія або забанений користувач на цих маршрутах вважаються гостем.
+Чужий коментар не редагує ніхто, свій автор не видаляє ([D-16](DECISIONS.md)). Одна оцінка на людину (повторна - 409), свою світлину оцінити не можна, змінити оцінку не можна ([D-44](DECISIONS.md)). Середній рейтинг - з одним знаком після коми.
 
 ## Пошук
 
-`GET /api/search/photos`, доступ: auth. Відповідь: 200 пагінований список світлин у форматі стрічки (з `averageRating`, `ratingsCount`, `myRating`).
+`GET /search/photos`, доступ auth → сторінка світлин.
 
-| Параметр | Опис |
+| Параметр | Що робить |
 |---|---|
-| `q` | ключове слово (опис і теги) |
+| `q` | підрядок в описі або тегах, без урахування регістру |
 | `tag` | точний тег |
-| `sort` | `date` або `rating` |
-| `order` | `asc` або `desc` (за замовчуванням `desc`) |
-| `ratingMin` | мінімальний середній рейтинг, 1-5 |
-| `dateFrom`, `dateTo` | діапазон дат додавання, `YYYY-MM-DD` |
-| `username` | фільтр за автором, лише staff (для USER: 403) |
-| `page`, `limit` | пагінація |
+| `color` | група кольору: `red`, `orange`, `yellow`, `green`, `teal`, `blue`, `purple`, `pink`, `brown`, `black`, `gray`, `white` |
+| `ratingMin` | мінімальний середній рейтинг 1-5 |
+| `dateFrom`, `dateTo` | `YYYY-MM-DD`, UTC, обидва дні включно ([D-23](DECISIONS.md)) |
+| `username` | автор, лише staff (для USER - 403) |
+| `sort`, `order` | `date` або `rating`; `desc` (за замовчуванням) або `asc` |
 
-Фільтри поєднуються через «і», порожній параметр вважається невказаним. `q` (до 100 символів) шукає підрядок в описі або в назві тега без урахування регістру, `%` і `_` - звичайні символи. `tag` - точний збіг без урахування регістру. `ratingMin` (число, можна дробове) порівнюється з округленим до одного знака середнім, яке бачить користувач. `dateFrom`, `dateTo` за UTC, обидва дні включно. `sort=rating`: світлини без оцінок завжди в кінці, при рівному середньому вище та, у якої більше оцінок, далі новіші. Невідомий `username` дає порожній список. Некоректний параметр або `dateTo` раніше за `dateFrom`: 422 ([D-47](DECISIONS.md)).
+Фільтри поєднуються через «і», порожній параметр не враховується ([D-47](DECISIONS.md)).
+
+## Сповіщення
+
+| Метод і шлях | Доступ | Тіло | Відповідь |
+|---|---|---|---|
+| GET `/notifications` | auth | `page, limit` | 200 сторінка `{ id, type, read, actor, photo, data, createdAt }` |
+| GET `/notifications/unread-count` | auth | - | 200 `{ count }` |
+| POST `/notifications/read` | auth | `{ ids? }` | 200 `{ updated, unread }`; без `ids` - усі |
+
+Типи: `COMMENT`, `RATING`, `ACHIEVEMENT`, `MODERATOR`. Про власні дії сповіщень немає ([D-58](DECISIONS.md)).
 
 ## Адміністрування
 
 | Метод і шлях | Доступ | Тіло / query | Відповідь |
 |---|---|---|---|
-| GET `/api/admin/users` | staff | `q` (ім'я або email), `role`, `registeredFrom`, `registeredTo`, `sort`, `order`, `page`, `limit` | 200 пагінований список користувачів |
-| PATCH `/api/admin/users/:id/status` | ADMIN | `{ isActive: boolean }` | 200 `{ user }` |
-| PATCH `/api/admin/users/:id/role` | ADMIN | `{ role: "USER" | "MODERATOR" }` | 200 `{ user }` |
+| GET `/admin/users` | staff | `q, role, registeredFrom, registeredTo, sort, order, page, limit` | 200 сторінка користувачів |
+| PATCH `/admin/users/:id/status` | ADMIN | `{ isActive }` | 200 `{ user }` |
+| PATCH `/admin/users/:id/role` | ADMIN | `{ role: "USER" \| "MODERATOR" }` | 200 `{ user }` ([D-51](DECISIONS.md)) |
+| GET `/admin/comments/flagged` | staff | `page, limit` | 200 сторінка `{ commentId, category, reason, flaggedAt, comment }` ([D-61](DECISIONS.md)) |
+| DELETE `/admin/comments/:id/flag` | staff | - | 204, коментар лишається |
 
-Список: нові першими, `limit` до 50. `sort=name` сортує за іменем (за замовчуванням А-Я, `order=desc` - Я-А), `sort=date` (за замовчуванням) - за датою реєстрації, `order=asc` - старіші першими. `q` (до 100 символів) шукає підрядок в імені, `username` або email без урахування регістру. `role`: `USER` / `MODERATOR` / `ADMIN`. `registeredFrom`, `registeredTo`: дати `YYYY-MM-DD` за UTC, обидва дні включно ([D-23](DECISIONS.md)). Фільтри поєднуються. Некоректний фільтр або `registeredTo` раніше за `registeredFrom`: 422.
+Себе й іншого адміна банити чи змінювати їм роль не можна (403). Призначити `ADMIN` не можна (422).
 
-Заборонено банити себе і іншого ADMIN (403). MODERATOR бачить список, але статус не змінює (403). Бан діє одразу: забанений не може увійти, а його поточна сесія отримує 403 `USER_BANNED` на наступному запиті ([D-03](DECISIONS.md)).
+## Службове
 
-Роль: ADMIN призначає модератора (`MODERATOR`) або повертає звичайну роль (`USER`). Призначити `ADMIN` не можна (422), змінити роль собі чи іншому ADMIN теж (403). Нова роль діє з наступного запиту, перевходити не треба ([D-51](DECISIONS.md)).
-
-## Досягнення
-
-`GET /api/users/:username/achievements`, доступ: public. Відповідь: `{ items: [{ code, earned, earnedAt }] }`, усі п'ять у фіксованому порядку, неотримані з `earned: false` і `earnedAt: null`.
-
-| code | Назва | Умова | Коли перевіряється |
-|---|---|---|---|
-| `FIRST_PHOTO` | Перша світлина | 1 опублікована світлина | після `POST /photos` |
-| `TEN_PHOTOS` | 10 публікацій | 10 світлин | після `POST /photos` |
-| `COMMENTATOR` | Коментатор | 20 коментарів | після `POST /photos/:id/comments` |
-| `CRITIC` | Критик | 50 поставлених оцінок | після `POST /photos/:id/ratings` |
-| `FAVORITE` | Улюбленець | середній рейтинг усіх своїх світлин 4.5+ від щонайменше 5 оцінок | коли світлину автора оцінили |
-
-Отримане досягнення зберігається в `user_achievements` і не видається вдруге, навіть якщо умова перестала виконуватись (наприклад, світлину видалили). Разом з ним створюється сповіщення `ACHIEVEMENT`. `POST /photos`, `POST /photos/:id/comments` і `POST /photos/:id/ratings` повертають `newAchievements` - коди щойно отриманих досягнень того, хто зробив дію (фронтенд показує тост). «Улюбленець» автор отримує лише сповіщенням ([D-60](DECISIONS.md)).
-
-## Сповіщення
-
-| Метод і шлях | Доступ | Тіло / query | Відповідь |
-|---|---|---|---|
-| GET `/api/notifications` | auth | `page, limit` | 200 пагінований список, нові першими |
-| GET `/api/notifications/unread-count` | auth | - | 200 `{ count }` |
-| POST `/api/notifications/read` | auth | `{ ids? }` (1-100 id) | 200 `{ updated, unread }`; без `ids` - усі мої |
-
-`notification`: `{ id, type, read, actor, photo, data, createdAt }`. `actor` - хто зробив дію (`{ id, username, name, avatarUrl }`, `null` для системних), `photo` - `{ id, slug, url }` або `null`.
-
-| type | Коли | data |
-|---|---|---|
-| `COMMENT` | коментар до моєї світлини | `{ commentId, text }` (перші 100 символів) |
-| `RATING` | оцінка моєї світлини | `{ value }` |
-| `ACHIEVEMENT` | нове досягнення (TASK-070) | `{ code }` |
-| `MODERATOR` | ADMIN призначив мене модератором | `{}` |
-
-Про власні дії сповіщень немає. Зняття ролі модератора і повторне збереження тієї самої ролі не сповіщають. Видалення світлини видаляє сповіщення про неї. Чужі `ids` у `POST /read` ігноруються. Якщо сповіщення не вдалося створити, сама дія (коментар, оцінка) все одно виконується ([D-58](DECISIONS.md)).
-
-## Мок-API для frontend
-
-`npm run dev:mock` у `frontend/` піднімає ті самі ендпоінти з тестовими даними без backend. Додатково, лише в моку: `POST /api/dev/reset` (скидання даних) і `POST /api/dev/fail-next` (штучна помилка наступного запиту).
+`GET /health` → `{ status: "ok", uptime }`. Мок-API для фронтенду повторює цей контракт ([frontend/README.md](../frontend/README.md)).
