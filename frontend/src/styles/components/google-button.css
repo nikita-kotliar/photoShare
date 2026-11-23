@@ -1,0 +1,56 @@
+/* Кнопка входу через Google: світла, з кольоровим «G», як вимагають правила бренду Google */
+.google-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #747775;
+  border-radius: var(--radius-m);
+  background: #ffffff;
+  color: #1f1f1f;
+  font-size: var(--fs-small);
+  font-weight: var(--fw-medium);
+  text-decoration: none;
+  touch-action: manipulation;
+  transition:
+    background var(--transition),
+    box-shadow var(--transition);
+}
+
+.google-btn:hover {
+  background: #f2f6ff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 15%);
+}
+
+.google-btn:active {
+  background: #e8eefc;
+}
+
+.google-btn--pending {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.google-btn__logo {
+  flex-shrink: 0;
+}
+
+/* «або» між кнопкою Google і формою */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-block: 1.25rem;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  border-top: 1px solid var(--color-border);
+}

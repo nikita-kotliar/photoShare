@@ -157,6 +157,7 @@ export function createMockApi({ now = Date.now() } = {}) {
       isActive: user.isActive,
       avatarUrl: user.avatarUrl,
       bio: user.bio ?? null,
+      googleLinked: Boolean(user.googleId),
       createdAt: user.createdAt,
     };
   }
@@ -339,6 +340,19 @@ export function createMockApi({ now = Date.now() } = {}) {
     };
     db.users.push(user);
     return { status: 201, body: { user: serializeUser(user) }, ...session(user) };
+  });
+
+  // Вхід через Google (TASK-067). Справжній бекенд веде на Google і назад; мок одразу
+  // повертає на /home з сесією newbie (у моку акаунт пов'язано з Google).
+  // Помилка: ?mockError=<код> або POST /dev/fail-next перед переходом
+  route('GET', '/auth/google', (ctx) => {
+    const back = (code) => ({ status: 302, redirect: `${ctx.origin}/auth?googleError=${code}` });
+    const mockError = ctx.query.get('mockError');
+    if (mockError) return back(mockError);
+    const user = db.users.find((u) => u.googleId);
+    if (!user) return back('unavailable');
+    if (!user.isActive) return back('banned');
+    return { status: 302, redirect: `${ctx.origin}/home`, ...session(user) };
   });
 
   route('POST', '/sessions', (ctx) => {
@@ -834,6 +848,11 @@ export function createMockApi({ now = Date.now() } = {}) {
 
   async function handle({ method, path, query, cookies, body, form, origin }) {
     try {
+      if (failNext && path === '/auth/google') {
+        // Google-вхід - перехід браузером, тож помилка приходить редіректом, а не JSON
+        failNext = null;
+        return { status: 302, redirect: `${origin}/auth?googleError=unavailable` };
+      }
       if (failNext && path !== '/dev/fail-next' && path !== '/dev/reset') {
         const { status, code } = failNext;
         failNext = null;
@@ -858,7 +877,12 @@ export function createMockApi({ now = Date.now() } = {}) {
       const user = userId ? userById(userId) || null : null;
 
       const result = await found.handler({ params, query, body, form, user, origin });
-      return { status: result.status || 200, body: result.body, setCookie: result.setCookie };
+      return {
+        status: result.status || 200,
+        body: result.body,
+        setCookie: result.setCookie,
+        redirect: result.redirect,
+      };
     } catch (error) {
       if (error instanceof HttpError) {
         return {
