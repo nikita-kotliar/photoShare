@@ -16,6 +16,7 @@ describe('parseSearchQuery', () => {
     ).toEqual({
       q: 'море',
       tag: 'захід',
+      color: '',
       from: '',
       to: '',
       ratingMin: 0,
