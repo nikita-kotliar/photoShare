@@ -98,6 +98,7 @@ export function UserRow(user, { viewer, onAction } = {}) {
   const main = el('div', 'user-row__main');
   const head = el('p', 'user-row__head');
   const name = el('a', 'user-row__name', user.name || user.username);
+  name.title = user.name || user.username;
   name.href = withBase(`/users/${encodeURIComponent(user.username)}`);
   head.append(name);
   if (user.isActive) {
