@@ -1,5 +1,6 @@
 import '../styles/pages/welcome.css';
 import { Button } from '../components/Button.js';
+import { drift } from '../components/motion.js';
 import { ThemedImages } from '../components/theme.js';
 import logo from '../assets/images/logo-dark.svg';
 import logoLight from '../assets/images/logo.svg';
@@ -87,6 +88,8 @@ export default function WelcomePage({ store }) {
   const actions = el('div', 'welcome__actions');
   actions.append(...welcomeActions(store.get().user).map((action) => Button(action)));
 
-  root.append(title, tagline, band, text, Photo(), actions);
-  return root;
+  const photo = Photo();
+  root.append(title, tagline, band, text, photo, actions);
+  const stopDrift = drift(photo);
+  return { el: root, destroy: stopDrift };
 }

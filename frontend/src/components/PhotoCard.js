@@ -1,5 +1,6 @@
 import { Button } from './Button.js';
 import { Icon } from './icons.js';
+import { isHero, markHero } from './motion.js';
 import { Rating } from './Rating.js';
 import { TagList } from './Tag.js';
 import avatarPlaceholder from '../assets/images/avatar-placeholder.svg';
@@ -70,6 +71,18 @@ export function PhotoCard(
   img.decoding = 'async';
   if (priority) img.fetchPriority = 'high';
   else img.loading = 'lazy';
+  if (isHero(photo.id)) markHero(img, photo.id);
+  media.addEventListener('click', (event) => {
+    if (
+      event.button === 0 &&
+      !event.metaKey &&
+      !event.ctrlKey &&
+      !event.shiftKey &&
+      !event.altKey
+    ) {
+      markHero(img, photo.id);
+    }
+  });
   const expand = el('span', 'photo-card__expand');
   expand.append(Icon('expand', { size: '1.75rem' }));
   media.append(img, expand);

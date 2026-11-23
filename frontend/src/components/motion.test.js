@@ -1,8 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+  HERO_NAME,
   REVEAL_MAX_STEPS,
   REVEAL_STEP,
   countUp,
+  drift,
+  isHero,
+  markHero,
+  withTimeout,
   reducedMotion,
   reveal,
   revealDelay,
@@ -136,5 +141,68 @@ describe('formatAverage', () => {
     expect(formatAverage(3.64, 4)).toBe(3.6);
     expect(formatAverage(4, 4)).toBe(4);
     expect(formatAverage(null, 4)).toBe(null);
+  });
+});
+
+describe('перехід картка - сторінка світлини', () => {
+  it('ім’я переходу є лише в останньої вибраної світлини', () => {
+    const first = { style: {} };
+    const second = { style: {} };
+    markHero(first, 1);
+    expect(first.style.viewTransitionName).toBe(HERO_NAME);
+    markHero(second, 2);
+    expect(first.style.viewTransitionName).toBe('');
+    expect(second.style.viewTransitionName).toBe(HERO_NAME);
+    expect(isHero(2)).toBe(true);
+    expect(isHero(1)).toBe(false);
+    expect(isHero(undefined)).toBe(false);
+  });
+
+  it('не чекає сторінку довше за ліміт і не падає на помилці', async () => {
+    vi.useFakeTimers();
+    const slow = withTimeout(new Promise(() => {}), 100);
+    vi.advanceTimersByTime(100);
+    await expect(slow).resolves.toBeUndefined();
+    vi.useRealTimers();
+    await expect(withTimeout(Promise.reject(new Error('x')))).resolves.toBeUndefined();
+  });
+});
+
+describe('drift', () => {
+  function scrollWin({ reduce = false } = {}) {
+    const handlers = {};
+    return {
+      ...fakeWin({ reduce }),
+      innerHeight: 800,
+      handlers,
+      addEventListener: (type, fn) => (handlers[type] = fn),
+      removeEventListener: (type) => delete handlers[type],
+      requestAnimationFrame: (fn) => (fn(), 1),
+    };
+  }
+
+  function driftNode(top) {
+    const node = fakeNode();
+    node.getBoundingClientRect = () => ({ top, height: 400 });
+    return node;
+  }
+
+  it('зсув залежить від положення колажу на екрані', () => {
+    const win = scrollWin();
+    const below = driftNode(800);
+    drift(below, { win });
+    expect(below.style.values['--drift']).toBe('-4.00%');
+    const middle = driftNode(200);
+    const stop = drift(middle, { win });
+    expect(middle.style.values['--drift']).toBe('0.00%');
+    expect(win.handlers.scroll).toBeTypeOf('function');
+    stop();
+    expect(win.handlers.scroll).toBeUndefined();
+  });
+
+  it('при «зменшити рух» колаж стоїть', () => {
+    const node = driftNode(0);
+    drift(node, { win: scrollWin({ reduce: true }) });
+    expect(node.classes.size).toBe(0);
   });
 });
