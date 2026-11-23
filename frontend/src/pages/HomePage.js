@@ -3,7 +3,8 @@ import { photosApi } from '../api/photos.js';
 import { Button } from '../components/Button.js';
 import { isStaff } from '../components/navigation.js';
 import { reveal } from '../components/motion.js';
-import { PhotoCard } from '../components/PhotoCard.js';
+import { Lightbox } from '../components/Lightbox.js';
+import { PhotoCard, updateCardRating } from '../components/PhotoCard.js';
 import { SearchBar } from '../components/SearchBar.js';
 import { pushToast } from '../store/index.js';
 import { SEARCH_SORTS, parseSearchQuery, searchHref } from './SearchPage.js';
@@ -77,7 +78,11 @@ export default function HomePage({ query, navigate, store }) {
     onChange: (patch) => navigate(searchHref({ ...searchState, ...patch })),
   });
 
-  root.append(title, bar, status, list);
+  const lightbox = Lightbox({
+    user: store.get().user,
+    onRated: (photo) => updateCardRating(root, photo, store.get().user),
+  });
+  root.append(title, bar, status, list, lightbox);
 
   // Пагінація
   function Pagination(pages) {
@@ -175,6 +180,7 @@ export default function HomePage({ query, navigate, store }) {
               priority: i < PRIORITY_CARDS,
               onEdit: () => navigate(`/photos/${photo.slug ?? photo.id}`),
               onDelete,
+              onOpen: (_, node) => lightbox.showPhoto(data.items, i, node.getBoundingClientRect()),
             }),
           );
           return item;
@@ -196,6 +202,7 @@ export default function HomePage({ query, navigate, store }) {
     destroy: () => {
       controller.abort();
       stopReveal();
+      lightbox.destroy();
       bar.destroy();
     },
   };

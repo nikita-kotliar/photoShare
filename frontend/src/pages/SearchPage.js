@@ -7,7 +7,8 @@ import { rangeLabel } from '../components/FilterPanel.js';
 import { Icon } from '../components/icons.js';
 import { isStaff } from '../components/navigation.js';
 import { reveal } from '../components/motion.js';
-import { PhotoCard } from '../components/PhotoCard.js';
+import { Lightbox } from '../components/Lightbox.js';
+import { PhotoCard, updateCardRating } from '../components/PhotoCard.js';
 import { SearchBar } from '../components/SearchBar.js';
 import { pushToast } from '../store/index.js';
 import { parsePage } from './HomePage.js';
@@ -175,7 +176,12 @@ export default function SearchPage({ query, store, navigate }) {
   list.setAttribute('aria-busy', 'true');
   list.append(...Array.from({ length: 6 }, Skeleton));
 
-  root.append(title, bar, chips, status, list);
+  const lightbox = Lightbox({
+    user: store.get().user,
+    onRated: (photo) => updateCardRating(root, photo, store.get().user),
+  });
+  cleanups.push(() => lightbox.destroy());
+  root.append(title, bar, chips, status, list, lightbox);
 
   async function onDelete(photo, event) {
     const button = event.currentTarget;
@@ -259,7 +265,7 @@ export default function SearchPage({ query, store, navigate }) {
       const grid = el('ul', 'home__grid');
       grid.setAttribute('role', 'list');
       grid.append(
-        ...data.items.map((photo) => {
+        ...data.items.map((photo, i) => {
           const item = el('li', 'home__item');
           item.append(
             PhotoCard(photo, {
@@ -267,6 +273,7 @@ export default function SearchPage({ query, store, navigate }) {
               headingLevel: 2,
               onEdit: () => navigate(`/photos/${photo.slug ?? photo.id}`),
               onDelete,
+              onOpen: (_, node) => lightbox.showPhoto(data.items, i, node.getBoundingClientRect()),
             }),
           );
           return item;

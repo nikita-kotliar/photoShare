@@ -37,6 +37,17 @@ export function plural(count, [one, few, many]) {
   return many;
 }
 
+export function isPlainClick(event) {
+  return event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
+}
+
+// Оновлення рейтингу на картці
+export function updateCardRating(container, photo, user) {
+  const card = container.querySelector(`.photo-card[data-photo-id="${photo.id}"]`);
+  const current = card?.querySelector('.photo-card__row > .rating');
+  current?.replaceWith(Rating(photo, { user, textClass: 'photo-card__rating' }));
+}
+
 function el(tag, className, text) {
   const node = document.createElement(tag);
   if (className) node.className = className;
@@ -52,12 +63,13 @@ function metaRow(label, value, valueTag = 'span') {
 
 export function PhotoCard(
   photo,
-  { user, onEdit, onDelete, headingLevel = 3, priority = false } = {},
+  { user, onEdit, onDelete, onOpen, headingLevel = 3, priority = false } = {},
 ) {
   const href = `/photos/${photo.slug ?? photo.id}`;
   const title = photo.description || 'Без назви';
   const mode = photoCardMode(user, photo);
   const card = el('article', `photo-card photo-card--${mode}`);
+  card.dataset.photoId = String(photo.id);
 
   // Зображення
   const media = el('a', 'photo-card__media');
@@ -72,14 +84,13 @@ export function PhotoCard(
   if (priority) img.fetchPriority = 'high';
   else img.loading = 'lazy';
   if (isHero(photo.id)) markHero(img, photo.id);
+  if (onOpen) media.setAttribute('aria-haspopup', 'dialog');
   media.addEventListener('click', (event) => {
-    if (
-      event.button === 0 &&
-      !event.metaKey &&
-      !event.ctrlKey &&
-      !event.shiftKey &&
-      !event.altKey
-    ) {
+    if (!isPlainClick(event)) return;
+    if (onOpen) {
+      event.preventDefault();
+      onOpen(photo, media);
+    } else {
       markHero(img, photo.id);
     }
   });
@@ -118,7 +129,9 @@ export function PhotoCard(
   if (mode === 'owner') {
     actions.append(Button({ text: 'Редагувати', onClick: () => onEdit?.(photo) }));
   } else {
-    actions.append(Button({ text: 'Детальніше', href }));
+    const more = Button({ text: 'Детальніше', href });
+    more.addEventListener('click', () => markHero(img, photo.id));
+    actions.append(more);
   }
   if (mode !== 'guest') {
     actions.append(

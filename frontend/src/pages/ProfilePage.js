@@ -7,7 +7,8 @@ import { Button } from '../components/Button.js';
 import { Dropdown } from '../components/Dropdown.js';
 import { Icon } from '../components/icons.js';
 import { reveal } from '../components/motion.js';
-import { PhotoCard, plural } from '../components/PhotoCard.js';
+import { Lightbox } from '../components/Lightbox.js';
+import { PhotoCard, plural, updateCardRating } from '../components/PhotoCard.js';
 import { pushToast } from '../store/index.js';
 import avatarPlaceholder from '../assets/images/avatar-placeholder.svg';
 import NotFoundPage from './NotFoundPage.js';
@@ -158,7 +159,11 @@ export default function ProfilePage({ params, query, store, navigate }) {
 
   const status = el('p', 'profile__status', 'Завантаження профілю…');
   status.setAttribute('role', 'status');
-  root.append(back, title, status);
+  const lightbox = Lightbox({
+    user: store.get().user,
+    onRated: (photo) => updateCardRating(root, photo, store.get().user),
+  });
+  root.append(back, title, status, lightbox);
 
   async function logout() {
     try {
@@ -273,7 +278,7 @@ export default function ProfilePage({ params, query, store, navigate }) {
         grid.setAttribute('role', 'list');
         const user = store.get().user;
         grid.append(
-          ...data.items.map((photo) => {
+          ...data.items.map((photo, i) => {
             const item = el('li', 'home__item');
             item.append(
               PhotoCard(photo, {
@@ -281,6 +286,8 @@ export default function ProfilePage({ params, query, store, navigate }) {
                 headingLevel: 3,
                 onEdit: () => navigate(`/photos/${photo.slug ?? photo.id}`),
                 onDelete,
+                onOpen: (_, node) =>
+                  lightbox.showPhoto(data.items, i, node.getBoundingClientRect()),
               }),
             );
             return item;
@@ -338,6 +345,7 @@ export default function ProfilePage({ params, query, store, navigate }) {
     destroy() {
       controller.abort();
       stopReveal();
+      lightbox.destroy();
       menuDestroy?.();
     },
   };
