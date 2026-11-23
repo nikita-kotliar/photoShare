@@ -89,6 +89,7 @@ export function UserRow(user, { viewer, onAction } = {}) {
 
   const avatar = el('img', 'user-row__avatar');
   avatar.src = user.avatarUrl || avatarPlaceholder;
+  if (!user.avatarUrl) avatar.classList.add('avatar-placeholder');
   avatar.alt = '';
   avatar.width = 64;
   avatar.height = 64;

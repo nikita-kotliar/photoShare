@@ -27,9 +27,9 @@
   left: -0.25rem;
   width: 4.5rem;
   height: 4.5rem;
-  border: 3px solid var(--color-white);
+  border: 3px solid var(--color-card);
   border-radius: 50%;
-  background: var(--color-white);
+  background: var(--color-card);
   object-fit: cover;
 }
 
@@ -80,7 +80,7 @@
   border: 1px solid transparent;
   border-radius: var(--radius-m);
   background:
-    linear-gradient(var(--color-white), var(--color-white)) padding-box,
+    linear-gradient(var(--color-card), var(--color-card)) padding-box,
     var(--gradient-field) border-box;
   color: var(--color-text);
   font: inherit;
@@ -91,12 +91,12 @@
 
 .settings__textarea:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgb(22 84 215 / 15%);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-hover) 15%, transparent);
 }
 
 .settings__bio.field--error .settings__textarea {
   border-color: var(--color-danger);
-  background: var(--color-white);
+  background: var(--color-card);
 }
 
 .settings__counter {

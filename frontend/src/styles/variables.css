@@ -1,4 +1,8 @@
+/* Кольори: світла тема */
 :root {
+  color-scheme: light;
+  --show-on-light: block;
+  --show-on-dark: none;
   --color-primary: #24448a;
   --color-primary-dark: #132d62;
   --color-primary-border: #1a3673;
@@ -10,19 +14,132 @@
   --color-muted: #697a9e;
   --color-text-muted: #627193;
   --color-surface: #f2f6ff;
+  --color-surface-soft: #f7f9fd;
+  --color-surface-muted: #eef1f7;
+  --color-surface-deep: #e8eefc;
+  --color-card: #ffffff;
   --color-bg: #fdfdfd;
   --color-bg-gray: #f5f6f7;
   --color-white: #ffffff;
+  --color-black: #000000;
+  --color-on-primary: #fdfdfd;
   --color-border: #ededed;
   --color-disabled: #afb0b2;
   --color-danger: #bb0505;
+  --color-danger-soft: #ff6b6b;
   --color-success: #2bba00;
   --color-hover: #1654d7;
   --color-pressed: #0051ff;
+  --color-primary-fill: #24448a;
+  --color-primary-dark-fill: #132d62;
+  --color-hover-fill: #1654d7;
+  --color-pressed-fill: #0051ff;
+  --color-danger-fill: #bb0505;
+  --color-muted-fill: #627193;
+  --color-star-empty: #7785a3;
+  --color-glow: #447fff;
   --color-gold: #ffc93c;
+  --color-toast: #24448a;
+  --color-scrollbar: #a8b6d6;
+  --color-scrollbar-track: #eef1f7;
+  --placeholder-filter: none;
   --color-shine: rgb(255 255 255 / 70%);
+  --color-shadow: #132d62;
+  --color-backdrop: #071a44;
   --gradient-button: linear-gradient(90deg, #2b59ba 0%, #083494 100%);
   --gradient-field: linear-gradient(90deg, #4965a1 0%, #072f86 100%);
+  --gradient-title: linear-gradient(90deg, #1041aa 0%, #071a44 100%);
+}
+
+/* Кольори: темна тема */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --show-on-light: none;
+  --show-on-dark: block;
+  --color-primary: #9db8ff;
+  --color-primary-dark: #c9d6f5;
+  --color-primary-border: #3a5aa8;
+  --color-accent: #6f9bff;
+  --color-link: #8fb0ff;
+  --color-info: #4cb8ff;
+  --color-title: #eef2fb;
+  --color-text: #e2e6ee;
+  --color-muted: #8e9bb8;
+  --color-text-muted: #a3afc8;
+  --color-surface: #18213a;
+  --color-surface-soft: #151d31;
+  --color-surface-muted: #1f2944;
+  --color-surface-deep: #1c2742;
+  --color-card: #161e33;
+  --color-bg: #0e1424;
+  --color-bg-gray: #131a2c;
+  --color-border: #2a3550;
+  --color-disabled: #4f586c;
+  --color-danger: #ff7b7b;
+  --color-success: #5ad634;
+  --color-hover: #b2c7ff;
+  --color-pressed: #d0ddff;
+  --color-primary-fill: #2b4e9c;
+  --color-primary-dark-fill: #10224b;
+  --color-hover-fill: #1f5fe6;
+  --color-pressed-fill: #2f6bff;
+  --color-danger-fill: #c0262d;
+  --color-muted-fill: #3e4a66;
+  --color-star-empty: #56627e;
+  --color-shine: rgb(255 255 255 / 8%);
+  --color-shadow: #000000;
+  --color-backdrop: #000000;
+  --gradient-title: linear-gradient(90deg, #8fb0ff 0%, #e4ebff 100%);
+  --color-toast: #2b4e9c;
+  --color-scrollbar: #34436a;
+  --color-scrollbar-track: #0e1424;
+  --placeholder-filter: invert(0.9) hue-rotate(180deg) brightness(1.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --show-on-light: none;
+    --show-on-dark: block;
+    --color-primary: #9db8ff;
+    --color-primary-dark: #c9d6f5;
+    --color-primary-border: #3a5aa8;
+    --color-accent: #6f9bff;
+    --color-link: #8fb0ff;
+    --color-info: #4cb8ff;
+    --color-title: #eef2fb;
+    --color-text: #e2e6ee;
+    --color-muted: #8e9bb8;
+    --color-text-muted: #a3afc8;
+    --color-surface: #18213a;
+    --color-surface-soft: #151d31;
+    --color-surface-muted: #1f2944;
+    --color-surface-deep: #1c2742;
+    --color-card: #161e33;
+    --color-bg: #0e1424;
+    --color-bg-gray: #131a2c;
+    --color-border: #2a3550;
+    --color-disabled: #4f586c;
+    --color-danger: #ff7b7b;
+    --color-success: #5ad634;
+    --color-hover: #b2c7ff;
+    --color-pressed: #d0ddff;
+    --color-primary-fill: #2b4e9c;
+    --color-primary-dark-fill: #10224b;
+    --color-hover-fill: #1f5fe6;
+    --color-pressed-fill: #2f6bff;
+    --color-danger-fill: #c0262d;
+    --color-muted-fill: #3e4a66;
+    --color-star-empty: #56627e;
+    --color-shine: rgb(255 255 255 / 8%);
+    --color-shadow: #000000;
+    --color-backdrop: #000000;
+    --gradient-title: linear-gradient(90deg, #8fb0ff 0%, #e4ebff 100%);
+    --color-toast: #2b4e9c;
+    --color-scrollbar: #34436a;
+    --color-scrollbar-track: #0e1424;
+    --placeholder-filter: invert(0.9) hue-rotate(180deg) brightness(1.1);
+  }
 }
 
 :root {

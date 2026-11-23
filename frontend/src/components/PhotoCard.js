@@ -79,6 +79,7 @@ export function PhotoCard(
   author.href = withBase(`/users/${photo.author?.username ?? ''}`);
   const avatar = el('img', 'photo-card__avatar');
   avatar.src = photo.author?.avatarUrl || avatarPlaceholder;
+  if (!photo.author?.avatarUrl) avatar.classList.add('avatar-placeholder');
   avatar.alt = '';
   avatar.width = AVATAR_SIZE;
   avatar.height = AVATAR_SIZE;

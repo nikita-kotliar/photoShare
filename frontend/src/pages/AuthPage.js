@@ -5,7 +5,9 @@ import { Input } from '../components/Input.js';
 import { PasswordField } from '../components/PasswordField.js';
 import { bindForm } from '../validation/form.js';
 import { schemas } from '../validation/index.js';
+import { ThemedImages } from '../components/theme.js';
 import logo from '../assets/images/logo-auth.svg';
+import logoLight from '../assets/images/logo.svg';
 import photoJpg from '../assets/images/auth@1x.jpg';
 import photoJpg2x from '../assets/images/auth@2x.jpg';
 import photoWebp from '../assets/images/auth@1x.webp';
@@ -87,12 +89,7 @@ export default function AuthPage({ query, navigate }) {
   const brand = el('a', 'auth__logo');
   brand.href = withBase('/');
   brand.setAttribute('aria-label', 'PhotoShare, на головну');
-  const logoImg = el('img');
-  logoImg.src = logo;
-  logoImg.alt = '';
-  logoImg.width = 177;
-  logoImg.height = 38;
-  brand.append(logoImg);
+  brand.append(...ThemedImages({ light: logo, dark: logoLight, width: 177, height: 38 }));
 
   const picture = el('picture', 'auth__photo');
   const source = (srcset, media, type) => {

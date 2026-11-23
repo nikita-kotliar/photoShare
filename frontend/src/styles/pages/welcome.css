@@ -38,7 +38,7 @@
   margin-inline: calc(-1 * var(--gutter));
   padding: 0.5rem var(--gutter);
   background: var(--gradient-button);
-  color: var(--color-bg);
+  color: var(--color-on-primary);
   font-size: 0.75rem;
   font-style: italic;
   line-height: 1.3;

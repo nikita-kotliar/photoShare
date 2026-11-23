@@ -7,6 +7,7 @@ import { schemas } from '../validation/index.js';
 import avatarPlaceholder from '../assets/images/avatar-placeholder.svg';
 import cover1x from '../assets/images/auth@1x.webp';
 import cover2x from '../assets/images/auth@2x.webp';
+import { ThemeSettings } from '../components/theme.js';
 
 export const BIO_MAX = 300;
 const FIELDS = ['name', 'username', 'email', 'bio'];
@@ -203,6 +204,7 @@ function ProfileCover(user) {
 
   const avatar = el('img', 'settings__avatar');
   avatar.src = user?.avatarUrl || avatarPlaceholder;
+  if (!user?.avatarUrl) avatar.classList.add('avatar-placeholder');
   avatar.alt = user?.name ? `Аватар: ${user.name}` : 'Аватар';
   avatar.width = 108;
   avatar.height = 108;
@@ -228,6 +230,7 @@ export default function SettingsPage({ store }) {
   // usersApi.updateMe сам кладе нового користувача в store: шапка оновиться
   const form = ProfileForm(user, { onSave: (changes) => usersApi.updateMe(changes) });
 
-  root.append(title, ProfileCover(user), form);
-  return root;
+  const theme = ThemeSettings({ className: 'settings__theme' });
+  root.append(title, ProfileCover(user), form, theme);
+  return { el: root, destroy: () => theme.destroy() };
 }

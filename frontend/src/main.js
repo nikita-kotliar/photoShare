@@ -4,6 +4,7 @@ import { Footer } from './components/Footer.js';
 import { Header } from './components/Header.js';
 import { LoadingBar, Toasts } from './components/Toast.js';
 import { installRipple } from './components/motion.js';
+import { applyTheme, readTheme, watchSystemTheme } from './components/theme.js';
 import { createRouter } from './router/index.js';
 import { routes } from './router/routes.js';
 import { store } from './store/index.js';
@@ -20,6 +21,8 @@ root.innerHTML = `
 `;
 
 async function bootstrap() {
+  applyTheme(readTheme());
+  watchSystemTheme();
   mountSprite();
   installRipple();
 

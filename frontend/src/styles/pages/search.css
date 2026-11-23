@@ -52,7 +52,7 @@
 .search-page__tool:active,
 .search-page__tool--active,
 .search-page__tool[aria-expanded='true'] {
-  background: var(--color-pressed);
+  background: var(--color-pressed-fill);
 }
 
 .search-page__tool:focus-visible {
@@ -107,6 +107,7 @@
 
 /* Панель фільтрів */
 .filter-panel {
+  --btn-fill: var(--color-surface);
   position: absolute;
   top: calc(100% + 0.5rem);
   right: 0;
@@ -154,7 +155,7 @@
   padding: 0.5rem 0.625rem;
   border: 1px solid var(--color-primary);
   border-radius: var(--radius-m);
-  background: var(--color-white);
+  background: var(--color-card);
   color: var(--color-primary);
   font: inherit;
   font-size: 0.75rem;
@@ -185,7 +186,7 @@
 }
 
 .filter-panel__calendar-button[aria-expanded='true'] {
-  background: var(--color-white);
+  background: var(--color-card);
 }
 
 .filter-panel__stars {
@@ -202,7 +203,7 @@
   border: 0;
   border-radius: var(--radius-m);
   background: transparent;
-  color: #7785a3;
+  color: var(--color-star-empty);
   cursor: pointer;
   touch-action: manipulation;
 }
@@ -255,7 +256,7 @@
 /* Наведення */
 @media (hover: hover) and (pointer: fine) {
   .search-page__tool:hover:not(:active) {
-    background: var(--color-hover);
+    background: var(--color-hover-fill);
   }
 
   .search-page__chip:hover:not(:active) {
@@ -275,6 +276,6 @@
   .filter-panel__stars:has(.filter-panel__star:hover)
     .filter-panel__star:hover
     ~ .filter-panel__star {
-    color: #7785a3;
+    color: var(--color-star-empty);
   }
 }

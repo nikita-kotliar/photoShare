@@ -82,7 +82,7 @@ textarea.upload__input {
 .upload__input:focus-visible,
 .upload__tags:focus-within {
   outline: none;
-  box-shadow: 0 0 0 3px rgb(22 84 215 / 20%);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-hover) 20%, transparent);
 }
 
 .field--error .upload__input,
@@ -100,7 +100,7 @@ textarea.upload__input {
   overflow: hidden;
   border: 1px solid var(--color-primary);
   border-radius: 0.8rem;
-  background: rgb(68 127 255 / 7%);
+  background: color-mix(in srgb, var(--color-glow) 7%, transparent);
   box-shadow: var(--shadow-card);
   cursor: pointer;
   touch-action: manipulation;
@@ -108,12 +108,12 @@ textarea.upload__input {
 }
 
 .upload__drop:focus-within {
-  box-shadow: 0 0 0 3px rgb(22 84 215 / 20%);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-hover) 20%, transparent);
 }
 
 .upload__drop--over {
   border-style: dashed;
-  background: rgb(68 127 255 / 14%);
+  background: color-mix(in srgb, var(--color-glow) 14%, transparent);
 }
 
 .upload__empty {
@@ -250,7 +250,7 @@ textarea.upload__input {
   margin: 0;
   border: 1px solid var(--color-primary);
   border-radius: 0.625rem;
-  background: rgb(68 127 255 / 7%);
+  background: color-mix(in srgb, var(--color-glow) 7%, transparent);
   box-shadow: var(--shadow-card);
 }
 
@@ -308,7 +308,7 @@ textarea.upload__input {
 .upload__range::-moz-range-progress {
   height: 0.25rem;
   border-radius: 0.125rem;
-  background: var(--color-primary);
+  background: var(--color-primary-fill);
 }
 
 .upload__range::-webkit-slider-thumb {
@@ -317,7 +317,7 @@ textarea.upload__input {
   margin-top: -0.375rem;
   border: 0;
   border-radius: 50%;
-  background: var(--color-primary);
+  background: var(--color-primary-fill);
   appearance: none;
 }
 
@@ -326,7 +326,7 @@ textarea.upload__input {
   height: 1rem;
   border: 0;
   border-radius: 50%;
-  background: var(--color-primary);
+  background: var(--color-primary-fill);
 }
 
 .upload__range:focus-visible {
@@ -383,12 +383,12 @@ textarea.upload__input {
   width: 1.125rem;
   height: 1.125rem;
   border-radius: 50%;
-  background: var(--color-white);
+  background: var(--color-card);
   transition: transform var(--transition);
 }
 
 .upload__switch-input:checked + .upload__switch-track {
-  background: var(--color-primary);
+  background: var(--color-primary-fill);
 }
 
 .upload__switch-input:checked + .upload__switch-track::after {
@@ -662,7 +662,7 @@ textarea.upload__input {
   }
 
   .upload__drop:hover:not(:active) {
-    background: rgb(68 127 255 / 12%);
+    background: color-mix(in srgb, var(--color-glow) 12%, transparent);
   }
 
   .upload__effect:hover:not(:active) .upload__effect-img {
@@ -696,22 +696,22 @@ textarea.upload__input {
   overflow: hidden;
   border: 0;
   border-radius: var(--radius-s);
-  background: var(--color-text-muted);
+  background: var(--color-muted-fill);
   accent-color: var(--color-primary);
   appearance: none;
 }
 
 .upload__progress::-webkit-progress-bar {
-  background: var(--color-text-muted);
+  background: var(--color-muted-fill);
 }
 
 .upload__progress::-webkit-progress-value {
-  background: var(--color-primary);
+  background: var(--color-primary-fill);
   transition: width var(--transition);
 }
 
 .upload__progress::-moz-progress-bar {
-  background: var(--color-primary);
+  background: var(--color-primary-fill);
 }
 
 .upload__status-text {
