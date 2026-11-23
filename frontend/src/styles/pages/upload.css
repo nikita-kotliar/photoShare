@@ -66,7 +66,6 @@
   font: inherit;
   font-size: var(--fs-small);
   line-height: 1.2;
-  resize: vertical;
 }
 
 textarea.upload__input {
@@ -82,7 +81,7 @@ textarea.upload__input {
 .upload__input:focus-visible,
 .upload__tags:focus-within {
   outline: none;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-hover) 20%, transparent);
+  box-shadow: 0 0 0 2px var(--color-accent);
 }
 
 .field--error .upload__input,
@@ -108,7 +107,7 @@ textarea.upload__input {
 }
 
 .upload__drop:focus-within {
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-hover) 20%, transparent);
+  box-shadow: 0 0 0 2px var(--color-accent);
 }
 
 .upload__drop--over {

@@ -39,7 +39,7 @@ function sleep(ms) {
 export function mockApiPlugin({ delay = 350 } = {}) {
   const api = createMockApi();
 
-  return {
+  const plugin = {
     name: 'photoshare-mock-api',
     configureServer(server) {
       server.middlewares.use('/mock', (req, res, next) => {
@@ -102,4 +102,7 @@ export function mockApiPlugin({ delay = 350 } = {}) {
       );
     },
   };
+  // Мок-API і для vite preview
+  plugin.configurePreviewServer = plugin.configureServer;
+  return plugin;
 }

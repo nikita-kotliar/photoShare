@@ -243,7 +243,7 @@
 .user-row__date {
   overflow: hidden;
   color: var(--color-text-muted);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

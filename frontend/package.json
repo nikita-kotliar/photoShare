@@ -14,7 +14,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "vitest run",
-    "dev:mock": "vite --mode mock"
+    "dev:mock": "vite --mode mock",
+    "preview:mock": "vite build && vite preview --mode mock"
   },
   "dependencies": {
     "@fontsource/montserrat": "^5.2.8",

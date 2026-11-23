@@ -99,7 +99,7 @@
 
 .auth__terms {
   margin-top: 1rem;
-  color: var(--color-text-muted);
+  color: var(--color-primary);
   font-size: 0.75rem;
   line-height: 1.4;
   text-align: center;

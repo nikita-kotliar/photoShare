@@ -3,6 +3,7 @@ import { mountSprite } from './components/icons.js';
 import { Footer } from './components/Footer.js';
 import { Header } from './components/Header.js';
 import { LoadingBar, Toasts } from './components/Toast.js';
+import { installAutosize, installInputMode } from './components/inputMode.js';
 import { installRipple } from './components/motion.js';
 import { applyTheme, readTheme, watchSystemTheme } from './components/theme.js';
 import { createRouter } from './router/index.js';
@@ -25,6 +26,8 @@ async function bootstrap() {
   watchSystemTheme();
   mountSprite();
   installRipple();
+  installInputMode();
+  installAutosize();
 
   try {
     const user = await authApi.me();

@@ -27,7 +27,7 @@
 }
 
 .field__control:focus-within {
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-hover) 15%, transparent);
+  box-shadow: 0 0 0 2px var(--color-accent);
 }
 
 .field__input {
@@ -59,9 +59,20 @@
 }
 
 .field__icon--button {
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-right: calc(var(--space-4) - 0.75rem);
   padding: 0;
   border: none;
+  border-radius: var(--radius-m);
   background: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.field__icon--button:active {
+  color: var(--color-pressed);
 }
 
 .field__error {
@@ -120,7 +131,7 @@
 }
 
 .search:focus-within {
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-hover) 15%, transparent);
+  box-shadow: 0 0 0 2px var(--color-accent);
 }
 
 .search__input {
@@ -144,4 +155,11 @@
 
 .search__input::-webkit-search-cancel-button {
   cursor: pointer;
+}
+
+/* Наведення на кнопку пароля */
+@media (hover: hover) and (pointer: fine) {
+  .field__icon--button:hover:not(:active) {
+    color: var(--color-hover);
+  }
 }
