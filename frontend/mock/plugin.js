@@ -89,6 +89,7 @@ export function mockApiPlugin({ delay = 350 } = {}) {
 
         res.statusCode = result.status;
         if (result.setCookie) res.setHeader('Set-Cookie', result.setCookie);
+        if (result.redirect) res.setHeader('Location', result.redirect);
         if (result.body === undefined) {
           res.end();
           return;

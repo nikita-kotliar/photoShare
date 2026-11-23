@@ -2,7 +2,6 @@ const DAY = 24 * 60 * 60 * 1000;
 
 export const TEST_PASSWORD = 'password123';
 
-
 const userSeeds = [
   ['admin', 'Анастасія Бондар', 'ADMIN', true],
   ['valeria', 'Валерія Мельник', 'MODERATOR', true],
@@ -140,6 +139,8 @@ export function createSeed(now = Date.now()) {
     role,
     isActive,
     avatarUrl: hasAvatar ? `/mock/avatars/user-${String(index + 1).padStart(2, '0')}.svg` : null,
+    // newbie пов'язаний з Google: на ньому мок імітує вхід через Google (TASK-067)
+    googleId: username === 'newbie' ? 'mock-google-newbie' : null,
     createdAt: new Date(now - (90 - index * 6) * DAY).toISOString(),
   }));
 

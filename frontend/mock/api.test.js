@@ -26,6 +26,32 @@ const OLEKSANDR = 3;
 const IVAN = 4;
 const BANNED = 9;
 
+describe('вхід через Google', () => {
+  it('повертає на /home з сесією акаунта, пов’язаного з Google', async () => {
+    const res = await call('GET', '/auth/google');
+    expect(res.status).toBe(302);
+    expect(res.redirect).toBe('http://localhost:5173/home');
+    const userId = Number(res.setCookie.match(/token=mock-user-(\d+)/)[1]);
+    const me = await call('GET', '/users/me', { user: userId });
+    expect(me.body.user).toMatchObject({ username: 'newbie', googleLinked: true });
+  });
+
+  it('помилка повертає на /auth з кодом', async () => {
+    const res = await call('GET', '/auth/google', { query: 'mockError=cancelled' });
+    expect(res.redirect).toBe('http://localhost:5173/auth?googleError=cancelled');
+
+    await call('POST', '/dev/fail-next', { body: { status: 503 } });
+    const failed = await call('GET', '/auth/google');
+    expect(failed.redirect).toBe('http://localhost:5173/auth?googleError=unavailable');
+    expect(failed.setCookie).toBeUndefined();
+  });
+
+  it('звичайні акаунти не пов’язані з Google', async () => {
+    const me = await call('GET', '/users/me', { user: ADMIN });
+    expect(me.body.user.googleLinked).toBe(false);
+  });
+});
+
 describe('автентифікація', () => {
   it('логін з тестовими даними ставить cookie', async () => {
     const res = await call('POST', '/sessions', {

@@ -1,6 +1,7 @@
 import '../styles/pages/auth.css';
 import { authApi } from '../api/auth.js';
 import { Button, setButtonLoading } from '../components/Button.js';
+import { GoogleButton } from '../components/GoogleButton.js';
 import { Input } from '../components/Input.js';
 import { PasswordField } from '../components/PasswordField.js';
 import { bindForm } from '../validation/form.js';
@@ -37,6 +38,20 @@ const MODES = {
 
 export function authMode(query = {}) {
   return query.tab === 'register' ? 'register' : 'login';
+}
+
+// Коди помилок, з якими бекенд повертає на /auth?googleError=<код> (docs/API.md)
+export const GOOGLE_ERRORS = {
+  cancelled: 'Вхід через Google скасовано. Спробуйте ще раз або увійдіть з паролем.',
+  banned: 'Акаунт заблоковано. Зверніться до адміністратора.',
+  email_unverified:
+    'Пошта цього акаунта Google не підтверджена. Підтвердьте її в Google або зареєструйтеся з паролем.',
+  unavailable: 'Вхід через Google зараз недоступний. Спробуйте пізніше або увійдіть з паролем.',
+};
+
+export function googleErrorMessage(code) {
+  if (!code) return '';
+  return GOOGLE_ERRORS[code] ?? 'Не вдалося увійти через Google. Спробуйте ще раз.';
 }
 
 export function registerPayload({ username, email, password, name }) {
@@ -128,10 +143,23 @@ export default function AuthPage({ query, navigate }) {
   const formError = el('p', 'auth__error');
   formError.setAttribute('role', 'alert');
 
+  // Помилка, з якою Google повернув на цю сторінку. Параметр прибираємо з адреси,
+  // щоб повідомлення не з'являлося знову після оновлення сторінки
+  const googleError = googleErrorMessage(query.googleError);
+  if (googleError) {
+    formError.textContent = googleError;
+    const url = new URL(window.location.href);
+    url.searchParams.delete('googleError');
+    window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
+  }
+
   const submit = Button({ text: text.submit, type: 'submit' });
   submit.classList.add('auth__submit');
 
-  form.append(fields, formError, submit);
+  const google = GoogleButton({ href: authApi.googleUrl() });
+  const divider = el('p', 'auth-divider', 'або');
+
+  form.append(fields, formError, submit, divider, google);
 
   if (mode === 'register') {
     form.append(

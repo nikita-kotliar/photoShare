@@ -12,6 +12,11 @@ export class ApiError extends Error {
   }
 }
 
+// Повна адреса ендпоінта для переходу браузером (наприклад, вхід через Google), а не fetch
+export function apiUrl(path) {
+  return `${BASE_URL}${path}`;
+}
+
 function buildUrl(path, query) {
   const url = `${BASE_URL}${path}`;
   if (!query) return url;
