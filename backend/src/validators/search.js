@@ -1,6 +1,7 @@
 const { z } = require('zod');
 const { paginationSchema } = require('./common');
 const { MAX_TAG_LENGTH } = require('./tags');
+const { COLOR_FAMILIES } = require('../utils/colors');
 
 const date = z.iso.date({ error: 'Дата має бути у форматі YYYY-MM-DD' });
 
@@ -34,6 +35,11 @@ const searchQuerySchema = paginationSchema
         .number({ error: 'Рейтинг має бути числом від 1 до 5' })
         .min(1, { error: 'Рейтинг має бути від 1 до 5' })
         .max(5, { error: 'Рейтинг має бути від 1 до 5' }),
+    ),
+    color: optional(
+      z.enum(Object.keys(COLOR_FAMILIES), {
+        error: `Колір: ${Object.keys(COLOR_FAMILIES).join(', ')}`,
+      }),
     ),
     dateFrom: optional(date),
     dateTo: optional(date),

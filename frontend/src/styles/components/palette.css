@@ -1,0 +1,30 @@
+.palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.palette__swatch {
+  display: block;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 2px solid var(--color-card);
+  border-radius: 50%;
+  background: var(--swatch);
+  box-shadow: 0 0 0 1px var(--color-surface-deep);
+  transition: transform 0.15s ease;
+}
+
+.palette__swatch:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .palette__swatch:hover {
+    transform: scale(1.15);
+  }
+}

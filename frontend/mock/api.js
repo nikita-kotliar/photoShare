@@ -1,4 +1,5 @@
 import QRCode from 'qrcode';
+import { colorFamily } from './colors.js';
 import { createSeed, TEST_PASSWORD } from './data.js';
 
 const EFFECTS = ['grayscale', 'sepia', 'blur'];
@@ -180,6 +181,7 @@ export function createMockApi({ now = Date.now() } = {}) {
       url: photo.url,
       description: photo.description,
       tags: photo.tags,
+      colors: (photo.colors ?? []).map((hex) => ({ hex, family: colorFamily(hex) })),
       author: publicAuthor(userById(photo.authorId)),
       averageRating: stats.average,
       ratingsCount: stats.count,
@@ -739,6 +741,12 @@ export function createMockApi({ now = Date.now() } = {}) {
       );
     }
     if (tag) list = list.filter(({ photo }) => photo.tags.includes(tag));
+    const color = ctx.query.get('color');
+    if (color) {
+      list = list.filter(({ photo }) =>
+        (photo.colors ?? []).some((hex) => colorFamily(hex) === color),
+      );
+    }
     if (ratingMin) list = list.filter(({ stats }) => (stats.average ?? 0) >= ratingMin);
     if (dateFrom) list = list.filter(({ photo }) => photo.createdAt.slice(0, 10) >= dateFrom);
     if (dateTo) list = list.filter(({ photo }) => photo.createdAt.slice(0, 10) <= dateTo);

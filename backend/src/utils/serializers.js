@@ -1,3 +1,4 @@
+const { colorFamily } = require('./colors');
 function toPublicUser(user) {
   return {
     id: user.id,
@@ -43,6 +44,7 @@ function toPhoto(photo, stats = {}) {
     url: photo.url,
     description: photo.description,
     tags: (photo.tags ?? []).map((item) => item.tag.name),
+    colors: (photo.colors ?? []).map((hex) => ({ hex, family: colorFamily(hex) })),
     author: toAuthor(photo.author),
     averageRating: stats.averageRating ?? null,
     ratingsCount: stats.ratingsCount ?? 0,

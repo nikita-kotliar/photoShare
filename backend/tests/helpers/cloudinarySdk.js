@@ -22,6 +22,7 @@ const uploader = {
         return callback(null, {
           public_id: publicId,
           secure_url: `https://res.cloudinary.com/demo/image/upload/${publicId}.png`,
+          colors: cloud.colors,
         });
       });
     },
@@ -35,6 +36,12 @@ const uploader = {
 
 const cloud = {
   files,
+  colors: [
+    ['#2B59BA', 41.2],
+    ['#F2F6FF', 30.5],
+    ['#2B59BA', 12],
+    ['#E53935', 2.1],
+  ],
   failNext(error) {
     failure = error;
   },

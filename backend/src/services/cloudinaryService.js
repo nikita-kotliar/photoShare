@@ -27,10 +27,14 @@ function transformedUrl(publicId, transformations) {
 function uploadImage(buffer) {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { folder: FOLDER, resource_type: 'image' },
+      { folder: FOLDER, resource_type: 'image', colors: true },
       (error, result) => {
         if (error) return reject(error);
-        return resolve({ url: result.secure_url, publicId: result.public_id });
+        return resolve({
+          url: result.secure_url,
+          publicId: result.public_id,
+          colors: result.colors ?? [],
+        });
       },
     );
     stream.end(buffer);

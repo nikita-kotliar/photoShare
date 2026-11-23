@@ -84,3 +84,14 @@ describe('activeFilters', () => {
     expect(rangeLabel({})).toBe('');
   });
 });
+
+describe('пошук за кольором', () => {
+  it('відома група потрапляє в запит, адресу і чип, невідома відкидається', () => {
+    const state = parseSearchQuery({ color: 'blue' });
+    expect(state.color).toBe('blue');
+    expect(searchApiQuery(state).color).toBe('blue');
+    expect(searchHref(state)).toBe('/search?color=blue');
+    expect(activeFilters(state)).toContainEqual({ key: 'color', label: 'Колір: синій' });
+    expect(parseSearchQuery({ color: 'navy' }).color).toBe('');
+  });
+});

@@ -8,6 +8,7 @@ import { Icon } from '../components/icons.js';
 import { isStaff } from '../components/navigation.js';
 import { canManagePhoto, formatPhotoDate } from '../components/PhotoCard.js';
 import { MAX_RATING, pluralRatings, Rating } from '../components/Rating.js';
+import { Palette } from '../components/Palette.js';
 import { TagList } from '../components/Tag.js';
 import { pushToast } from '../store/index.js';
 import { bindForm } from '../validation/form.js';
@@ -787,7 +788,7 @@ function PhotoMeta(photo, { user, canManage, onQr, onSave, onRatings }) {
   }
   titleRow.append(heading, rating);
 
-  meta.append(authorRow, titleRow, TagList(photo.tags ?? []));
+  meta.append(authorRow, titleRow, TagList(photo.tags ?? []), Palette(photo.colors ?? []));
 
   // Перемикає опис у режим редагування; повертає false, якщо форма вже відкрита
   meta.editDescription = () => {

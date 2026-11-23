@@ -4,6 +4,7 @@ const AppError = require('../utils/AppError');
 const { skipFor } = require('../utils/pagination');
 const cloudinaryService = require('./cloudinaryService');
 const tagsService = require('./tagsService');
+const { familiesOf, paletteFromCloudinary } = require('../utils/colors');
 
 const photoInclude = {
   author: { select: { id: true, username: true, name: true } },
@@ -58,6 +59,7 @@ function getByIdOrSlug(idOrSlug) {
 
 async function create({ file, description, tags = [], transformations, author }) {
   const image = await cloudinaryService.uploadImage(file.buffer);
+  const colors = paletteFromCloudinary(image.colors);
 
   try {
     const photoTags = await tagsService.findOrCreate(tags);
@@ -70,6 +72,8 @@ async function create({ file, description, tags = [], transformations, author })
           : image.url,
         publicId: image.publicId,
         description,
+        colors,
+        colorFamilies: familiesOf(colors),
         authorId: author.id,
         tags: tagsService.nestedCreate(photoTags),
       },
