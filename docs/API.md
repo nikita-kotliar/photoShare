@@ -143,6 +143,39 @@ Swagger UI: `/api/docs`, специфікація OpenAPI 3: `/api/docs.json`. �
 
 Роль: ADMIN призначає модератора (`MODERATOR`) або повертає звичайну роль (`USER`). Призначити `ADMIN` не можна (422), змінити роль собі чи іншому ADMIN теж (403). Нова роль діє з наступного запиту, перевходити не треба ([D-51](DECISIONS.md)).
 
+## Досягнення
+
+`GET /api/users/:username/achievements`, доступ: public. Відповідь: `{ items: [{ code, earned, earnedAt }] }`, усі п'ять у фіксованому порядку, неотримані з `earned: false` і `earnedAt: null`.
+
+| code | Назва | Умова | Коли перевіряється |
+|---|---|---|---|
+| `FIRST_PHOTO` | Перша світлина | 1 опублікована світлина | після `POST /photos` |
+| `TEN_PHOTOS` | 10 публікацій | 10 світлин | після `POST /photos` |
+| `COMMENTATOR` | Коментатор | 20 коментарів | після `POST /photos/:id/comments` |
+| `CRITIC` | Критик | 50 поставлених оцінок | після `POST /photos/:id/ratings` |
+| `FAVORITE` | Улюбленець | середній рейтинг усіх своїх світлин 4.5+ від щонайменше 5 оцінок | коли світлину автора оцінили |
+
+Отримане досягнення зберігається в `user_achievements` і не видається вдруге, навіть якщо умова перестала виконуватись (наприклад, світлину видалили). Разом з ним створюється сповіщення `ACHIEVEMENT`. `POST /photos`, `POST /photos/:id/comments` і `POST /photos/:id/ratings` повертають `newAchievements` - коди щойно отриманих досягнень того, хто зробив дію (фронтенд показує тост). «Улюбленець» автор отримує лише сповіщенням ([D-60](DECISIONS.md)).
+
+## Сповіщення
+
+| Метод і шлях | Доступ | Тіло / query | Відповідь |
+|---|---|---|---|
+| GET `/api/notifications` | auth | `page, limit` | 200 пагінований список, нові першими |
+| GET `/api/notifications/unread-count` | auth | - | 200 `{ count }` |
+| POST `/api/notifications/read` | auth | `{ ids? }` (1-100 id) | 200 `{ updated, unread }`; без `ids` - усі мої |
+
+`notification`: `{ id, type, read, actor, photo, data, createdAt }`. `actor` - хто зробив дію (`{ id, username, name, avatarUrl }`, `null` для системних), `photo` - `{ id, slug, url }` або `null`.
+
+| type | Коли | data |
+|---|---|---|
+| `COMMENT` | коментар до моєї світлини | `{ commentId, text }` (перші 100 символів) |
+| `RATING` | оцінка моєї світлини | `{ value }` |
+| `ACHIEVEMENT` | нове досягнення (TASK-070) | `{ code }` |
+| `MODERATOR` | ADMIN призначив мене модератором | `{}` |
+
+Про власні дії сповіщень немає. Зняття ролі модератора і повторне збереження тієї самої ролі не сповіщають. Видалення світлини видаляє сповіщення про неї. Чужі `ids` у `POST /read` ігноруються. Якщо сповіщення не вдалося створити, сама дія (коментар, оцінка) все одно виконується ([D-58](DECISIONS.md)).
+
 ## Мок-API для frontend
 
 `npm run dev:mock` у `frontend/` піднімає ті самі ендпоінти з тестовими даними без backend. Додатково, лише в моку: `POST /api/dev/reset` (скидання даних) і `POST /api/dev/fail-next` (штучна помилка наступного запиту).

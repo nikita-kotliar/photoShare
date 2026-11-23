@@ -35,3 +35,34 @@ paths:
               schema: { $ref: '#/components/schemas/PhotoPage' }
         '404': { $ref: '#/components/responses/NotFound' }
         '422': { $ref: '#/components/responses/ValidationError' }
+
+  /users/{username}/achievements:
+    get:
+      tags: [Користувачі]
+      summary: Досягнення користувача
+      description: >-
+        Публічно. Усі п'ять досягнень у фіксованому порядку: FIRST_PHOTO (перша світлина),
+        TEN_PHOTOS (10 публікацій), COMMENTATOR (20 коментарів), CRITIC (50 оцінок),
+        FAVORITE (середній рейтинг світлин 4.5+ від щонайменше 5 оцінок). Отримані мають earnedAt.
+      parameters:
+        - $ref: '#/components/parameters/Username'
+      responses:
+        '200':
+          description: Досягнення
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          enum: [FIRST_PHOTO, TEN_PHOTOS, COMMENTATOR, CRITIC, FAVORITE]
+                        earned: { type: boolean }
+                        earnedAt: { type: string, format: date-time, nullable: true }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }

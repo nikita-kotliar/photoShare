@@ -12,6 +12,10 @@ let nextLinkId = 1;
 let blacklist = [];
 let ratings = [];
 let nextRatingId = 1;
+let notifications = [];
+let nextNotificationId = 1;
+let achievements = [];
+let nextAchievementId = 1;
 
 function clone(user) {
   return user ? { ...user } : null;
@@ -178,6 +182,7 @@ const fakeDb = {
       photoTags = photoTags.filter((link) => link.photoId !== photo.id);
       links = links.filter((link) => link.photoId !== photo.id);
       ratings = ratings.filter((rating) => rating.photoId !== photo.id);
+      notifications = notifications.filter((item) => item.photoId !== photo.id);
       return { ...photo };
     },
   },
@@ -189,7 +194,7 @@ const fakeDb = {
         .sort(newest)
         .slice(skip, skip + take)
         .map((comment) => withInclude(comment, include)),
-    count: async ({ where }) => comments.filter((c) => c.photoId === where.photoId).length,
+    count: async ({ where = {} } = {}) => comments.filter((c) => matches(c, where)).length,
     create: async ({ data, include }) => {
       const now = new Date();
       const comment = { id: nextCommentId++, createdAt: now, updatedAt: now, ...data };
@@ -333,6 +338,50 @@ const fakeDb = {
       return { count: before - blacklist.length };
     },
   },
+  // Сповіщення (TASK-068). where: userId, readAt: null, id: { in }
+  notification: {
+    create: async ({ data }) => {
+      const item = { id: nextNotificationId++, readAt: null, createdAt: new Date(), ...data };
+      notifications.push(item);
+      return { ...item };
+    },
+    findMany: async ({ where = {}, orderBy, skip = 0, take = notifications.length } = {}) =>
+      notifications
+        .filter((item) => matches(item, where))
+        .sort(byOrder(orderBy))
+        .slice(skip, skip + take)
+        .map((item) => ({
+          ...item,
+          actor: item.actorId ? clone(users.find((u) => u.id === item.actorId)) : null,
+          photo: item.photoId ? { ...photos.find((p) => p.id === item.photoId) } : null,
+        })),
+    count: async ({ where = {} } = {}) =>
+      notifications.filter((item) => matches(item, where)).length,
+    updateMany: async ({ where = {}, data }) => {
+      const list = notifications.filter((item) => matches(item, where));
+      list.forEach((item) => Object.assign(item, data));
+      return { count: list.length };
+    },
+    all: () => notifications.map((item) => ({ ...item })),
+    // Для тестів: прибрати сповіщення, що з'явилися під час підготовки (наприклад, досягнення)
+    clear: () => {
+      notifications = [];
+      nextNotificationId = 1;
+    },
+  },
+  // Досягнення (TASK-070): UQ (userId, code), як у PostgreSQL
+  userAchievement: {
+    findMany: async ({ where = {} } = {}) =>
+      achievements.filter((item) => matches(item, where)).map((item) => ({ ...item })),
+    create: async ({ data }) => {
+      if (achievements.some((a) => a.userId === data.userId && a.code === data.code)) {
+        throw Object.assign(new Error('Unique constraint failed'), { code: 'P2002' });
+      }
+      const item = { id: nextAchievementId++, createdAt: new Date(), ...data };
+      achievements.push(item);
+      return { ...item };
+    },
+  },
   $disconnect: async () => {},
   reset() {
     users = [];
@@ -349,6 +398,10 @@ const fakeDb = {
     blacklist = [];
     ratings = [];
     nextRatingId = 1;
+    notifications = [];
+    nextNotificationId = 1;
+    achievements = [];
+    nextAchievementId = 1;
   },
 };
 

@@ -83,7 +83,23 @@ function toLink(link) {
   };
 }
 
+// Сповіщення: хто (actor), про яку світлину і деталі (оцінка, код досягнення)
+function toNotification(notification) {
+  return {
+    id: notification.id,
+    type: notification.type,
+    read: Boolean(notification.readAt),
+    actor: notification.actor ? toAuthor(notification.actor) : null,
+    photo: notification.photo
+      ? { id: notification.photo.id, slug: notification.photo.slug, url: notification.photo.url }
+      : null,
+    data: notification.data ?? {},
+    createdAt: notification.createdAt,
+  };
+}
+
 module.exports = {
+  toNotification,
   toPublicUser,
   toProfile,
   toAuthor,

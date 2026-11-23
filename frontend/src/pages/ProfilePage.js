@@ -3,6 +3,7 @@ import '../styles/pages/profile.css';
 import { authApi } from '../api/auth.js';
 import { photosApi } from '../api/photos.js';
 import { usersApi } from '../api/users.js';
+import { AchievementsBlock } from '../components/AchievementsBlock.js';
 import { Button } from '../components/Button.js';
 import { Dropdown } from '../components/Dropdown.js';
 import { Icon } from '../components/icons.js';
@@ -319,7 +320,10 @@ export default function ProfilePage({ params, query, store, navigate }) {
       const menu = info.querySelector('.profile__menu');
       menuDestroy = menu?.destroy ?? null;
       status.replaceWith(info);
-      root.append(PhotosSection(profile, owner));
+      root.append(
+        AchievementsBlock(profile.username, { signal: controller.signal }),
+        PhotosSection(profile, owner),
+      );
     } catch (error) {
       if (error.name === 'AbortError') return;
       if (error.status === 404) {

@@ -7,6 +7,7 @@ const links = require('./links');
 const { photoRatings, ratings } = require('./ratings');
 const admin = require('./admin');
 const search = require('./search');
+const notifications = require('./notifications');
 const docs = require('../docs/swagger');
 
 const router = Router();
@@ -23,6 +24,7 @@ router.use('/photos', photos);
 router.use('/comments', comments);
 router.use('/ratings', ratings);
 router.use('/search', search);
+router.use('/notifications', notifications);
 router.use('/admin', admin);
 
 module.exports = router;
