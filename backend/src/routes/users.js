@@ -6,10 +6,11 @@ const { authenticate, optionalAuthenticate } = require('../middleware/auth');
 const { registerSchema } = require('../validators/auth');
 const { usernameParamsSchema, updateMeSchema } = require('../validators/users');
 const { paginationSchema } = require('../validators/common');
+const { registerLimit } = require('../middleware/rateLimit');
 
 const router = Router();
 
-router.post('/', validate(registerSchema), authController.register);
+router.post('/', registerLimit, validate(registerSchema), authController.register);
 
 // ====== /me має бути оголошений раніше за /:username, інакше "me" вважатиметься юзернеймом ======
 router.get('/me', authenticate, controller.me);

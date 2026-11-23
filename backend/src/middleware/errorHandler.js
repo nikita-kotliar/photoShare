@@ -24,7 +24,7 @@ function errorHandler(err, _req, res, _next) {
     });
   }
 
-  if (!env.isTest) console.error(err);
+  if (!env.isTest) console.error(env.isProduction ? err.stack || err.message : err);
 
   return res.status(500).json({
     error: {

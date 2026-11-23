@@ -59,7 +59,8 @@ export function pattern(regexp, message = 'Некоректне значення
 
 // Збіг з іншим полем форми, наприклад підтвердження пароля
 export function matches(otherField, message = 'Паролі не збігаються') {
-  return (value, values = {}) => (text(value, false) === text(values[otherField], false) ? '' : message);
+  return (value, values = {}) =>
+    text(value, false) === text(values[otherField], false) ? '' : message;
 }
 
 export function validateField(value, rules, values = {}) {
@@ -100,7 +101,9 @@ export function normalizeTags(tags) {
   const seen = new Set();
   const result = [];
   for (const tag of tags) {
-    const name = String(tag ?? '').trim().toLowerCase();
+    const name = String(tag ?? '')
+      .trim()
+      .toLowerCase();
     if (name === '' || seen.has(name)) continue;
     seen.add(name);
     result.push(name);
