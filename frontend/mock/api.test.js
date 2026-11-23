@@ -162,6 +162,38 @@ describe('автентифікація', () => {
   });
 });
 
+describe('AI-підказка опису', () => {
+  const image = (size = 3) => ({ fields: {}, file: { type: 'image/png', size, name: 'a.png' } });
+  const ask = (user = IVAN, form = image()) => call('POST', '/ai/describe', { user, form });
+
+  it('повертає опис і теги', async () => {
+    const res = await ask();
+    expect(res.status).toBe(200);
+    expect(res.body.description).toEqual(expect.any(String));
+    expect(res.body.tags.length).toBeGreaterThan(0);
+  });
+
+  it('без входу 401, без файлу 422', async () => {
+    expect((await call('POST', '/ai/describe', { form: image() })).status).toBe(401);
+    expect((await ask(IVAN, { fields: {}, file: null })).status).toBe(422);
+  });
+
+  it('після 5 запитів - 429 AI_LIMIT, в іншого користувача ліміт свій', async () => {
+    for (let i = 0; i < 5; i += 1) expect((await ask(OLEKSANDR)).status).toBe(200);
+    const limited = await ask(OLEKSANDR);
+    expect(limited.status).toBe(429);
+    expect(limited.body.error.code).toBe('AI_LIMIT');
+    expect((await ask(ADMIN)).status).toBe(200);
+  });
+
+  it('fail-next імітує недоступний AI', async () => {
+    await call('POST', '/dev/fail-next', { body: { status: 503, code: 'AI_UNAVAILABLE' } });
+    const res = await ask();
+    expect(res.status).toBe(503);
+    expect(res.body.error.code).toBe('AI_UNAVAILABLE');
+  });
+});
+
 describe('світлини', () => {
   it('стрічка вимагає входу і повертає пагінацію', async () => {
     expect((await call('GET', '/photos')).status).toBe(401);

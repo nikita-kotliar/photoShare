@@ -419,6 +419,42 @@ export function createMockApi({ now = Date.now() } = {}) {
     return { body: paginate(list, ctx.query) };
   });
 
+  // AI-підказка опису і тегів (TASK-069). Справжній бекенд питає модель; мок повертає
+  // одну з готових відповідей. Ліміт - 5 запитів на користувача (429), POST /dev/fail-next -
+  // AI недоступний (503)
+  const AI_LIMIT = 5;
+  const AI_ANSWERS = [
+    {
+      description:
+        'Захід сонця над спокійним морем: небо переходить від помаранчевого до рожевого.',
+      tags: ['море', 'захід', 'небо', 'вечір'],
+    },
+    {
+      description: 'Гірська стежка серед хвойного лісу, вранішній туман стелиться долиною.',
+      tags: ['гори', 'ліс', 'туман', 'ранок', 'подорожі'],
+    },
+    {
+      description: 'Вечірнє місто з вогнями вікон і відблисками на мокрій бруківці.',
+      tags: ['місто', 'ніч', 'вогні'],
+    },
+  ];
+  route('POST', '/ai/describe', (ctx) => {
+    const user = requireAuth(ctx);
+    const file = ctx.form?.file;
+    if (!file) validationError({ image: 'Оберіть файл зображення' });
+    if (!file.type.startsWith('image/')) validationError({ image: 'Дозволені лише зображення' });
+    if (file.size > 10 * 1024 * 1024) fail(413, 'PAYLOAD_TOO_LARGE', 'Файл завеликий');
+    // Лічильник у db, щоб POST /dev/reset його скидав
+    db.aiUsage ??= {};
+    const used = db.aiUsage[user.id] ?? 0;
+    if (used >= AI_LIMIT) {
+      fail(429, 'AI_LIMIT', `Ліміт AI-підказок вичерпано (${AI_LIMIT} на день). Спробуйте завтра`);
+    }
+    db.aiUsage[user.id] = used + 1;
+    const answer = AI_ANSWERS[file.size % AI_ANSWERS.length];
+    return { body: { ...answer, remaining: AI_LIMIT - used - 1 } };
+  });
+
   route('POST', '/photos', (ctx) => {
     const user = requireAuth(ctx);
     const form = ctx.form || { fields: {}, file: null };

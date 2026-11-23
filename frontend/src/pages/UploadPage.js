@@ -1,5 +1,7 @@
 import '../styles/pages/upload.css';
+import { aiApi } from '../api/ai.js';
 import { photoFormData, photosApi } from '../api/photos.js';
+import { AiDescribe, mergeAiTags } from '../components/AiDescribe.js';
 import { Button, setButtonLoading } from '../components/Button.js';
 import { Icon } from '../components/icons.js';
 import { Tag } from '../components/Tag.js';
@@ -265,7 +267,14 @@ function TagsField(state) {
   });
 
   render();
-  return Object.assign(field, { input, commit });
+  // Теги від AI (TASK-069): замінюють список, далі їх можна прибрати чи додати свої
+  function setTags(next) {
+    state.tags = next;
+    input.value = '';
+    clearFieldError(input);
+    render();
+  }
+  return Object.assign(field, { input, commit, setTags });
 }
 
 // Поворот і обрізка
@@ -357,13 +366,19 @@ function EffectsBlock(state, update) {
   });
 }
 
-export function UploadForm({ onSubmit } = {}) {
+export function UploadForm({ onSubmit, describe = aiApi.describe } = {}) {
   const state = { file: null, tags: [], effect: '', angle: 0, crop: false };
   const form = el('form', 'upload__form');
   form.setAttribute('aria-labelledby', 'upload-title');
 
   let effects;
-  const drop = Dropzone(state, (src) => effects.setImage(src));
+  let ai;
+  const drop = Dropzone(state, (src) => {
+    effects.setImage(src);
+    // Нова світлина: попередня AI-підказка вже не про неї
+    ai.abort();
+    ai.setReady(true);
+  });
 
   function update() {
     const { preview, frame } = drop;
@@ -391,17 +406,41 @@ export function UploadForm({ onSubmit } = {}) {
   const tags = TagsField(state);
   effects = EffectsBlock(state, update);
 
+  const descriptionField = textField({
+    name: 'description',
+    placeholder: 'Опис фото...',
+    label: 'Опис світлини',
+    multiline: true,
+    maxLength: 1000,
+  });
+  const descriptionInput = descriptionField.querySelector('textarea');
+
+  // AI-підказка (TASK-069): опис замінює введений текст (його можна повернути), теги
+  // додаються до введених. Повертає true, якщо користувач уже щось написав
+  let previousDescription = '';
+  ai = AiDescribe({
+    getFile: () => state.file,
+    describe,
+    onResult({ description, tags: suggested }) {
+      previousDescription = descriptionInput.value;
+      const hadText = Boolean(previousDescription.trim()) && previousDescription !== description;
+      if (description) {
+        descriptionInput.value = description;
+        descriptionInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      tags.setTags(mergeAiTags(state.tags, suggested));
+      descriptionInput.focus();
+      return hadText;
+    },
+    onUndo() {
+      descriptionInput.value = previousDescription;
+      descriptionInput.dispatchEvent(new Event('input', { bubbles: true }));
+      descriptionInput.focus();
+    },
+  });
+
   const fields = el('div', 'upload__fields');
-  fields.append(
-    textField({
-      name: 'description',
-      placeholder: 'Опис фото...',
-      label: 'Опис світлини',
-      multiline: true,
-      maxLength: 1000,
-    }),
-    tags,
-  );
+  fields.append(ai, descriptionField, tags);
 
   const submit = Button({ text: 'Опублікувати', type: 'submit', className: 'upload__submit' });
 
@@ -509,7 +548,10 @@ export function UploadForm({ onSubmit } = {}) {
     submit,
     setErrors: controls.setErrors,
     setFormError,
-    revoke: drop.revoke,
+    revoke: () => {
+      ai.abort();
+      drop.revoke();
+    },
   });
 }
 
