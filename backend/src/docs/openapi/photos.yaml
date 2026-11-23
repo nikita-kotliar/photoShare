@@ -63,6 +63,24 @@ paths:
                 { error: { code: PAYLOAD_TOO_LARGE, message: Файл завеликий (максимум 10 МБ) } }
         '422': { $ref: '#/components/responses/ValidationError' }
 
+  /photos/featured:
+    get:
+      tags: [Світлини]
+      summary: Світлина тижня
+      description: >-
+        Світлина з найвищим середнім рейтингом серед опублікованих за останні 7 днів, від 2
+        оцінок; при рівному середньому - з більшою кількістю оцінок. Доступно без входу, з
+        сесією заповнено myRating. Якщо такої немає - photo null.
+      responses:
+        '200':
+          description: Світлина тижня або null
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  photo: { allOf: [{ $ref: '#/components/schemas/Photo' }], nullable: true }
+
   /photos/{id}:
     get:
       tags: [Світлини]

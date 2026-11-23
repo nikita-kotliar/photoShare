@@ -135,6 +135,12 @@
   margin-top: 3.75rem;
 }
 
+.welcome__actions .featured-slot {
+  width: 100%;
+  max-width: 40rem;
+  margin-bottom: 1rem;
+}
+
 .welcome__actions .btn {
   width: 100%;
   max-width: 20.5rem;

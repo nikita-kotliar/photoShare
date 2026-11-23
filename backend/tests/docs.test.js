@@ -17,6 +17,7 @@ const routes = [
   ['get', '/health', 'public'],
   ['get', '/photos', 'auth'],
   ['post', '/photos', 'auth'],
+  ['get', '/photos/featured', 'public'],
   ['get', '/photos/{id}', 'public'],
   ['put', '/photos/{id}', 'auth'],
   ['delete', '/photos/{id}', 'auth'],

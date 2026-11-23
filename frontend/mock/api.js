@@ -507,6 +507,14 @@ export function createMockApi({ now = Date.now() } = {}) {
     return { status: 201, body: { photo: serializePhoto(photo, user), newAchievements } };
   });
 
+  route('GET', '/photos/featured', (ctx) => {
+    const best = db.photos
+      .map((photo) => ({ photo, stats: ratingStats(photo.id) }))
+      .filter(({ stats }) => stats.count >= 2)
+      .sort((a, b) => b.stats.average - a.stats.average || b.stats.count - a.stats.count)[0];
+    return { body: { photo: best ? serializePhoto(best.photo, ctx.user) : null } };
+  });
+
   route('GET', '/photos/:id', (ctx) => ({
     body: { photo: serializePhoto(findPhoto(ctx.params.id), ctx.user) },
   }));

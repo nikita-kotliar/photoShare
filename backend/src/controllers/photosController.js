@@ -1,4 +1,5 @@
 const photosService = require('../services/photosService');
+const featuredService = require('../services/featuredService');
 const achievementsService = require('../services/achievementsService');
 const { toPhoto } = require('../utils/serializers');
 const { toPage } = require('../utils/pagination');
@@ -7,6 +8,13 @@ const { withRatings } = require('./photoResponse');
 async function feed(req, res) {
   const { items, total } = await photosService.listFeed(req.query);
   res.json(toPage(await withRatings(items, req.user), total, req.query));
+}
+
+async function featured(req, res) {
+  const photo = await featuredService.photoOfWeek();
+  if (!photo) return res.json({ photo: null });
+  const [result] = await withRatings([photo], req.user);
+  res.json({ photo: result });
 }
 
 async function getOne(req, res) {
@@ -38,4 +46,4 @@ async function remove(req, res) {
   res.status(204).end();
 }
 
-module.exports = { feed, getOne, create, update, remove };
+module.exports = { featured, feed, getOne, create, update, remove };
