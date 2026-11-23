@@ -6,6 +6,7 @@ import { usersApi } from '../api/users.js';
 import { Button } from '../components/Button.js';
 import { Dropdown } from '../components/Dropdown.js';
 import { Icon } from '../components/icons.js';
+import { reveal } from '../components/motion.js';
 import { PhotoCard, plural } from '../components/PhotoCard.js';
 import { pushToast } from '../store/index.js';
 import avatarPlaceholder from '../assets/images/avatar-placeholder.svg';
@@ -140,6 +141,7 @@ export default function ProfilePage({ params, query, store, navigate }) {
   const username = params.username;
   const page = parsePage(query.page);
   const controller = new AbortController();
+  let stopReveal = () => {};
   let menuDestroy = null;
 
   const root = el('section', 'profile container');
@@ -285,6 +287,8 @@ export default function ProfilePage({ params, query, store, navigate }) {
         );
         current.replaceWith(grid);
         current = grid;
+        stopReveal();
+        stopReveal = reveal(grid.children);
         if (data.pages > 1) section.append(Pagination(data.pages));
       } catch (error) {
         if (error.name === 'AbortError') return;
@@ -332,6 +336,7 @@ export default function ProfilePage({ params, query, store, navigate }) {
     el: root,
     destroy() {
       controller.abort();
+      stopReveal();
       menuDestroy?.();
     },
   };

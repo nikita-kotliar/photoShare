@@ -19,6 +19,8 @@
   --color-success: #2bba00;
   --color-hover: #1654d7;
   --color-pressed: #0051ff;
+  --color-gold: #ffc93c;
+  --color-shine: rgb(255 255 255 / 70%);
   --gradient-button: linear-gradient(90deg, #2b59ba 0%, #083494 100%);
   --gradient-field: linear-gradient(90deg, #4965a1 0%, #072f86 100%);
 }

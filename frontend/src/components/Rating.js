@@ -2,8 +2,10 @@ import '../styles/components/rating.css';
 import { ratingsApi } from '../api/ratings.js';
 import { pushToast } from '../store/index.js';
 import { Icon } from './icons.js';
+import { countUp } from './motion.js';
 
 export const MAX_RATING = 5;
+const BURST_TIME = 900;
 
 export function pluralRatings(count) {
   const n = Math.abs(count) % 100;
@@ -12,6 +14,12 @@ export function pluralRatings(count) {
   if (last === 1) return 'оцінка';
   if (last >= 2 && last <= 4) return 'оцінки';
   return 'оцінок';
+}
+
+export function formatAverage(value, target) {
+  if (value === null || value === undefined || value === target) return value;
+  const decimals = Math.max(String(target ?? '').split('.')[1]?.length ?? 0, 1);
+  return Number(Number(value).toFixed(decimals));
 }
 
 export function ratingText(photo) {
@@ -98,6 +106,7 @@ export function Rating(
       const button = el('button', 'rating__button');
       button.type = 'button';
       button.setAttribute('aria-label', `Оцінити на ${value} з ${MAX_RATING}`);
+      button.style.setProperty('--i', String(i));
       button.append(Star(fillFor(current.averageRating, i), size));
       button.addEventListener('mouseenter', () => preview(value));
       button.addEventListener('focus', () => preview(value));
@@ -120,6 +129,7 @@ export function Rating(
       group.setAttribute('aria-busy', 'true');
       try {
         const result = await rate(current.id, value);
+        const before = current.averageRating;
         current = {
           ...current,
           averageRating: result.averageRating,
@@ -129,6 +139,7 @@ export function Rating(
         pushToast('Дякуємо за оцінку', 'success');
         onRated?.(current);
         render();
+        celebrate(before);
       } catch (error) {
         pushToast(ratingError(error), 'error');
         if (error?.status === 409) {
@@ -142,6 +153,21 @@ export function Rating(
     }
 
     root.replaceChildren(group, text);
+  }
+
+  // Спалах і перерахунок середнього
+  function celebrate(before) {
+    root.classList.add('rating--burst');
+    setTimeout(() => root.classList.remove('rating--burst'), BURST_TIME);
+    const target = current.averageRating;
+    const stars = root.querySelectorAll('.rating__star');
+    const text = root.querySelector('.rating__text');
+    countUp(before, target, {
+      onUpdate: (value) => {
+        stars.forEach((star, i) => star.style.setProperty('--fill', `${fillFor(value, i) * 100}%`));
+        text.textContent = ratingText({ ...current, averageRating: formatAverage(value, target) });
+      },
+    });
   }
 
   render();

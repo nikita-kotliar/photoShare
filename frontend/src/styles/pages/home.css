@@ -44,8 +44,10 @@
 .home-skeleton__media,
 .home-skeleton__line {
   border-radius: var(--radius-m);
-  background: var(--color-surface);
-  animation: home-pulse 1.2s ease-in-out infinite alternate;
+  background: linear-gradient(90deg, transparent 0%, var(--color-shine) 50%, transparent 100%)
+    no-repeat var(--color-surface);
+  background-size: 50% 100%;
+  animation: home-shimmer 1.4s ease-in-out infinite;
 }
 
 .home-skeleton__media {
@@ -65,9 +67,13 @@
   width: 40%;
 }
 
-@keyframes home-pulse {
+@keyframes home-shimmer {
+  from {
+    background-position: -100% 0;
+  }
+
   to {
-    opacity: 0.4;
+    background-position: 200% 0;
   }
 }
 

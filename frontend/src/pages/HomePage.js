@@ -2,6 +2,7 @@ import '../styles/pages/home.css';
 import { photosApi } from '../api/photos.js';
 import { Button } from '../components/Button.js';
 import { isStaff } from '../components/navigation.js';
+import { reveal } from '../components/motion.js';
 import { PhotoCard } from '../components/PhotoCard.js';
 import { SearchBar } from '../components/SearchBar.js';
 import { pushToast } from '../store/index.js';
@@ -49,6 +50,7 @@ function Message(title, text, action) {
 export default function HomePage({ query, navigate, store }) {
   const page = parsePage(query.page);
   const controller = new AbortController();
+  let stopReveal = () => {};
 
   const root = el('section', 'home container');
   root.setAttribute('aria-labelledby', 'home-title');
@@ -178,6 +180,8 @@ export default function HomePage({ query, navigate, store }) {
           return item;
         }),
       );
+      stopReveal();
+      stopReveal = reveal(list.children);
       status.textContent = `Сторінка ${data.page} з ${data.pages}`;
       if (data.pages > 1) root.append(Pagination(data.pages));
     } catch (error) {
@@ -190,6 +194,7 @@ export default function HomePage({ query, navigate, store }) {
     el: root,
     destroy: () => {
       controller.abort();
+      stopReveal();
       bar.destroy();
     },
   };

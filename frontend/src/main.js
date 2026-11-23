@@ -3,6 +3,7 @@ import { mountSprite } from './components/icons.js';
 import { Footer } from './components/Footer.js';
 import { Header } from './components/Header.js';
 import { LoadingBar, Toasts } from './components/Toast.js';
+import { installRipple } from './components/motion.js';
 import { createRouter } from './router/index.js';
 import { routes } from './router/routes.js';
 import { store } from './store/index.js';
@@ -20,6 +21,7 @@ root.innerHTML = `
 
 async function bootstrap() {
   mountSprite();
+  installRipple();
 
   try {
     const user = await authApi.me();

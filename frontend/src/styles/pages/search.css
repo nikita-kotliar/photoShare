@@ -267,4 +267,14 @@
   .filter-panel__calendar-button:hover:not(:active) {
     color: var(--color-hover);
   }
+
+  .filter-panel__stars:has(.filter-panel__star:hover) .filter-panel__star {
+    color: var(--color-hover);
+  }
+
+  .filter-panel__stars:has(.filter-panel__star:hover)
+    .filter-panel__star:hover
+    ~ .filter-panel__star {
+    color: #7785a3;
+  }
 }
