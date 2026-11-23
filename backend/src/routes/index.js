@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const users = require('./users');
 const sessions = require('./sessions');
+const auth = require('./auth');
 const photos = require('./photos');
 const comments = require('./comments');
 const links = require('./links');
@@ -18,6 +19,7 @@ router.get('/health', (_req, res) => {
 router.use(docs.router);
 router.use('/users', users);
 router.use('/sessions', sessions);
+router.use('/auth', auth);
 router.use('/photos/:id/links', links);
 router.use('/photos/:id/ratings', photoRatings);
 router.use('/photos', photos);
