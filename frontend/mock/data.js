@@ -222,5 +222,13 @@ export function createSeed(now = Date.now()) {
       }))
     : [];
 
-  return { users, photos, comments, ratings, links, notifications };
+  // Досягнення (TASK-070): «Перша світлина» у всіх, хто вже має світлини
+  const achievements = [...new Set(photos.map((p) => p.authorId))].map((userId, index) => ({
+    id: index + 1,
+    userId,
+    code: 'FIRST_PHOTO',
+    createdAt: new Date(now - 30 * DAY).toISOString(),
+  }));
+
+  return { users, photos, comments, ratings, links, notifications, achievements };
 }

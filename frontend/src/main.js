@@ -1,4 +1,7 @@
 import './styles/index.css';
+import { onAchievements } from './api/client.js';
+import { REFRESH_EVENT } from './components/NotificationBell.js';
+import { showAchievements } from './components/AchievementToast.js';
 import { mountSprite } from './components/icons.js';
 import { Footer } from './components/Footer.js';
 import { Header } from './components/Header.js';
@@ -28,6 +31,11 @@ async function bootstrap() {
   installRipple();
   installInputMode();
   installAutosize();
+  // Нові досягнення з відповідей API - анімований тост (TASK-070)
+  onAchievements((codes) => {
+    showAchievements(codes);
+    window.dispatchEvent(new Event(REFRESH_EVENT));
+  });
 
   try {
     const user = await authApi.me();

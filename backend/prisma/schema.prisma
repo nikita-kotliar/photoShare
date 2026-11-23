@@ -13,6 +13,15 @@ enum Role {
   ADMIN
 }
 
+// Досягнення (TASK-070): умови отримання в achievementsService
+enum AchievementCode {
+  FIRST_PHOTO
+  TEN_PHOTOS
+  COMMENTATOR
+  CRITIC
+  FAVORITE
+}
+
 // Про що сповіщення (TASK-068): коментар і оцінка твоєї світлини, нове досягнення,
 // призначення модератором
 enum NotificationType {
@@ -39,8 +48,9 @@ model User {
   comments            Comment[]
   ratings             Rating[]
   // Сповіщення, які отримав користувач, і ті, причиною яких він став
-  notifications       Notification[] @relation("NotificationRecipient")
-  notificationsCaused Notification[] @relation("NotificationActor")
+  notifications       Notification[]    @relation("NotificationRecipient")
+  notificationsCaused Notification[]    @relation("NotificationActor")
+  achievements        UserAchievement[]
 
   @@index([role])
   @@index([createdAt])
@@ -162,6 +172,19 @@ model Notification {
   @@index([actorId])
   @@index([photoId])
   @@map("notifications")
+}
+
+// Отримані досягнення (TASK-070). UQ (user_id, code): одне досягнення не дається двічі
+model UserAchievement {
+  id        Int             @id @default(autoincrement())
+  userId    Int             @map("user_id")
+  code      AchievementCode
+  createdAt DateTime        @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, code])
+  @@map("user_achievements")
 }
 
 model TokenBlacklist {

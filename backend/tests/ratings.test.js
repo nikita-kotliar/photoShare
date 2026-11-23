@@ -44,6 +44,7 @@ describe('POST /api/photos/:id/ratings', () => {
       },
       averageRating: 4,
       ratingsCount: 1,
+      newAchievements: [],
     });
   });
 

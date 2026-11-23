@@ -96,7 +96,7 @@ async function rate(photoId, { value }, user) {
   });
 
   const { averageRating, ratingsCount } = (await statsFor([photoId])).get(photoId);
-  return { rating, averageRating, ratingsCount };
+  return { rating, averageRating, ratingsCount, photoAuthorId: photo.authorId };
 }
 
 async function listForPhoto(photoId, pagination) {

@@ -48,6 +48,7 @@ export function createMockApi({ now = Date.now() } = {}) {
       rating: db.ratings.length + 1,
       link: db.links.length + 1,
       notification: db.notifications.length + 1,
+      achievement: db.achievements.length + 1,
     };
   }
   reset();
@@ -65,6 +66,45 @@ export function createMockApi({ now = Date.now() } = {}) {
       readAt: null,
       createdAt: new Date().toISOString(),
     });
+  }
+
+  // Досягнення (TASK-070), ті самі умови, що в backend/src/services/achievementsService.js
+  const ACHIEVEMENT_CODES = ['FIRST_PHOTO', 'TEN_PHOTOS', 'COMMENTATOR', 'CRITIC', 'FAVORITE'];
+  const ACHIEVEMENT_TRIGGERS = {
+    photo: ['FIRST_PHOTO', 'TEN_PHOTOS'],
+    comment: ['COMMENTATOR'],
+    ratingGiven: ['CRITIC'],
+    ratingReceived: ['FAVORITE'],
+  };
+
+  function achievementEarned(code, userId) {
+    const photos = db.photos.filter((p) => p.authorId === userId);
+    if (code === 'FIRST_PHOTO') return photos.length >= 1;
+    if (code === 'TEN_PHOTOS') return photos.length >= 10;
+    if (code === 'COMMENTATOR')
+      return db.comments.filter((c) => c.authorId === userId).length >= 20;
+    if (code === 'CRITIC') return db.ratings.filter((r) => r.userId === userId).length >= 50;
+    const ids = new Set(photos.map((p) => p.id));
+    const received = db.ratings.filter((r) => ids.has(r.photoId));
+    const average = received.reduce((sum, r) => sum + r.value, 0) / (received.length || 1);
+    return received.length >= 5 && average >= 4.5;
+  }
+
+  function checkAchievements(userId, trigger) {
+    const fresh = [];
+    for (const code of ACHIEVEMENT_TRIGGERS[trigger] ?? []) {
+      const owned = db.achievements.some((a) => a.userId === userId && a.code === code);
+      if (owned || !achievementEarned(code, userId)) continue;
+      db.achievements.push({
+        id: nextIds.achievement++,
+        userId,
+        code,
+        createdAt: new Date().toISOString(),
+      });
+      notify({ userId, type: 'ACHIEVEMENT', data: { code } });
+      fresh.push(code);
+    }
+    return fresh;
   }
 
   function serializeNotification(item) {
@@ -347,6 +387,20 @@ export function createMockApi({ now = Date.now() } = {}) {
     };
   });
 
+  route('GET', '/users/:username/achievements', (ctx) => {
+    const user = db.users.find((u) => u.username === ctx.params.username);
+    if (!user) fail(404, 'NOT_FOUND', 'Користувача не знайдено');
+    const owned = new Map(
+      db.achievements.filter((a) => a.userId === user.id).map((a) => [a.code, a.createdAt]),
+    );
+    const items = ACHIEVEMENT_CODES.map((code) => ({
+      code,
+      earned: owned.has(code),
+      earnedAt: owned.get(code) ?? null,
+    }));
+    return { body: { items } };
+  });
+
   route('GET', '/users/:username/photos', (ctx) => {
     const user = db.users.find((u) => u.username === ctx.params.username);
     if (!user) fail(404, 'NOT_FOUND', 'Користувача не знайдено');
@@ -399,7 +453,8 @@ export function createMockApi({ now = Date.now() } = {}) {
       updatedAt: stamp,
     };
     db.photos.push(photo);
-    return { status: 201, body: { photo: serializePhoto(photo, user) } };
+    const newAchievements = checkAchievements(user.id, 'photo');
+    return { status: 201, body: { photo: serializePhoto(photo, user), newAchievements } };
   });
 
   route('GET', '/photos/:id', (ctx) => ({
@@ -522,7 +577,8 @@ export function createMockApi({ now = Date.now() } = {}) {
       photoId: photo.id,
       data: { commentId: comment.id, text: text.slice(0, 100) },
     });
-    return { status: 201, body: { comment: serializeComment(comment) } };
+    const newAchievements = checkAchievements(user.id, 'comment');
+    return { status: 201, body: { comment: serializeComment(comment), newAchievements } };
   });
 
   route('PUT', '/comments/:id', (ctx) => {
@@ -573,6 +629,8 @@ export function createMockApi({ now = Date.now() } = {}) {
       photoId: photo.id,
       data: { value },
     });
+    const newAchievements = checkAchievements(user.id, 'ratingGiven');
+    checkAchievements(photo.authorId, 'ratingReceived');
     const stats = ratingStats(photo.id);
     return {
       status: 201,
@@ -580,6 +638,7 @@ export function createMockApi({ now = Date.now() } = {}) {
         rating: serializeRating(rating),
         averageRating: stats.average,
         ratingsCount: stats.count,
+        newAchievements,
       },
     };
   });

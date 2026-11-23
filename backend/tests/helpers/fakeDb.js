@@ -14,6 +14,8 @@ let ratings = [];
 let nextRatingId = 1;
 let notifications = [];
 let nextNotificationId = 1;
+let achievements = [];
+let nextAchievementId = 1;
 
 function clone(user) {
   return user ? { ...user } : null;
@@ -192,7 +194,7 @@ const fakeDb = {
         .sort(newest)
         .slice(skip, skip + take)
         .map((comment) => withInclude(comment, include)),
-    count: async ({ where }) => comments.filter((c) => c.photoId === where.photoId).length,
+    count: async ({ where = {} } = {}) => comments.filter((c) => matches(c, where)).length,
     create: async ({ data, include }) => {
       const now = new Date();
       const comment = { id: nextCommentId++, createdAt: now, updatedAt: now, ...data };
@@ -361,6 +363,24 @@ const fakeDb = {
       return { count: list.length };
     },
     all: () => notifications.map((item) => ({ ...item })),
+    // Для тестів: прибрати сповіщення, що з'явилися під час підготовки (наприклад, досягнення)
+    clear: () => {
+      notifications = [];
+      nextNotificationId = 1;
+    },
+  },
+  // Досягнення (TASK-070): UQ (userId, code), як у PostgreSQL
+  userAchievement: {
+    findMany: async ({ where = {} } = {}) =>
+      achievements.filter((item) => matches(item, where)).map((item) => ({ ...item })),
+    create: async ({ data }) => {
+      if (achievements.some((a) => a.userId === data.userId && a.code === data.code)) {
+        throw Object.assign(new Error('Unique constraint failed'), { code: 'P2002' });
+      }
+      const item = { id: nextAchievementId++, createdAt: new Date(), ...data };
+      achievements.push(item);
+      return { ...item };
+    },
   },
   $disconnect: async () => {},
   reset() {
@@ -380,6 +400,8 @@ const fakeDb = {
     nextRatingId = 1;
     notifications = [];
     nextNotificationId = 1;
+    achievements = [];
+    nextAchievementId = 1;
   },
 };
 

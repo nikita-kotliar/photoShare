@@ -17,6 +17,11 @@ router.put('/me', authenticate, validate(updateMeSchema), controller.updateMe);
 
 router.get('/:username', validate(usernameParamsSchema, 'params'), controller.getProfile);
 router.get(
+  '/:username/achievements',
+  validate(usernameParamsSchema, 'params'),
+  controller.achievements,
+);
+router.get(
   '/:username/photos',
   optionalAuthenticate,
   validate(usernameParamsSchema, 'params'),

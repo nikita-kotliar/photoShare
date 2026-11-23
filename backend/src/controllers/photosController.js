@@ -1,4 +1,5 @@
 const photosService = require('../services/photosService');
+const achievementsService = require('../services/achievementsService');
 const { toPhoto } = require('../utils/serializers');
 const { toPage } = require('../utils/pagination');
 const { withRatings } = require('./photoResponse');
@@ -22,7 +23,8 @@ async function create(req, res) {
     transformations: req.body.transformations,
     author: req.user,
   });
-  res.status(201).json({ photo: toPhoto(photo) });
+  const newAchievements = await achievementsService.check(req.user.id, 'photo');
+  res.status(201).json({ photo: toPhoto(photo), newAchievements });
 }
 
 async function update(req, res) {
