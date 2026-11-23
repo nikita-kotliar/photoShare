@@ -25,7 +25,7 @@ Swagger UI: `/api/docs`, специфікація OpenAPI 3: `/api/docs.json`. �
 
 **Ролі:** `USER`, `MODERATOR`, `ADMIN`. Перший зареєстрований користувач - `ADMIN`. Стовпець "Доступ": `public` без входу, `auth` будь-який користувач, `owner` власник ресурсу, `staff` MODERATOR і ADMIN.
 
-**Користувач** (`user`): `{ id, username, name, email, role, isActive, avatarUrl, bio, createdAt }`. `avatarUrl` і `bio` («про себе») - рядок або `null`. 
+**Користувач** (`user`): `{ id, username, name, email, role, isActive, avatarUrl, bio, googleLinked, createdAt }`. `avatarUrl` і `bio` («про себе») - рядок або `null`. `googleLinked` - `true`, якщо акаунт пов'язано з Google (сам ідентифікатор Google API не віддає). Вхід паролем в акаунт, створений через Google без пароля, дає 401 `INVALID_CREDENTIALS`, як і невірний пароль. 
 
 ## Автентифікація
 
