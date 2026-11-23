@@ -130,6 +130,25 @@ Swagger UI: `/api/docs`, специфікація OpenAPI 3: `/api/docs.json`. �
 
 Роль: ADMIN призначає модератора (`MODERATOR`) або повертає звичайну роль (`USER`). Призначити `ADMIN` не можна (422), змінити роль собі чи іншому ADMIN теж (403). Нова роль діє з наступного запиту, перевходити не треба ([D-51](DECISIONS.md)).
 
+## Сповіщення
+
+| Метод і шлях | Доступ | Тіло / query | Відповідь |
+|---|---|---|---|
+| GET `/api/notifications` | auth | `page, limit` | 200 пагінований список, нові першими |
+| GET `/api/notifications/unread-count` | auth | - | 200 `{ count }` |
+| POST `/api/notifications/read` | auth | `{ ids? }` (1-100 id) | 200 `{ updated, unread }`; без `ids` - усі мої |
+
+`notification`: `{ id, type, read, actor, photo, data, createdAt }`. `actor` - хто зробив дію (`{ id, username, name, avatarUrl }`, `null` для системних), `photo` - `{ id, slug, url }` або `null`.
+
+| type | Коли | data |
+|---|---|---|
+| `COMMENT` | коментар до моєї світлини | `{ commentId, text }` (перші 100 символів) |
+| `RATING` | оцінка моєї світлини | `{ value }` |
+| `ACHIEVEMENT` | нове досягнення (TASK-070) | `{ code }` |
+| `MODERATOR` | ADMIN призначив мене модератором | `{}` |
+
+Про власні дії сповіщень немає. Зняття ролі модератора і повторне збереження тієї самої ролі не сповіщають. Видалення світлини видаляє сповіщення про неї. Чужі `ids` у `POST /read` ігноруються. Якщо сповіщення не вдалося створити, сама дія (коментар, оцінка) все одно виконується ([D-58](DECISIONS.md)).
+
 ## Мок-API для frontend
 
 `npm run dev:mock` у `frontend/` піднімає ті самі ендпоінти з тестовими даними без backend. Додатково, лише в моку: `POST /api/dev/reset` (скидання даних) і `POST /api/dev/fail-next` (штучна помилка наступного запиту).

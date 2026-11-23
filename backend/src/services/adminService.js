@@ -1,6 +1,7 @@
 const db = require('../config/db');
 const AppError = require('../utils/AppError');
 const { skipFor } = require('../utils/pagination');
+const notificationsService = require('./notificationsService');
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -61,8 +62,13 @@ async function setStatus(id, { isActive }, admin) {
 }
 
 async function setRole(id, { role }, admin) {
-  await editableUser(id, admin, 'Не можна змінювати роль адміністратора');
-  return db.user.update({ where: { id }, data: { role } });
+  const before = await editableUser(id, admin, 'Не можна змінювати роль адміністратора');
+  const user = await db.user.update({ where: { id }, data: { role } });
+  // Лише про нове призначення: повторне збереження тієї самої ролі не сповіщає
+  if (role === 'MODERATOR' && before.role !== 'MODERATOR') {
+    await notificationsService.notify({ userId: user.id, type: 'MODERATOR', actorId: admin.id });
+  }
+  return user;
 }
 
 module.exports = { listUsers, setStatus, setRole };

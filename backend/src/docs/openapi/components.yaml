@@ -72,6 +72,25 @@ components:
         bio: { type: string, nullable: true, maxLength: 300 }
         createdAt: { type: string, format: date-time }
 
+    Notification:
+      type: object
+      properties:
+        id: { type: integer }
+        type: { type: string, enum: [COMMENT, RATING, ACHIEVEMENT, MODERATOR] }
+        read: { type: boolean }
+        actor:
+          nullable: true
+          allOf: [{ $ref: '#/components/schemas/Author' }]
+        photo:
+          type: object
+          nullable: true
+          properties:
+            id: { type: integer }
+            slug: { type: string }
+            url: { type: string, format: uri }
+        data: { type: object, example: { value: 5 } }
+        createdAt: { type: string, format: date-time }
+
     Profile:
       type: object
       properties:

@@ -3,6 +3,7 @@ import { pushToast } from '../store/index.js';
 import { Dropdown } from './Dropdown.js';
 import { Icon } from './icons.js';
 import { navItems, profileHref } from './navigation.js';
+import { NotificationBell } from './NotificationBell.js';
 import { SearchInput } from './SearchInput.js';
 import { ThemeToggle } from './theme.js';
 import avatarPlaceholder from '../assets/images/avatar-placeholder.svg';
@@ -74,6 +75,7 @@ export function Header({ store, navigate }) {
   let links = [];
   let dropdown = null;
   let toggles = [];
+  let bell = null;
   let closeMenu = () => {};
 
   function setPath(next) {
@@ -210,6 +212,8 @@ export function Header({ store, navigate }) {
     dropdown = null;
     toggles.forEach((toggle) => toggle.destroy());
     toggles = [];
+    bell?.destroy();
+    bell = null;
     closeMenu();
     links = [];
 
@@ -230,7 +234,9 @@ export function Header({ store, navigate }) {
 
     const actions = el('div', 'header__actions');
     if (user) {
-      actions.append(AddPhoto('header__add--bar'), UserMenu(user));
+      // Дзвіночок сповіщень (TASK-068) видно на всіх ширинах, поруч з меню користувача
+      bell = NotificationBell({ store, navigate });
+      actions.append(AddPhoto('header__add--bar'), bell, UserMenu(user));
     } else {
       const auth = el('div', 'auth-switch');
       auth.append(

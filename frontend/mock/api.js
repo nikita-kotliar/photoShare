@@ -47,9 +47,39 @@ export function createMockApi({ now = Date.now() } = {}) {
       comment: db.comments.length + 1,
       rating: db.ratings.length + 1,
       link: db.links.length + 1,
+      notification: db.notifications.length + 1,
     };
   }
   reset();
+
+  // Сповіщення (TASK-068), як на бекенді: про власні дії не сповіщаємо
+  function notify({ userId, type, actorId = null, photoId = null, data = {} }) {
+    if (!userId || userId === actorId) return;
+    db.notifications.push({
+      id: nextIds.notification++,
+      userId,
+      type,
+      actorId,
+      photoId,
+      data,
+      readAt: null,
+      createdAt: new Date().toISOString(),
+    });
+  }
+
+  function serializeNotification(item) {
+    const actor = item.actorId ? userById(item.actorId) : null;
+    const photo = item.photoId ? db.photos.find((p) => p.id === item.photoId) : null;
+    return {
+      id: item.id,
+      type: item.type,
+      read: Boolean(item.readAt),
+      actor: actor ? publicAuthor(actor) : null,
+      photo: photo ? { id: photo.id, slug: photo.slug, url: photo.url } : null,
+      data: item.data ?? {},
+      createdAt: item.createdAt,
+    };
+  }
 
   const routeTable = [];
 
@@ -485,6 +515,13 @@ export function createMockApi({ now = Date.now() } = {}) {
       updatedAt: stamp,
     };
     db.comments.push(comment);
+    notify({
+      userId: photo.authorId,
+      type: 'COMMENT',
+      actorId: user.id,
+      photoId: photo.id,
+      data: { commentId: comment.id, text: text.slice(0, 100) },
+    });
     return { status: 201, body: { comment: serializeComment(comment) } };
   });
 
@@ -529,6 +566,13 @@ export function createMockApi({ now = Date.now() } = {}) {
       createdAt: new Date().toISOString(),
     };
     db.ratings.push(rating);
+    notify({
+      userId: photo.authorId,
+      type: 'RATING',
+      actorId: user.id,
+      photoId: photo.id,
+      data: { value },
+    });
     const stats = ratingStats(photo.id);
     return {
       status: 201,
@@ -645,6 +689,36 @@ export function createMockApi({ now = Date.now() } = {}) {
     return { body: { user: serializeUser(target) } };
   });
 
+  route('GET', '/notifications', (ctx) => {
+    const user = requireAuth(ctx);
+    const list = db.notifications
+      .filter((n) => n.userId === user.id)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt) || b.id - a.id)
+      .map(serializeNotification);
+    return { body: paginate(list, ctx.query) };
+  });
+
+  route('GET', '/notifications/unread-count', (ctx) => {
+    const user = requireAuth(ctx);
+    const count = db.notifications.filter((n) => n.userId === user.id && !n.readAt).length;
+    return { body: { count } };
+  });
+
+  route('POST', '/notifications/read', (ctx) => {
+    const user = requireAuth(ctx);
+    const ids = ctx.body?.ids;
+    if (ids !== undefined && (!Array.isArray(ids) || !ids.length || ids.length > 100)) {
+      validationError({ ids: 'Вкажіть від 1 до 100 сповіщень' });
+    }
+    const mine = db.notifications.filter((n) => n.userId === user.id && !n.readAt);
+    const target = ids ? mine.filter((n) => ids.includes(n.id)) : mine;
+    const stamp = new Date().toISOString();
+    target.forEach((n) => {
+      n.readAt = stamp;
+    });
+    return { body: { updated: target.length, unread: mine.length - target.length } };
+  });
+
   route('PATCH', '/admin/users/:id/role', (ctx) => {
     const admin = requireAuth(ctx);
     if (admin.role !== 'ADMIN') fail(403, 'FORBIDDEN', 'Недостатньо прав для цієї дії');
@@ -655,6 +729,9 @@ export function createMockApi({ now = Date.now() } = {}) {
     }
     if (target.id === admin.id || target.role === 'ADMIN') {
       fail(403, 'FORBIDDEN', 'Не можна змінювати роль адміністратора');
+    }
+    if (ctx.body.role === 'MODERATOR' && target.role !== 'MODERATOR') {
+      notify({ userId: target.id, type: 'MODERATOR', actorId: admin.id });
     }
     target.role = ctx.body.role;
     return { body: { user: serializeUser(target) } };
