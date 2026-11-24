@@ -32,20 +32,21 @@ enum NotificationType {
 }
 
 model User {
-  id           Int      @id @default(autoincrement())
-  username     String   @unique
-  email        String   @unique
-  name         String
+  id                Int       @id @default(autoincrement())
+  username          String    @unique
+  email             String    @unique
+  name              String
   // NULL лише для акаунтів, створених через Google (TASK-066). CHECK у міграції
   // users_login_method_check: має бути пароль або google_id
-  passwordHash String?  @map("password_hash")
-  googleId     String?  @unique @map("google_id")
-  role         Role     @default(USER)
-  isActive     Boolean  @default(true) @map("is_active")
-  avatarUrl    String?  @map("avatar_url")
-  bio          String?  @db.VarChar(300)
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  passwordHash      String?   @map("password_hash")
+  googleId          String?   @unique @map("google_id")
+  passwordChangedAt DateTime? @map("password_changed_at")
+  role              Role      @default(USER)
+  isActive          Boolean   @default(true) @map("is_active")
+  avatarUrl         String?   @map("avatar_url")
+  bio               String?   @db.VarChar(300)
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
 
   photos              Photo[]
   comments            Comment[]

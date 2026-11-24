@@ -69,7 +69,10 @@ async function reset({ token, password }) {
 
   const updated = await db.user.update({
     where: { id: user.id },
-    data: { passwordHash: await bcrypt.hash(password, BCRYPT_ROUNDS) },
+    data: {
+      passwordHash: await bcrypt.hash(password, BCRYPT_ROUNDS),
+      passwordChangedAt: new Date(Math.floor(Date.now() / 1000) * 1000),
+    },
   });
   await db.passwordReset.update({ where: { id: record.id }, data: { usedAt: new Date() } });
   await db.passwordReset.deleteMany({ where: { userId: user.id, usedAt: null } });

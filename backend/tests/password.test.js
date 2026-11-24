@@ -115,6 +115,19 @@ describe('POST /api/password/reset', () => {
     expect((await login(defaultUser.password)).status).toBe(401);
   });
 
+  it('старі сесії на інших пристроях після зміни пароля завершуються', async () => {
+    const { client: oldDevice } = await owner();
+    await new Promise((resolve) => setTimeout(resolve, 1100));
+    await forgot('owner@example.com');
+    const fresh = agent();
+    await resetWith(tokenFromMail(), 'new-password-1', fresh);
+
+    const old = await oldDevice.get('/api/users/me');
+    expect(old.status).toBe(401);
+    expect(old.body.error.code).toBe('TOKEN_INVALID');
+    expect((await fresh.get('/api/users/me')).status).toBe(200);
+  });
+
   it('посилання одноразове', async () => {
     await owner();
     await forgot('owner@example.com');

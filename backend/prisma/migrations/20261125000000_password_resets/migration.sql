@@ -14,3 +14,6 @@ CREATE UNIQUE INDEX "password_resets_token_hash_key" ON "password_resets"("token
 CREATE INDEX "password_resets_user_id_idx" ON "password_resets"("user_id");
 
 ALTER TABLE "password_resets" ADD CONSTRAINT "password_resets_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- Токени, видані до зміни пароля, більше не діють (вихід на всіх пристроях)
+ALTER TABLE "users" ADD COLUMN "password_changed_at" TIMESTAMP(3);

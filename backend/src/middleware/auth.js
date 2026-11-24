@@ -20,6 +20,9 @@ async function resolveSession(token) {
   if (!user) {
     throw new AppError(401, 'UNAUTHORIZED', 'Користувача не знайдено');
   }
+  if (user.passwordChangedAt && payload.iat * 1000 < user.passwordChangedAt.getTime()) {
+    throw new AppError(401, 'TOKEN_INVALID', 'Пароль змінено, увійдіть знову');
+  }
   if (!user.isActive) {
     throw new AppError(403, 'USER_BANNED', 'Акаунт заблоковано');
   }
