@@ -3,6 +3,7 @@ import { photosApi } from '../api/photos.js';
 import { Button } from '../components/Button.js';
 import { isStaff } from '../components/navigation.js';
 import { reveal } from '../components/motion.js';
+import { FeaturedPhoto } from '../components/FeaturedPhoto.js';
 import { Lightbox } from '../components/Lightbox.js';
 import { PhotoCard, updateCardRating } from '../components/PhotoCard.js';
 import { SearchBar } from '../components/SearchBar.js';
@@ -82,7 +83,8 @@ export default function HomePage({ query, navigate, store }) {
     user: store.get().user,
     onRated: (photo) => updateCardRating(root, photo, store.get().user),
   });
-  root.append(title, bar, status, list, lightbox);
+  const featured = page === 1 ? FeaturedPhoto({ signal: controller.signal }) : null;
+  root.append(...[title, bar, featured, status, list, lightbox].filter(Boolean));
 
   // Пагінація
   function Pagination(pages) {

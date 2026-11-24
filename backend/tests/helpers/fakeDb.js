@@ -83,11 +83,15 @@ function findPhoto(where) {
 
 // where: рівність полів або { in: [...] }
 function matches(record, where = {}) {
-  return Object.entries(where).every(([key, value]) =>
-    value && typeof value === 'object' && Array.isArray(value.in)
-      ? value.in.includes(record[key])
-      : record[key] === value,
-  );
+  return Object.entries(where).every(([key, value]) => {
+    if (value && typeof value === 'object' && Array.isArray(value.in)) {
+      return value.in.includes(record[key]);
+    }
+    if (value && typeof value === 'object' && value.gte instanceof Date) {
+      return record[key] >= value.gte;
+    }
+    return record[key] === value;
+  });
 }
 
 function newest(a, b) {

@@ -22,6 +22,7 @@ router.post(
   validate(createPhotoSchema),
   controller.create,
 );
+router.get('/featured', optionalAuthenticate, controller.featured);
 router.get(
   '/:idOrSlug',
   optionalAuthenticate,

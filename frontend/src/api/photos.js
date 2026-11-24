@@ -14,6 +14,7 @@ export function photoFormData({ file, description, tags = [], transformations } 
 
 export const photosApi = {
   feed: (query, options) => api.get('/photos', { ...options, query }),
+  featured: (options) => api.get('/photos/featured', options).then((r) => r.photo),
   get: (idOrSlug) => api.get(`/photos/${idOrSlug}`).then((r) => r.photo),
   create: (formData, options) => api.upload('/photos', formData, options).then((r) => r.photo),
   update: (id, data) => api.put(`/photos/${id}`, data).then((r) => r.photo),

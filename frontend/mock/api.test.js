@@ -525,3 +525,16 @@ describe('службові', () => {
     expect((await call('PATCH', '/photos')).status).toBe(405);
   });
 });
+
+describe('світлина тижня', () => {
+  it('найвищий рейтинг серед світлин від двох оцінок', async () => {
+    const res = await call('GET', '/photos/featured');
+    expect(res.status).toBe(200);
+    expect(res.body.photo.ratingsCount).toBeGreaterThanOrEqual(2);
+    const all = await call('GET', '/photos', { user: ADMIN, query: 'limit=50' });
+    const top = Math.max(
+      ...all.body.items.filter((p) => p.ratingsCount >= 2).map((p) => p.averageRating),
+    );
+    expect(res.body.photo.averageRating).toBe(top);
+  });
+});

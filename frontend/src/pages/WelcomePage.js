@@ -1,5 +1,6 @@
 import '../styles/pages/welcome.css';
 import { Button } from '../components/Button.js';
+import { FeaturedPhoto } from '../components/FeaturedPhoto.js';
 import { drift } from '../components/motion.js';
 import { ThemedImages } from '../components/theme.js';
 import logo from '../assets/images/logo-dark.svg';
@@ -86,10 +87,20 @@ export default function WelcomePage({ store }) {
 
   // Кнопки
   const actions = el('div', 'welcome__actions');
-  actions.append(...welcomeActions(store.get().user).map((action) => Button(action)));
+  const controller = new AbortController();
+  actions.append(
+    FeaturedPhoto({ signal: controller.signal }),
+    ...welcomeActions(store.get().user).map((action) => Button(action)),
+  );
 
   const photo = Photo();
   root.append(title, tagline, band, text, photo, actions);
   const stopDrift = drift(photo);
-  return { el: root, destroy: stopDrift };
+  return {
+    el: root,
+    destroy: () => {
+      controller.abort();
+      stopDrift();
+    },
+  };
 }
