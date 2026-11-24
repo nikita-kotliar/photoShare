@@ -19,8 +19,8 @@ REST API на `/api` (на проді `/photoshare-api`). Повний опис 
 | 409 | `CONFLICT` | зайнятий email чи юзернейм |
 | 413 | `PAYLOAD_TOO_LARGE` | файл чи запит завеликий |
 | 422 | `VALIDATION_ERROR` | помилки полів у `fields` |
-| 429 | `RATE_LIMIT`, `AI_LIMIT` | забагато спроб входу чи реєстрації, вичерпано AI-ліміт |
-| 503 | `AI_UNAVAILABLE`, `MAIL_UNAVAILABLE` | AI або пошта не налаштовані чи недоступні |
+| 429 | `RATE_LIMIT` | забагато спроб входу, реєстрації чи листів відновлення |
+| 503 | `MAIL_UNAVAILABLE` | пошта для відновлення пароля не налаштована |
 
 ## Об'єкти
 
@@ -68,7 +68,6 @@ REST API на `/api` (на проді `/photoshare-api`). Повний опис 
 | DELETE `/photos/:id` | owner, ADMIN | - | 204, разом з коментарями, оцінками й посиланнями |
 | POST `/photos/:id/links` | owner, ADMIN | `{ transformations }` | 201 `{ link: { id, url, qrCode, transformations, createdAt } }` |
 | GET `/photos/:id/links` | public | - | 200 `{ items }` |
-| POST `/ai/describe` | auth | form-data: `image` до 5 МБ | 200 `{ description, tags }` ([D-59](DECISIONS.md)) |
 
 Зображення: JPEG, PNG, WEBP або GIF до 10 МБ (тип перевіряється за вмістом). Теги - до 30 символів, зберігаються малими літерами ([D-09](DECISIONS.md)). Трансформації: `effect` = `grayscale` / `sepia` / `blur`, `angle` 0-359, `crop` = `square`; оригінал не змінюється ([D-22](DECISIONS.md)). `qrCode` - PNG у data URL з посиланням на трансформоване зображення.
 
@@ -119,8 +118,6 @@ REST API на `/api` (на проді `/photoshare-api`). Повний опис 
 | GET `/admin/users` | staff | `q, role, registeredFrom, registeredTo, sort, order, page, limit` | 200 сторінка користувачів |
 | PATCH `/admin/users/:id/status` | ADMIN | `{ isActive }` | 200 `{ user }` |
 | PATCH `/admin/users/:id/role` | ADMIN | `{ role: "USER" \| "MODERATOR" }` | 200 `{ user }` ([D-51](DECISIONS.md)) |
-| GET `/admin/comments/flagged` | staff | `page, limit` | 200 сторінка `{ commentId, category, reason, flaggedAt, comment }` ([D-61](DECISIONS.md)) |
-| DELETE `/admin/comments/:id/flag` | staff | - | 204, коментар лишається |
 
 Себе й іншого адміна банити чи змінювати їм роль не можна (403). Призначити `ADMIN` не можна (422).
 

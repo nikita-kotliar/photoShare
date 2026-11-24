@@ -235,7 +235,7 @@ textarea.upload__input {
   line-height: 1.2;
 }
 
-/* П'ять тегів (зокрема після AI-підказки): підказку «Максимум 5 тегів» видно повністю */
+/* П'ять тегів: підказку «Максимум 5 тегів» видно повністю */
 .upload__tag-input:disabled {
   flex-basis: auto;
   min-width: 9.5rem;
