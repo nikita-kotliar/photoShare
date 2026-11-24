@@ -313,6 +313,7 @@ export default function ProfilePage({ params, query, store, navigate }) {
   }
 
   async function load() {
+    root.setAttribute('aria-busy', 'true');
     try {
       const profile = await usersApi.profile(username, { signal: controller.signal });
       const owner = isOwnProfile(store.get().user, profile);
@@ -324,8 +325,10 @@ export default function ProfilePage({ params, query, store, navigate }) {
         AchievementsBlock(profile.username, { signal: controller.signal }),
         PhotosSection(profile, owner),
       );
+      root.removeAttribute('aria-busy');
     } catch (error) {
       if (error.name === 'AbortError') return;
+      root.removeAttribute('aria-busy');
       if (error.status === 404) {
         const notFound = NotFoundPage({ store });
         root.replaceChildren(notFound.el);

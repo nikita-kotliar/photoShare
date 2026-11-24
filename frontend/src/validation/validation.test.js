@@ -117,7 +117,12 @@ describe('validateField / validateForm', () => {
 
   it('пароль довший за 72 символи відхиляється', () => {
     const { errors } = validateForm(
-      { username: 'abc', email: 'a@b.cc', password: 'a'.repeat(73), passwordConfirm: 'a'.repeat(73) },
+      {
+        username: 'abc',
+        email: 'a@b.cc',
+        password: 'a'.repeat(73),
+        passwordConfirm: 'a'.repeat(73),
+      },
       schemas.register,
     );
     expect(errors.password).toBe('Максимум 72 символи');
