@@ -50,7 +50,7 @@ describe('uploadImage / deleteImage', () => {
     const buffer = Buffer.from('image');
 
     await expect(cloudinaryService.uploadImage(buffer)).resolves.toEqual({
-      url: `${BASE}/photoshare/p1.png`,
+      url: `${BASE}/v1700000000/photoshare/p1.png`,
       publicId: 'photoshare/p1',
       colors: cloud.colors,
     });

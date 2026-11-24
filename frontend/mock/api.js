@@ -179,6 +179,7 @@ export function createMockApi({ now = Date.now() } = {}) {
       id: photo.id,
       slug: photo.slug,
       url: photo.url,
+      originalUrl: photo.originalUrl ?? null,
       description: photo.description,
       tags: photo.tags,
       colors: (photo.colors ?? []).map((hex) => ({ hex, family: colorFamily(hex) })),

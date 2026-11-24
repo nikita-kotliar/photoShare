@@ -1,4 +1,11 @@
 const { colorFamily } = require('./colors');
+const { originalUrl } = require('../services/cloudinaryService');
+
+function isTransformed(url = '') {
+  const rest = url.split('/image/upload/')[1];
+  return Boolean(rest) && !/^v\d+\//.test(rest);
+}
+
 function toPublicUser(user) {
   return {
     id: user.id,
@@ -42,6 +49,7 @@ function toPhoto(photo, stats = {}) {
     id: photo.id,
     slug: photo.slug,
     url: photo.url,
+    originalUrl: isTransformed(photo.url) ? originalUrl(photo.publicId) : null,
     description: photo.description,
     tags: (photo.tags ?? []).map((item) => item.tag.name),
     colors: (photo.colors ?? []).map((hex) => ({ hex, family: colorFamily(hex) })),

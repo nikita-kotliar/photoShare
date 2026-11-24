@@ -25,7 +25,7 @@ describe('POST /api/photos', () => {
     expect(cloud.files.get('photoshare/p1')).toEqual(PNG);
     expect(res.body.photo).toMatchObject({
       id: 1,
-      url: 'https://res.cloudinary.com/demo/image/upload/photoshare/p1.png',
+      url: 'https://res.cloudinary.com/demo/image/upload/v1700000000/photoshare/p1.png',
       description: 'Захід сонця',
       tags: [],
       author: { id: owner.user.id, username: 'owner', name: 'owner', avatarUrl: null },
@@ -105,6 +105,16 @@ describe('POST /api/photos', () => {
     expect(res.body.photo.url).toBe(
       'https://res.cloudinary.com/demo/image/upload/ar_1:1,c_fill,g_auto/a_90/e_sepia/v1/photoshare/p1',
     );
+    expect(res.body.photo.originalUrl).toBe(
+      'https://res.cloudinary.com/demo/image/upload/v1/photoshare/p1',
+    );
+  });
+
+  it('без трансформацій originalUrl null: порівнювати нема з чим', async () => {
+    const { owner } = await team();
+    const { photo } = (await upload(owner.client)).body;
+
+    expect(photo.originalUrl).toBeNull();
   });
 
   it('некоректні трансформації повертають 422 і не вантажать файл', async () => {

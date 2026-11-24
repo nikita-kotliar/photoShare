@@ -24,6 +24,10 @@ function transformedUrl(publicId, transformations) {
   });
 }
 
+function originalUrl(publicId) {
+  return cloudinary.url(publicId, { secure: true, resource_type: 'image' });
+}
+
 function uploadImage(buffer) {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
@@ -45,4 +49,11 @@ async function deleteImage(publicId) {
   await cloudinary.uploader.destroy(publicId, { resource_type: 'image', invalidate: true });
 }
 
-module.exports = { EFFECTS, toCloudinary, transformedUrl, uploadImage, deleteImage };
+module.exports = {
+  EFFECTS,
+  toCloudinary,
+  transformedUrl,
+  originalUrl,
+  uploadImage,
+  deleteImage,
+};
