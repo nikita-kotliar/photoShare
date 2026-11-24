@@ -17,6 +17,7 @@ erDiagram
     photos ||--o{ photo_tags : ""
     tags ||--o{ photo_tags : ""
     comments ||--o| comment_flags : "позначка AI"
+    users ||--o{ password_resets : "відновлює пароль"
 ```
 
 ## Таблиці
@@ -32,6 +33,7 @@ erDiagram
 | `notifications` | сповіщення | тип, хто зробив, світлина, `data` (JSON), `read_at` |
 | `user_achievements` | отримані досягнення | унікальна пара (користувач, код) |
 | `comment_flags` | позначки AI-модерації | категорія, пояснення, `dismissed_at`; окремо від коментаря, щоб не змінювати його `updated_at` |
+| `password_resets` | посилання для відновлення пароля | лише SHA-256 токена, `expires_at` (1 година), `used_at` - одноразове |
 | `token_blacklist` | токени після виходу | `jti`, `expires_at`; прострочені записи чистяться щогодини |
 
 ## Правила
