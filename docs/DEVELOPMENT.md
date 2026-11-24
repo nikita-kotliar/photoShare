@@ -35,7 +35,6 @@ COOKIE_SECURE=false
 | `CLOUDINARY_*` | сховище світлин | не можна публікувати світлини; у production бекенд не стартує |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` | вхід через Google | кнопка Google повертає «недоступно» |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | листи відновлення пароля | локально посилання пишеться в консоль бекенду; на проді відновлення недоступне |
-| `ANTHROPIC_API_KEY`, `AI_MODEL`, `AI_DAILY_LIMIT` | AI-підказки і AI-модерація | AI вимкнено, решта працює |
 | `DB_PASSWORD`, `API_PORT`, `PUBLIC_ORIGIN` | лише `docker-compose.prod.yml` | - |
 
 ## Тести і перевірки

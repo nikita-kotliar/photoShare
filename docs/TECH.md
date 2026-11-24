@@ -11,7 +11,7 @@
 | Валідація | zod | одна схема і для перевірки, і для повідомлень про помилки | Joi |
 | Автентифікація | JWT в httpOnly cookie, bcrypt, Google OAuth 2.0 з PKCE | вимога ТЗ; cookie недоступна JavaScript | сесії в Redis |
 | Файли | Cloudinary + multer | вимога ТЗ; трансформації і CDN без власного сервера файлів | S3 + sharp |
-| AI | Claude через Anthropic SDK | структуровані відповіді (опис, теги, вердикт модерації) і розпізнавання зображень | - |
+| Пошта | Nodemailer (SMTP) | листи відновлення пароля через будь-яку поштову скриньку | сторонні API розсилок |
 | QR | qrcode | PNG одразу як data URL | - |
 | Документація API | Swagger UI, OpenAPI 3 у YAML | вимога ТЗ; тест звіряє опис з маршрутами | Redoc |
 | Тести | Jest + Supertest, Vitest | API тестується повністю через HTTP, частина - на справжньому PostgreSQL | Mocha |
