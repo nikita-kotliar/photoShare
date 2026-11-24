@@ -173,14 +173,26 @@ describe('PATCH /api/admin/users/:id/status', () => {
     expect(login.status).toBe(200);
   });
 
-  it('MODERATOR і звичайний користувач банити не можуть', async () => {
+  it('MODERATOR банить і розбанює звичайного користувача', async () => {
     const { owner, moderator } = await withModerator();
-    const byModerator = await setStatus(moderator.client, owner.user.id, false);
-    const byUser = await setStatus(owner.client, moderator.user.id, false);
+    const ban = await setStatus(moderator.client, owner.user.id, false);
+    expect(ban.status).toBe(200);
+    expect(ban.body.user.isActive).toBe(false);
 
-    expect(byModerator.status).toBe(403);
-    expect(byUser.status).toBe(403);
-    expect((await fakeDb.user.findUnique({ where: { id: owner.user.id } })).isActive).toBe(true);
+    const unban = await setStatus(moderator.client, owner.user.id, true);
+    expect(unban.body.user.isActive).toBe(true);
+  });
+
+  it('MODERATOR не банить адміна, іншого модератора і себе; USER не банить нікого', async () => {
+    const { admin, owner, moderator } = await withModerator();
+    const other = await signedIn('othermod');
+    await setUser(other.user.id, { role: 'MODERATOR' });
+
+    expect((await setStatus(moderator.client, admin.user.id, false)).status).toBe(403);
+    expect((await setStatus(moderator.client, other.user.id, false)).status).toBe(403);
+    expect((await setStatus(moderator.client, moderator.user.id, false)).status).toBe(403);
+    expect((await setStatus(owner.client, moderator.user.id, false)).status).toBe(403);
+    expect((await fakeDb.user.findUnique({ where: { id: other.user.id } })).isActive).toBe(true);
   });
 
   it('не можна забанити себе чи іншого ADMIN', async () => {

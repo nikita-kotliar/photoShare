@@ -18,7 +18,7 @@ Vite + vanilla JS. Структура: `src/pages`, `src/components`, `src/route
 | Email | Роль | Особливість |
 |---|---|---|
 | admin@example.com | ADMIN | усе дозволено |
-| valeria@example.com | MODERATOR | видаляє коментарі й оцінки, бачить `/admin` |
+| valeria@example.com | MODERATOR | видаляє коментарі й оцінки, банить користувачів, бачить `/admin` |
 | oleksandr@example.com | USER | має 3 світлини, одна зі збереженими QR |
 | ivan@example.com | USER | |
 | anna@example.com, vlad@example.com, myroslav@example.com, dmytro@example.com | USER | |

@@ -116,7 +116,7 @@ REST API на `/api` (на проді `/photoshare-api`). Повний опис 
 | Метод і шлях | Доступ | Тіло / query | Відповідь |
 |---|---|---|---|
 | GET `/admin/users` | staff | `q, role, registeredFrom, registeredTo, sort, order, page, limit` | 200 сторінка користувачів |
-| PATCH `/admin/users/:id/status` | ADMIN | `{ isActive }` | 200 `{ user }` |
+| PATCH `/admin/users/:id/status` | staff | `{ isActive }` | 200 `{ user }`; модератор банить лише `USER` |
 | PATCH `/admin/users/:id/role` | ADMIN | `{ role: "USER" \| "MODERATOR" }` | 200 `{ user }` ([D-51](DECISIONS.md)) |
 
 Себе й іншого адміна банити чи змінювати їм роль не можна (403). Призначити `ADMIN` не можна (422).

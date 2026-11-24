@@ -23,6 +23,7 @@ export function GoogleButton({ href, text = 'Увійти через Google', cl
   const link = document.createElement('a');
   link.className = `google-btn ${className}`.trim();
   link.href = href;
+  link.setAttribute('data-external', '');
   const label = document.createElement('span');
   label.textContent = text;
   link.append(googleLogo(), label);

@@ -87,7 +87,6 @@
   place-items: center;
   width: 1.5625rem;
   height: 1.5625rem;
-  border: 1px solid currentColor;
   border-radius: 50%;
   color: inherit;
   touch-action: manipulation;
