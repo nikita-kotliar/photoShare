@@ -39,7 +39,7 @@ export function ratingHint(mode, photo) {
   if (mode === 'owner') return 'Свою світлину оцінити не можна';
   if (mode === 'rated') {
     return photo.myRating
-      ? `Ваша оцінка: ${photo.myRating} з ${MAX_RATING}`
+      ? `Ваша оцінка: ${photo.myRating} з ${MAX_RATING}. Натисніть зірку, щоб змінити`
       : 'Ви вже оцінили цю світлину';
   }
   return 'Оцініть світлину';
@@ -85,7 +85,7 @@ export function Rating(
     const text = el('span', `rating__text ${textClass}`.trim(), ratingText(current));
     root.className = `rating rating--${mode}`;
 
-    if (mode !== 'rate') {
+    if (mode !== 'rate' && mode !== 'rated') {
       const stars = el('span', 'rating__stars');
       stars.setAttribute('role', 'img');
       stars.setAttribute('aria-label', `Рейтинг ${current.averageRating ?? 'відсутній'}. ${hint}`);
@@ -100,14 +100,20 @@ export function Rating(
     const group = el('span', 'rating__stars rating__stars--input');
     group.setAttribute('role', 'group');
     group.setAttribute('aria-label', hint);
+    group.title = hint;
+    const shown = mode === 'rated' && current.myRating ? current.myRating : current.averageRating;
     const buttons = [];
     for (let i = 0; i < MAX_RATING; i += 1) {
       const value = i + 1;
       const button = el('button', 'rating__button');
       button.type = 'button';
-      button.setAttribute('aria-label', `Оцінити на ${value} з ${MAX_RATING}`);
+      button.setAttribute(
+        'aria-label',
+        `${mode === 'rated' ? 'Змінити оцінку на' : 'Оцінити на'} ${value} з ${MAX_RATING}`,
+      );
+      if (current.myRating === value) button.setAttribute('aria-pressed', 'true');
       button.style.setProperty('--i', String(i));
-      button.append(Star(fillFor(current.averageRating, i), size));
+      button.append(Star(fillFor(shown, i), size));
       button.addEventListener('mouseenter', () => preview(value));
       button.addEventListener('focus', () => preview(value));
       button.addEventListener('click', () => submit(value));
@@ -125,6 +131,8 @@ export function Rating(
     }
 
     async function submit(value) {
+      if (value === current.myRating) return;
+      const changed = Boolean(current.myRating);
       buttons.forEach((button) => (button.disabled = true));
       group.setAttribute('aria-busy', 'true');
       try {
@@ -136,7 +144,7 @@ export function Rating(
           ratingsCount: result.ratingsCount,
           myRating: value,
         };
-        pushToast('Дякуємо за оцінку', 'success');
+        pushToast(changed ? 'Оцінку змінено' : 'Дякуємо за оцінку', 'success');
         onRated?.(current);
         render();
         celebrate(before);
@@ -152,7 +160,11 @@ export function Rating(
       }
     }
 
-    root.replaceChildren(group, text);
+    if (mode === 'rated' && current.myRating) {
+      root.replaceChildren(group, text, el('span', 'rating__mine', `ваша ${current.myRating}`));
+    } else {
+      root.replaceChildren(group, text);
+    }
   }
 
   // Спалах і перерахунок середнього
@@ -160,11 +172,9 @@ export function Rating(
     root.classList.add('rating--burst');
     setTimeout(() => root.classList.remove('rating--burst'), BURST_TIME);
     const target = current.averageRating;
-    const stars = root.querySelectorAll('.rating__star');
     const text = root.querySelector('.rating__text');
     countUp(before, target, {
       onUpdate: (value) => {
-        stars.forEach((star, i) => star.style.setProperty('--fill', `${fillFor(value, i) * 100}%`));
         text.textContent = ratingText({ ...current, averageRating: formatAverage(value, target) });
       },
     });

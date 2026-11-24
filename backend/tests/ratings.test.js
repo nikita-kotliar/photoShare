@@ -48,29 +48,31 @@ describe('POST /api/photos/:id/ratings', () => {
     });
   });
 
-  it('повторна оцінка тієї самої світлини дає 409 і не змінює рейтинг', async () => {
-    const { stranger, photo } = await setup();
+  it('повторна оцінка змінює попередню: 200, одна оцінка, новий середній, myRating', async () => {
+    const { stranger, moderator, owner, photo } = await setup();
     await rate(stranger.client, photo.id, 5);
+    await rate(moderator.client, photo.id, 3);
     const res = await rate(stranger.client, photo.id, 1);
 
-    expect(res.status).toBe(409);
-    expect(res.body.error).toMatchObject({
-      code: 'CONFLICT',
-      message: 'Ви вже оцінили цю світлину',
-    });
-    const { body } = await agent().get(`/api/photos/${photo.id}`);
-    expect(body.photo).toMatchObject({ averageRating: 5, ratingsCount: 1 });
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ rating: { value: 1 }, averageRating: 2, ratingsCount: 2 });
+    const { body } = await stranger.client.get(`/api/photos/${photo.id}`);
+    expect(body.photo).toMatchObject({ averageRating: 2, ratingsCount: 2, myRating: 1 });
+    expect(await fakeDb.rating.count({ where: { photoId: photo.id } })).toBe(2);
+
+    const notes = (await owner.client.get('/api/notifications')).body.items;
+    expect(notes.filter((n) => n.type === 'RATING')).toHaveLength(2);
   });
 
-  it('одночасні запити: другий упирається в унікальний індекс і теж дає 409', async () => {
+  it('одночасні запити: другий упирається в унікальний індекс і оновлює оцінку, а не дублює', async () => {
     const { stranger, photo } = await setup();
     await rate(stranger.client, photo.id, 5);
-    // Перевірка вже пройшла (оцінки "ще немає"), а запис падає на UQ (photo_id, user_id)
     jest.spyOn(fakeDb.rating, 'findUnique').mockResolvedValueOnce(null);
     const res = await rate(stranger.client, photo.id, 3);
 
-    expect(res.status).toBe(409);
+    expect(res.status).toBe(200);
     expect(await fakeDb.rating.count({ where: { photoId: photo.id } })).toBe(1);
+    expect((await agent().get(`/api/photos/${photo.id}`)).body.photo.averageRating).toBe(3);
   });
 
   it('власну світлину оцінити не можна, навіть адміну', async () => {

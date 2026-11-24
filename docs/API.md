@@ -16,7 +16,7 @@ REST API на `/api` (на проді `/photoshare-api`). Повний опис 
 | 401 | `UNAUTHORIZED`, `TOKEN_INVALID`, `INVALID_CREDENTIALS` | немає сесії, токен недійсний, невірний email або пароль |
 | 403 | `FORBIDDEN`, `USER_BANNED` | немає прав, акаунт заблоковано |
 | 404 | `NOT_FOUND` | не знайдено |
-| 409 | `CONFLICT` | зайнятий email чи юзернейм, повторна оцінка |
+| 409 | `CONFLICT` | зайнятий email чи юзернейм |
 | 413 | `PAYLOAD_TOO_LARGE` | файл чи запит завеликий |
 | 422 | `VALIDATION_ERROR` | помилки полів у `fields` |
 | 429 | `RATE_LIMIT`, `AI_LIMIT` | забагато спроб входу чи реєстрації, вичерпано AI-ліміт |
@@ -78,11 +78,11 @@ REST API на `/api` (на проді `/photoshare-api`). Повний опис 
 | POST `/photos/:id/comments` | auth | `{ text }` 1-1000 | 201 `{ comment }` |
 | PUT `/comments/:id` | автор | `{ text }` | 200 `{ comment }` |
 | DELETE `/comments/:id` | staff | - | 204 |
-| POST `/photos/:id/ratings` | auth | `{ value }` 1-5 | 201 `{ rating, averageRating, ratingsCount }` |
+| POST `/photos/:id/ratings` | auth | `{ value }` 1-5 | 201 `{ rating, averageRating, ratingsCount }`; повторно - 200, оцінку змінено |
 | GET `/photos/:id/ratings` | staff | `page, limit` | 200 сторінка оцінок |
 | DELETE `/ratings/:id` | staff | - | 204 |
 
-Чужий коментар не редагує ніхто, свій автор не видаляє ([D-16](DECISIONS.md)). Одна оцінка на людину (повторна - 409), свою світлину оцінити не можна, змінити оцінку не можна ([D-44](DECISIONS.md)). Середній рейтинг - з одним знаком після коми.
+Чужий коментар не редагує ніхто, свій автор не видаляє ([D-16](DECISIONS.md)). Одна оцінка на людину: повторна змінює попередню; свою світлину оцінити не можна ([D-44](DECISIONS.md)). Середній рейтинг - з одним знаком після коми.
 
 ## Пошук
 

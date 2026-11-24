@@ -33,7 +33,9 @@ describe('ratingText і підказки', () => {
 
   it('пояснює, чому оцінити не можна', () => {
     expect(ratingHint('owner', photo)).toBe('Свою світлину оцінити не можна');
-    expect(ratingHint('rated', { myRating: 4 })).toBe('Ваша оцінка: 4 з 5');
+    expect(ratingHint('rated', { myRating: 4 })).toBe(
+      'Ваша оцінка: 4 з 5. Натисніть зірку, щоб змінити',
+    );
     expect(ratingHint('rated', { rated: true })).toBe('Ви вже оцінили цю світлину');
   });
 

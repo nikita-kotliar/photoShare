@@ -246,6 +246,15 @@ const fakeDb = {
       ratings.push(rating);
       return withInclude(rating, include);
     },
+    update: async ({ where, data, include }) => {
+      const key = where.photoId_userId;
+      const rating = key
+        ? ratings.find((r) => r.photoId === key.photoId && r.userId === key.userId)
+        : findIn(ratings, where);
+      if (!rating) throw notFound();
+      Object.assign(rating, data);
+      return withInclude(rating, include);
+    },
     delete: async ({ where }) => {
       const rating = findIn(ratings, where);
       if (!rating) throw notFound();

@@ -116,3 +116,30 @@
     animation: none;
   }
 }
+
+/* Своя оцінка (D-44): золоті зірки, натисканням можна змінити */
+.rating {
+  --rating-mine: #a86f00;
+}
+
+:root[data-theme='dark'] .rating {
+  --rating-mine: var(--color-gold);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .rating {
+    --rating-mine: var(--color-gold);
+  }
+}
+
+.rating--rated .rating__star-fill {
+  color: var(--rating-mine);
+}
+
+.rating__mine {
+  margin-left: -0.5rem;
+  color: var(--rating-mine);
+  font-size: 0.75rem;
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+}
