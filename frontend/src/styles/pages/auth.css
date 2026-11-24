@@ -233,3 +233,34 @@
     opacity: 0.85;
   }
 }
+
+/* Відновлення пароля (TASK-080) */
+.auth__forgot {
+  align-self: flex-end;
+  margin-top: -0.25rem;
+  color: var(--color-link);
+  font-size: var(--fs-small);
+}
+
+.auth__forgot:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.auth__intro {
+  margin-bottom: 1rem;
+  color: var(--color-text);
+  font-size: var(--fs-small);
+  line-height: 1.5;
+  text-align: center;
+}
+
+.auth__success {
+  padding: 1rem;
+  border-radius: var(--radius-m);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--fs-small);
+  line-height: 1.5;
+  text-align: center;
+}

@@ -40,4 +40,4 @@ const loginSchema = z.object({
   password: z.string({ error: 'Вкажіть пароль' }).min(1, { error: 'Вкажіть пароль' }),
 });
 
-module.exports = { registerSchema, loginSchema, username, email, name };
+module.exports = { registerSchema, loginSchema, username, email, name, password };

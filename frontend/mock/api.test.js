@@ -559,3 +559,23 @@ describe('поточна сесія', () => {
     expect((await call('GET', '/sessions', { user: BANNED })).body.user).toBeNull();
   });
 });
+
+describe('відновлення пароля в моку', () => {
+  it('лист, новий пароль за токеном, вхід з ним; токен одноразовий', async () => {
+    expect(
+      (await call('POST', '/password/forgot', { body: { email: 'ivan@example.com' } })).status,
+    ).toBe(200);
+    const token = 'a'.repeat(64);
+    const res = await call('POST', '/password/reset', {
+      body: { token, password: 'new-pass-123' },
+    });
+    expect(res.body.user.id).toBe(IVAN);
+    const login = await call('POST', '/sessions', {
+      body: { email: 'ivan@example.com', password: 'new-pass-123' },
+    });
+    expect(login.status).toBe(200);
+    expect(
+      (await call('POST', '/password/reset', { body: { token, password: 'other-pass-1' } })).status,
+    ).toBe(422);
+  });
+});

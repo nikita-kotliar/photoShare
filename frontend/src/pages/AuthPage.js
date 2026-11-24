@@ -74,7 +74,9 @@ function Fields(mode) {
     autocomplete: 'email',
   });
   if (mode === 'login') {
-    return [email, PasswordField({ placeholder: 'Введіть пароль' })];
+    const forgot = el('a', 'auth__forgot', 'Забули пароль?');
+    forgot.href = withBase('/forgot-password');
+    return [email, PasswordField({ placeholder: 'Введіть пароль' }), forgot];
   }
   return [
     Input({ label: 'Ім’я', name: 'name', placeholder: 'Введіть ім’я', autocomplete: 'name' }),
@@ -95,9 +97,7 @@ function Fields(mode) {
   ];
 }
 
-export default function AuthPage({ query, navigate }) {
-  const mode = authMode(query);
-  const text = MODES[mode];
+export function AuthShell(heading) {
   const root = el('section', 'auth');
 
   // Логотип і фото
@@ -130,12 +130,21 @@ export default function AuthPage({ query, navigate }) {
     img,
   );
 
-  // Форма
   const panel = el('div', 'auth__panel');
-  const title = el('h1', 'auth__title', text.title);
+  const title = el('h1', 'auth__title', heading);
+  title.id = 'auth-title';
   const form = el('form', 'auth__form');
   form.setAttribute('aria-labelledby', 'auth-title');
-  title.id = 'auth-title';
+  form.noValidate = true;
+  panel.append(title, form);
+  root.append(brand, picture, panel);
+  return { root, form };
+}
+
+export default function AuthPage({ query, navigate }) {
+  const mode = authMode(query);
+  const text = MODES[mode];
+  const { root, form } = AuthShell(text.title);
 
   const fields = el('div', 'auth__fields');
   fields.append(...Fields(mode));
@@ -193,7 +202,5 @@ export default function AuthPage({ query, navigate }) {
     },
   });
 
-  panel.append(title, form);
-  root.append(brand, picture, panel);
   return root;
 }

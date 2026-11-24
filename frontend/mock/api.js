@@ -373,6 +373,40 @@ export function createMockApi({ now = Date.now() } = {}) {
     return { body: { user: serializeUser(user) }, ...session(user) };
   });
 
+  // Відновлення пароля (TASK-080). Лист у моку не надсилається: посилання пишеться в консоль
+  // dev-сервера, а токен для ручної перевірки - 'a' x 64
+  const MOCK_RESET_TOKEN = 'a'.repeat(64);
+  route('POST', '/password/forgot', (ctx) => {
+    const email = String(ctx.body?.email ?? '')
+      .trim()
+      .toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) validationError({ email: 'Некоректний email' });
+    const user = db.users.find((u) => u.email === email && u.isActive);
+    if (user) {
+      db.resetFor = user.id;
+      console.log(
+        `[мок] відновлення пароля: ${ctx.origin}/reset-password?token=${MOCK_RESET_TOKEN}`,
+      );
+    }
+    return {
+      body: { message: 'Якщо акаунт з такою поштою існує, ми надіслали лист з посиланням' },
+    };
+  });
+
+  route('POST', '/password/reset', (ctx) => {
+    const { token, password } = ctx.body || {};
+    const user = token === MOCK_RESET_TOKEN && db.users.find((u) => u.id === db.resetFor);
+    if (!user) {
+      validationError({ token: 'Посилання недійсне або застаріло. Попросіть новий лист' });
+    }
+    if (typeof password !== 'string' || password.length < 8 || password.length > 72) {
+      validationError({ password: 'Пароль має містити щонайменше 8 символів' });
+    }
+    user.password = password;
+    db.resetFor = null;
+    return { body: { user: serializeUser(user) }, ...session(user) };
+  });
+
   route('DELETE', '/sessions', () => ({
     status: 204,
     setCookie: 'token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0',

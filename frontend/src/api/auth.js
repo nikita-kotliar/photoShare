@@ -12,6 +12,14 @@ export const authApi = {
     return user;
   },
 
+  forgotPassword: (email) => api.post('/password/forgot', { email }, { keepSession: true }),
+
+  async resetPassword(token, password) {
+    const { user } = await api.post('/password/reset', { token, password }, { keepSession: true });
+    store.set({ user });
+    return user;
+  },
+
   async login(data) {
     const { user } = await api.post('/sessions', data, { keepSession: true });
     store.set({ user });
