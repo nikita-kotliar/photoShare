@@ -152,6 +152,8 @@ export const schemas = {
     email: fieldRules.email,
     bio: fieldRules.bio,
   },
+  forgot: { email: fieldRules.email },
+  reset: { password: fieldRules.password, passwordConfirm: [required(), matches('password')] },
   photo: { description: fieldRules.description },
   comment: { text: fieldRules.comment },
 };

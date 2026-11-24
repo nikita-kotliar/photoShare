@@ -61,13 +61,25 @@ ssh -i "$K" "$S" 'mkdir -p /opt/photoshare /var/www/photoshare && cd /opt/photos
 ssh -t -i "$K" "$S" 'cd /opt/photoshare && read -p "CLOUDINARY_CLOUD_NAME: " a && read -p "CLOUDINARY_API_KEY: " b && read -s -p "CLOUDINARY_API_SECRET: " c && echo && printf "CLOUDINARY_CLOUD_NAME=%s\nCLOUDINARY_API_KEY=%s\nCLOUDINARY_API_SECRET=%s\n" "$a" "$b" "$c" >> .env && echo SAVED'
 ```
 
-**3а. Вхід через Google і AI (необов'язково).** Без цих ключів сайт працює, лише кнопка Google показує «недоступно», а AI вимкнено. Адреса повернення і адреса сайту вже задані в `docker-compose.prod.yml`.
+**3а. Google, AI і пошта (необов'язково).** Без цих ключів сайт працює, лише кнопка Google показує «недоступно», AI вимкнено, а відновлення пароля недоступне. Адреса повернення і адреса сайту вже задані в `docker-compose.prod.yml`.
 
 - Google: у Google Cloud Console створити OAuth-клієнт типу «Web application» з адресою повернення `https://kotdenik.cx.ua/photoshare-api/auth/google/callback`.
 - AI: ключ API на console.anthropic.com.
+- Пошта для відновлення пароля: будь-який SMTP. Для Gmail - `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=465`, у `SMTP_PASS` пароль застосунку (Google Account → Безпека → Паролі застосунків).
 
 ```bash
 ssh -t -i "$K" "$S" 'cd /opt/photoshare && read -p "GOOGLE_CLIENT_ID: " a && read -s -p "GOOGLE_CLIENT_SECRET: " b && echo && read -s -p "ANTHROPIC_API_KEY: " c && echo && printf "GOOGLE_CLIENT_ID=%s\nGOOGLE_CLIENT_SECRET=%s\nANTHROPIC_API_KEY=%s\n" "$a" "$b" "$c" >> .env && echo SAVED'
+```
+
+Пошта:
+
+```bash
+ssh -t -i "$K" "$S" 'cd /opt/photoshare && read -p "SMTP_HOST: " a && read -p "SMTP_PORT: " b && read -p "SMTP_USER: " c && read -s -p "SMTP_PASS: " d && echo && printf "SMTP_HOST=%s
+SMTP_PORT=%s
+SMTP_USER=%s
+SMTP_PASS=%s
+MAIL_FROM=PhotoShare <%s>
+" "$a" "$b" "$c" "$d" "$c" >> .env && echo SAVED'
 ```
 
 Після зміни `.env` - `./deploy/update.sh backend`.

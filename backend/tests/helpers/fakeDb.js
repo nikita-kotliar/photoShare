@@ -16,6 +16,8 @@ let notifications = [];
 let nextNotificationId = 1;
 let achievements = [];
 let nextAchievementId = 1;
+let resets = [];
+let nextResetId = 1;
 
 function clone(user) {
   return user ? { ...user } : null;
@@ -189,6 +191,30 @@ const fakeDb = {
       notifications = notifications.filter((item) => item.photoId !== photo.id);
       return { ...photo };
     },
+  },
+  passwordReset: {
+    findUnique: async ({ where }) => {
+      const key = Object.keys(where)[0];
+      const row = resets.find((item) => item[key] === where[key]);
+      return row ? { ...row } : null;
+    },
+    create: async ({ data }) => {
+      const row = { id: nextResetId++, createdAt: new Date(), usedAt: null, ...data };
+      resets.push(row);
+      return { ...row };
+    },
+    update: async ({ where, data }) => {
+      const row = resets.find((item) => item.id === where.id);
+      if (!row) throw notFound();
+      Object.assign(row, data);
+      return { ...row };
+    },
+    deleteMany: async ({ where }) => {
+      const before = resets.length;
+      resets = resets.filter((row) => !matches(row, where));
+      return { count: before - resets.length };
+    },
+    count: async ({ where } = {}) => resets.filter((row) => matches(row, where)).length,
   },
   comment: {
     findUnique: async ({ where, ...options }) => shape(findIn(comments, where), options),
@@ -397,6 +423,8 @@ const fakeDb = {
   },
   $disconnect: async () => {},
   reset() {
+    resets = [];
+    nextResetId = 1;
     users = [];
     photos = [];
     comments = [];

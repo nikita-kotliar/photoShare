@@ -8,6 +8,18 @@ export const routes = [
   },
   { path: '/auth', access: 'guest', title: 'Вхід', load: () => import('../pages/AuthPage.js') },
   {
+    path: '/forgot-password',
+    access: 'guest',
+    title: 'Відновлення пароля',
+    load: () => import('../pages/ForgotPasswordPage.js'),
+  },
+  {
+    path: '/reset-password',
+    access: 'any',
+    title: 'Новий пароль',
+    load: () => import('../pages/ResetPasswordPage.js'),
+  },
+  {
     path: '/home',
     access: 'private',
     title: 'Стрічка',

@@ -20,7 +20,7 @@ REST API на `/api` (на проді `/photoshare-api`). Повний опис 
 | 413 | `PAYLOAD_TOO_LARGE` | файл чи запит завеликий |
 | 422 | `VALIDATION_ERROR` | помилки полів у `fields` |
 | 429 | `RATE_LIMIT`, `AI_LIMIT` | забагато спроб входу чи реєстрації, вичерпано AI-ліміт |
-| 503 | `AI_UNAVAILABLE` | AI недоступний |
+| 503 | `AI_UNAVAILABLE`, `MAIL_UNAVAILABLE` | AI або пошта не налаштовані чи недоступні |
 
 ## Об'єкти
 
@@ -37,10 +37,12 @@ REST API на `/api` (на проді `/photoshare-api`). Повний опис 
 | POST `/sessions` | public | `{ email, password }` | 200 `{ user }` + cookie |
 | GET `/sessions` | public | - | 200 `{ user }` або `{ user: null }` для гостя |
 | DELETE `/sessions` | public | - | 204, токен у blacklist ([D-36](DECISIONS.md)) |
+| POST `/password/forgot` | public | `{ email }` | 200 завжди однаково; лист з посиланням, якщо акаунт є |
+| POST `/password/reset` | public | `{ token, password }` | 200 `{ user }` + cookie ([D-34](DECISIONS.md)) |
 | GET `/auth/google` | public | - | 302 на Google ([D-57](DECISIONS.md)) |
 | GET `/auth/google/callback` | public | - | 302 на `/home` з cookie або на `/auth?googleError=cancelled\|banned\|email_unverified\|unavailable` |
 
-`username` 3-30 символів `[a-zA-Z0-9_.-]`, `password` 8-72, `name` 1-60. Вхід: 10 спроб за 15 хв, реєстрація: 20 за годину з однієї адреси. Забанений не входить; бан діє одразу на всі його сесії ([D-03](DECISIONS.md)).
+`username` 3-30 символів `[a-zA-Z0-9_.-]`, `password` 8-72, `name` 1-60. Вхід: 10 спроб за 15 хв, реєстрація: 20 за годину, лист відновлення: 5 за годину з однієї адреси. Забанений не входить; бан діє одразу на всі його сесії ([D-03](DECISIONS.md)).
 
 ## Користувачі
 

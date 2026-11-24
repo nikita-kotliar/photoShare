@@ -13,6 +13,8 @@ const routes = [
   ['get', '/sessions', 'public'],
   ['post', '/sessions', 'public'],
   ['delete', '/sessions', 'public'],
+  ['post', '/password/forgot', 'public'],
+  ['post', '/password/reset', 'public'],
   ['get', '/auth/google', 'public'],
   ['get', '/auth/google/callback', 'public'],
   ['get', '/health', 'public'],

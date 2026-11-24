@@ -12,6 +12,8 @@ import { applyTheme, readTheme, watchSystemTheme } from './components/theme.js';
 import { createRouter } from './router/index.js';
 import { routes } from './router/routes.js';
 import { store } from './store/index.js';
+
+const AUTH_PATHS = ['/auth', '/forgot-password', '/reset-password'];
 import { authApi } from './api/auth.js';
 
 // Каркас
@@ -51,7 +53,7 @@ async function bootstrap() {
     store,
     onRoute: (path) => {
       header.setPath(path);
-      document.body.classList.toggle('layout-bare', path === '/auth');
+      document.body.classList.toggle('layout-bare', AUTH_PATHS.includes(path));
     },
   });
 
