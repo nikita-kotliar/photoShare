@@ -12,6 +12,8 @@ const routes = [
   ['get', '/users/{username}/achievements', 'public'],
   ['post', '/sessions', 'public'],
   ['delete', '/sessions', 'public'],
+  ['get', '/auth/google', 'public'],
+  ['get', '/auth/google/callback', 'public'],
   ['get', '/health', 'public'],
   ['get', '/photos', 'auth'],
   ['post', '/photos', 'auth'],
@@ -122,7 +124,7 @@ describe('GET /api/docs.json', () => {
       const op = spec.paths[path][method];
       expect(op.summary).toBeTruthy();
       expect(op.tags).toHaveLength(1);
-      expect(Object.keys(op.responses).some((code) => code.startsWith('2'))).toBe(true);
+      expect(Object.keys(op.responses).some((code) => /^[23]/.test(code))).toBe(true);
     }
   });
 });

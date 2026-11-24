@@ -27,6 +27,10 @@ const schema = z
       .default('token'),
     COOKIE_PATH: z.string().startsWith('/').default('/'),
     PUBLIC_API_PATH: z.string().startsWith('/').default('/api'),
+    APP_URL: z.url().default('http://localhost:5173'),
+    GOOGLE_CLIENT_ID: z.string().optional(),
+    GOOGLE_CLIENT_SECRET: z.string().optional(),
+    GOOGLE_REDIRECT_URI: z.url().optional(),
     CLOUDINARY_CLOUD_NAME: z.string().optional(),
     CLOUDINARY_API_KEY: z.string().optional(),
     CLOUDINARY_API_SECRET: z.string().optional(),
@@ -56,4 +60,8 @@ module.exports = {
   isTest: env.NODE_ENV === 'test',
   corsOrigins: env.CORS_ORIGIN.split(',').map((item) => item.trim()),
   cookieSecure: env.COOKIE_SECURE ? env.COOKIE_SECURE === 'true' : env.NODE_ENV === 'production',
+  googleEnabled: Boolean(
+    env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET && env.GOOGLE_REDIRECT_URI,
+  ),
+  appUrl: env.APP_URL.replace(/\/$/, ''),
 };
