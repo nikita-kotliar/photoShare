@@ -23,11 +23,11 @@ export function formatUserDate(value) {
   return `${day} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-// Банити може лише ADMIN, і не себе та не іншого ADMIN (як перевіряє API)
+// ADMIN банить усіх, крім себе й іншого ADMIN; MODERATOR - лише звичайних користувачів
 export function canChangeStatus(viewer, user) {
-  return Boolean(
-    viewer && user && viewer.role === 'ADMIN' && viewer.id !== user.id && user.role !== 'ADMIN',
-  );
+  if (!viewer || !user || viewer.id === user.id) return false;
+  if (viewer.role === 'ADMIN') return user.role !== 'ADMIN';
+  return viewer.role === 'MODERATOR' && user.role === 'USER';
 }
 
 export function statusAction(user) {
@@ -141,7 +141,7 @@ export function UserRow(user, { viewer, onAction } = {}) {
   const actions = el('div', 'user-row__actions');
   if (canChangeStatus(viewer, user)) {
     const action = statusAction(user);
-    const role = user.isActive ? roleAction(user) : null;
+    const role = user.isActive && viewer.role === 'ADMIN' ? roleAction(user) : null;
     const who = user.name || user.username;
 
     const trigger = el('button', 'user-row__more');

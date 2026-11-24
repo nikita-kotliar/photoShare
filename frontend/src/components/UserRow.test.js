@@ -10,10 +10,12 @@ describe('canChangeStatus', () => {
     expect(canChangeStatus(admin, { id: 2, role: 'MODERATOR' })).toBe(true);
   });
 
-  it('не себе, не іншого ADMIN і не для MODERATOR', () => {
+  it('MODERATOR банить лише USER; не себе й не іншого ADMIN', () => {
     expect(canChangeStatus(admin, { id: 1, role: 'ADMIN' })).toBe(false);
     expect(canChangeStatus(admin, { id: 5, role: 'ADMIN' })).toBe(false);
-    expect(canChangeStatus(moderator, { id: 3, role: 'USER' })).toBe(false);
+    expect(canChangeStatus(moderator, { id: 3, role: 'USER' })).toBe(true);
+    expect(canChangeStatus(moderator, { id: 4, role: 'MODERATOR' })).toBe(false);
+    expect(canChangeStatus(moderator, { id: 1, role: 'ADMIN' })).toBe(false);
     expect(canChangeStatus(null, { id: 3, role: 'USER' })).toBe(false);
   });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { stripBase, withBase } from './base.js';
+import { isUnderBase, stripBase, withBase } from './base.js';
 
 describe('withBase', () => {
   it('без бази шлях не змінюється', () => {
@@ -40,5 +40,14 @@ describe('stripBase', () => {
     for (const path of ['/', '/home', '/photos/1', '/auth']) {
       expect(stripBase(withBase(path, '/photoshare'), '/photoshare')).toBe(path);
     }
+  });
+});
+
+describe('isUnderBase', () => {
+  it('відрізняє сторінки застосунку від адрес API', () => {
+    expect(isUnderBase('/photoshare/home', '/photoshare')).toBe(true);
+    expect(isUnderBase('/photoshare', '/photoshare')).toBe(true);
+    expect(isUnderBase('/photoshare-api/auth/google', '/photoshare')).toBe(false);
+    expect(isUnderBase('/api/auth/google', '')).toBe(true);
   });
 });

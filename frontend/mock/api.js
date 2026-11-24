@@ -815,7 +815,9 @@ export function createMockApi({ now = Date.now() } = {}) {
 
   route('PATCH', '/admin/users/:id/status', (ctx) => {
     const admin = requireAuth(ctx);
-    if (admin.role !== 'ADMIN') fail(403, 'FORBIDDEN', 'Недостатньо прав для цієї дії');
+    if (admin.role !== 'ADMIN' && admin.role !== 'MODERATOR') {
+      fail(403, 'FORBIDDEN', 'Недостатньо прав для цієї дії');
+    }
     const target = db.users.find((u) => String(u.id) === ctx.params.id);
     if (!target) fail(404, 'NOT_FOUND', 'Користувача не знайдено');
     if (typeof ctx.body?.isActive !== 'boolean') {
@@ -823,6 +825,9 @@ export function createMockApi({ now = Date.now() } = {}) {
     }
     if (target.id === admin.id || target.role === 'ADMIN') {
       fail(403, 'FORBIDDEN', 'Не можна змінювати статус адміністратора');
+    }
+    if (admin.role === 'MODERATOR' && target.role !== 'USER') {
+      fail(403, 'FORBIDDEN', 'Модератор може банити лише користувачів');
     }
     target.isActive = ctx.body.isActive;
     return { body: { user: serializeUser(target) } };

@@ -1,5 +1,5 @@
 import { matchRoute, parseQuery, resolveAccess } from './match.js';
-import { stripBase, withBase } from './base.js';
+import { isUnderBase, stripBase, withBase } from './base.js';
 import { canTransition, withTimeout } from '../components/motion.js';
 
 export function createRouter({ routes, outlet, store, onRoute }) {
@@ -11,7 +11,7 @@ export function createRouter({ routes, outlet, store, onRoute }) {
     if (!anchor || anchor.target === '_blank' || anchor.hasAttribute('download')) return false;
     if (anchor.hasAttribute('data-external')) return false;
     const url = new URL(anchor.href, window.location.href);
-    return url.origin === window.location.origin;
+    return url.origin === window.location.origin && isUnderBase(url.pathname);
   }
 
   function onClick(event) {

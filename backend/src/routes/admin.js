@@ -18,7 +18,7 @@ router.get(
 );
 router.patch(
   '/users/:id/status',
-  requireRole('ADMIN'),
+  requireRole('MODERATOR', 'ADMIN'),
   validate(idParamsSchema, 'params'),
   validate(statusSchema),
   controller.setStatus,

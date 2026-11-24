@@ -12,3 +12,7 @@ export function stripBase(pathname, base = BASE) {
   if (pathname === base) return '/';
   return pathname.startsWith(`${base}/`) ? pathname.slice(base.length) : pathname;
 }
+
+export function isUnderBase(pathname, base = BASE) {
+  return !base || pathname === base || pathname.startsWith(`${base}/`);
+}

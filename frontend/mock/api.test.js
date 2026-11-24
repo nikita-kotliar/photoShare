@@ -449,11 +449,21 @@ describe('профіль і адмінка', () => {
     expect(dates).toEqual([...dates].sort());
   });
 
-  it('бан і розбан лише для ADMIN, адміна банити не можна', async () => {
+  it('банять ADMIN і MODERATOR, модератор - лише USER, адміна банити не можна', async () => {
     expect(
-      (await call('PATCH', '/admin/users/3/status', { user: MODERATOR, body: { isActive: false } }))
+      (await call('PATCH', '/admin/users/1/status', { user: MODERATOR, body: { isActive: false } }))
         .status,
     ).toBe(403);
+    expect(
+      (await call('PATCH', '/admin/users/4/status', { user: OLEKSANDR, body: { isActive: false } }))
+        .status,
+    ).toBe(403);
+    const byModerator = await call('PATCH', '/admin/users/4/status', {
+      user: MODERATOR,
+      body: { isActive: false },
+    });
+    expect(byModerator.body.user.isActive).toBe(false);
+    await call('PATCH', '/admin/users/4/status', { user: MODERATOR, body: { isActive: true } });
     const ban = await call('PATCH', '/admin/users/3/status', {
       user: ADMIN,
       body: { isActive: false },

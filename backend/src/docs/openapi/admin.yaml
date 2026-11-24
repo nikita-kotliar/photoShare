@@ -44,7 +44,7 @@ paths:
     patch:
       tags: [Адміністрування]
       summary: Заблокувати або розблокувати користувача
-      description: Лише ADMIN. Себе й іншого ADMIN блокувати не можна. Бан діє одразу на наступному запиті користувача (D-03).
+      description: ADMIN блокує будь-кого, крім себе й іншого ADMIN; MODERATOR - лише звичайних користувачів. Бан діє одразу на наступному запиті користувача (D-03).
       security: [{ cookieAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/Id'

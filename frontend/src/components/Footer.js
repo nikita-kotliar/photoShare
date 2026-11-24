@@ -82,7 +82,7 @@ export function Footer({ store }) {
       social.target = '_blank';
       social.rel = 'noopener noreferrer';
       social.setAttribute('aria-label', label);
-      social.append(Icon(icon, { size: '0.875rem' }));
+      social.append(Icon(icon, { size: '100%' }));
       li.append(social);
       socials.append(li);
     }

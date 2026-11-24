@@ -56,8 +56,11 @@ async function editableUser(id, admin, message) {
   return user;
 }
 
-async function setStatus(id, { isActive }, admin) {
-  await editableUser(id, admin, 'Не можна змінювати статус адміністратора');
+async function setStatus(id, { isActive }, actor) {
+  const user = await editableUser(id, actor, 'Не можна змінювати статус адміністратора');
+  if (actor.role === 'MODERATOR' && user.role !== 'USER') {
+    throw new AppError(403, 'FORBIDDEN', 'Модератор може банити лише користувачів');
+  }
   return db.user.update({ where: { id }, data: { isActive } });
 }
 
