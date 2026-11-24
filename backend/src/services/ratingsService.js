@@ -23,10 +23,6 @@ async function findPhoto(photoId) {
   return photo;
 }
 
-function duplicate() {
-  return new AppError(409, 'CONFLICT', 'Ви вже оцінили цю світлину');
-}
-
 // Рейтинг для набору світлин одним запитом: Map(photoId -> { averageRating, ratingsCount, myRating }).
 // averageRating і ratingsCount рахуються агрегатом і окремо не зберігаються (docs/DATA_MODEL.md)
 async function statsFor(photoIds, viewer) {
@@ -68,35 +64,38 @@ async function rate(photoId, { value }, user) {
     throw new AppError(403, 'FORBIDDEN', 'Не можна оцінювати власні світлини');
   }
 
-  const existing = await db.rating.findUnique({
-    where: { photoId_userId: { photoId, userId: user.id } },
-    select: { id: true },
-  });
-  if (existing) throw duplicate();
+  const where = { photoId_userId: { photoId, userId: user.id } };
+  const existing = await db.rating.findUnique({ where, select: { id: true } });
 
   let rating;
-  try {
-    rating = await db.rating.create({
-      data: { photoId, userId: user.id, value },
-      include: ratingInclude,
-    });
-  } catch (err) {
-    // Два одночасні запити: другий упирається в UQ (photo_id, user_id)
-    if (err.code === 'P2002') throw duplicate();
-    throw err;
+  let created = false;
+  if (existing) {
+    rating = await db.rating.update({ where, data: { value }, include: ratingInclude });
+  } else {
+    try {
+      rating = await db.rating.create({
+        data: { photoId, userId: user.id, value },
+        include: ratingInclude,
+      });
+      created = true;
+    } catch (err) {
+      if (err.code !== 'P2002') throw err;
+      rating = await db.rating.update({ where, data: { value }, include: ratingInclude });
+    }
   }
 
-  // Свою світлину оцінити не можна (403 вище), тож отримувач завжди інший
-  await notificationsService.notify({
-    userId: photo.authorId,
-    type: 'RATING',
-    actorId: user.id,
-    photoId,
-    data: { value },
-  });
+  if (created) {
+    await notificationsService.notify({
+      userId: photo.authorId,
+      type: 'RATING',
+      actorId: user.id,
+      photoId,
+      data: { value },
+    });
+  }
 
   const { averageRating, ratingsCount } = (await statsFor([photoId])).get(photoId);
-  return { rating, averageRating, ratingsCount, photoAuthorId: photo.authorId };
+  return { rating, created, averageRating, ratingsCount, photoAuthorId: photo.authorId };
 }
 
 async function listForPhoto(photoId, pagination) {

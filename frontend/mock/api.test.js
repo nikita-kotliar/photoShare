@@ -360,10 +360,11 @@ describe('рейтинг', () => {
     expect(res.body.ratingsCount).toBe(1);
   });
 
-  it('повторна - 409, власна - 403, невалідна - 422', async () => {
-    expect(
-      (await call('POST', '/photos/7/ratings', { user: IVAN, body: { value: 3 } })).status,
-    ).toBe(409);
+  it('повторна змінює оцінку (200), власна - 403, невалідна - 422', async () => {
+    const again = await call('POST', '/photos/7/ratings', { user: IVAN, body: { value: 3 } });
+    expect(again.status).toBe(200);
+    expect(again.body.rating.value).toBe(3);
+    expect((await call('GET', '/photos/7', { user: IVAN })).body.photo.myRating).toBe(3);
     expect(
       (await call('POST', '/photos/1/ratings', { user: OLEKSANDR, body: { value: 3 } })).status,
     ).toBe(403);

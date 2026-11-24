@@ -676,8 +676,19 @@ export function createMockApi({ now = Date.now() } = {}) {
     if (photo.authorId === user.id) {
       fail(403, 'FORBIDDEN', 'Не можна оцінювати власні світлини');
     }
-    if (db.ratings.some((r) => r.photoId === photo.id && r.userId === user.id)) {
-      fail(409, 'CONFLICT', 'Ви вже оцінили цю світлину');
+    const existing = db.ratings.find((r) => r.photoId === photo.id && r.userId === user.id);
+    if (existing) {
+      existing.value = value;
+      const stats = ratingStats(photo.id);
+      return {
+        status: 200,
+        body: {
+          rating: serializeRating(existing),
+          averageRating: stats.average,
+          ratingsCount: stats.count,
+          newAchievements: [],
+        },
+      };
     }
     const rating = {
       id: nextIds.rating++,
