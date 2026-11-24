@@ -6,8 +6,8 @@ Vite + vanilla JS. Структура: `src/pages`, `src/components`, `src/route
 
 ## Що в мок-API
 
-- 10 користувачів, 12 світлин з картинками, описами і тегами, 34 коментарі, оцінки, 2 збережені посилання з QR
-- Усі ендпоінти з `docs/API.md`: авторизація, світлини, коментарі, рейтинг, пошук, профіль, адмінка, QR
+- 10 користувачів, 12 світлин з описами, тегами й палітрою, коментарі, оцінки, QR-посилання, сповіщення, досягнення, 2 позначені AI коментарі
+- Усі ендпоінти з `docs/API.md`, включно з входом через Google (повертає в акаунт `newbie`), AI-підказкою (5 на користувача) і світлиною тижня
 - Дані в пам'яті: зміни живуть до перезапуску dev-сервера
 - Сторінка `/dev/mock` показує стрічку і коментарі, `/dev/icons` - усі іконки
 
@@ -18,7 +18,7 @@ Vite + vanilla JS. Структура: `src/pages`, `src/components`, `src/route
 | Email | Роль | Особливість |
 |---|---|---|
 | admin@example.com | ADMIN | усе дозволено |
-| valeria@example.com | MODERATOR | видаляє коментарі й оцінки, бачить `/admin` |
+| valeria@example.com | MODERATOR | видаляє коментарі й оцінки, бачить `/admin` і `/admin/comments` |
 | oleksandr@example.com | USER | має 3 світлини, одна зі збереженими QR |
 | ivan@example.com | USER | |
 | anna@example.com, vlad@example.com, myroslav@example.com, dmytro@example.com | USER | |
