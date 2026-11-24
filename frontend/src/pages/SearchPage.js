@@ -8,6 +8,7 @@ import { Icon } from '../components/icons.js';
 import { isStaff } from '../components/navigation.js';
 import { reveal } from '../components/motion.js';
 import { Lightbox } from '../components/Lightbox.js';
+import { COLOR_NAMES, colorName } from '../components/Palette.js';
 import { PhotoCard, updateCardRating } from '../components/PhotoCard.js';
 import { SearchBar } from '../components/SearchBar.js';
 import { pushToast } from '../store/index.js';
@@ -26,6 +27,7 @@ export const SEARCH_SORTS = [
 const DEFAULTS = {
   q: '',
   tag: '',
+  color: '',
   from: '',
   to: '',
   ratingMin: 0,
@@ -52,6 +54,7 @@ export function parseSearchQuery(query = {}, { staff = false } = {}) {
   return {
     q: text(query.q, 100),
     tag: text(query.tag, 30).replace(/^#/, '').toLowerCase(),
+    color: Object.hasOwn(COLOR_NAMES, query.color) ? query.color : '',
     from,
     to,
     ratingMin: rating >= 1 && rating <= 5 ? rating : 0,
@@ -66,6 +69,7 @@ export function searchApiQuery(state, limit = SEARCH_LIMIT) {
   return {
     q: state.q,
     tag: state.tag,
+    color: state.color,
     dateFrom: state.from,
     dateTo: state.to,
     ratingMin: state.ratingMin || undefined,
@@ -81,6 +85,7 @@ export function searchHref(state) {
   const keys = {
     q: 'q',
     tag: 'tag',
+    color: 'color',
     from: 'from',
     to: 'to',
     ratingMin: 'rating',
@@ -98,6 +103,7 @@ export function searchHref(state) {
 export function activeFilters(state) {
   const list = [];
   if (state.tag) list.push({ key: 'tag', label: `#${state.tag}` });
+  if (state.color) list.push({ key: 'color', label: `Колір: ${colorName(state.color)}` });
   const dates = rangeLabel(state);
   if (dates) list.push({ key: 'dates', label: dates });
   if (state.ratingMin) list.push({ key: 'ratingMin', label: `Рейтинг від ${state.ratingMin}` });

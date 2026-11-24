@@ -52,9 +52,10 @@ describe('uploadImage / deleteImage', () => {
     await expect(cloudinaryService.uploadImage(buffer)).resolves.toEqual({
       url: `${BASE}/photoshare/p1.png`,
       publicId: 'photoshare/p1',
+      colors: cloud.colors,
     });
     expect(cloudinary.uploader.upload_stream).toHaveBeenCalledWith(
-      { folder: 'photoshare', resource_type: 'image' },
+      { folder: 'photoshare', resource_type: 'image', colors: true },
       expect.any(Function),
     );
     expect(cloud.files.get('photoshare/p1')).toBe(buffer);

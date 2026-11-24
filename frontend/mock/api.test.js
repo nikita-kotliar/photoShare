@@ -538,3 +538,15 @@ describe('світлина тижня', () => {
     expect(res.body.photo.averageRating).toBe(top);
   });
 });
+
+describe('палітра в моку', () => {
+  it('світлина має кольори з групами, пошук за кольором фільтрує', async () => {
+    const photo = (await call('GET', '/photos/1')).body.photo;
+    expect(photo.colors[0]).toEqual({ hex: '#ffe2a8', family: expect.any(String) });
+    const purple = await call('GET', '/search/photos', { user: IVAN, query: 'color=purple' });
+    expect(purple.body.items.length).toBeGreaterThan(0);
+    for (const item of purple.body.items) {
+      expect(item.colors.some((c) => c.family === 'purple')).toBe(true);
+    }
+  });
+});

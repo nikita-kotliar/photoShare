@@ -16,6 +16,7 @@ describe('parseSearchQuery', () => {
     ).toEqual({
       q: 'море',
       tag: 'захід',
+      color: '',
       from: '',
       to: '',
       ratingMin: 0,
@@ -82,5 +83,16 @@ describe('activeFilters', () => {
     expect(rangeLabel({ from: '2026-11-01', to: '2026-11-10' })).toBe('01.11.26 – 10.11.26');
     expect(rangeLabel({ to: '2026-11-10' })).toBe('до 10.11.26');
     expect(rangeLabel({})).toBe('');
+  });
+});
+
+describe('пошук за кольором', () => {
+  it('відома група потрапляє в запит, адресу і чип, невідома відкидається', () => {
+    const state = parseSearchQuery({ color: 'blue' });
+    expect(state.color).toBe('blue');
+    expect(searchApiQuery(state).color).toBe('blue');
+    expect(searchHref(state)).toBe('/search?color=blue');
+    expect(activeFilters(state)).toContainEqual({ key: 'color', label: 'Колір: синій' });
+    expect(parseSearchQuery({ color: 'navy' }).color).toBe('');
   });
 });

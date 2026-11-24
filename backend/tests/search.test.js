@@ -219,3 +219,19 @@ describe('searchService: SQL', () => {
     expect(likePattern('c:\\dir')).toBe('%c:\\\\dir%');
   });
 });
+
+describe('пошук за кольором', () => {
+  it('група кольору йде параметром у SQL, невідома група дає 422', async () => {
+    const { stranger } = await allRoles();
+    const spy = stubSql([]);
+
+    const ok = await stranger.client.get('/api/search/photos?color=blue');
+    const bad = await stranger.client.get('/api/search/photos?color=navy');
+
+    expect(ok.status).toBe(200);
+    expect(spy.mock.calls[0][0].text).toContain('= ANY(p.color_families)');
+    expect(spy.mock.calls[0][0].values).toEqual(['blue', 12, 0]);
+    expect(bad.status).toBe(422);
+    expect(bad.body.error.fields).toHaveProperty('color');
+  });
+});

@@ -124,6 +124,22 @@ const ratingSeeds = [
   [12, 6, 5],
 ];
 
+// Головні кольори мок-світлин (як повернув би Cloudinary)
+const photoColors = [
+  ['#ffe2a8', '#ffd27a', '#fff1c9'],
+  ['#1b1236', '#ffc16a', '#ff9966'],
+  ['#4f8f63', '#2f6f48', '#cfe8d5'],
+  ['#fffbe6', '#9ed0f0', '#5c7a99'],
+  ['#ffe3a0', '#f7c77a', '#fff6d8'],
+  ['#ffd36b', '#8fd0ff', '#141c3e'],
+  ['#0a1328', '#7a5cff', '#3df5a0'],
+  ['#ffe9b8', '#f7e3c4', '#f3efe2'],
+  ['#2d4a63', '#eef6fb', '#cfe3f3'],
+  ['#6a2fb2', '#9a5fe0', '#a06be0'],
+  ['#fff8de', '#e8fbff', '#e5cd96'],
+  ['#04070f', '#1b2a5e', '#fdf6d6'],
+];
+
 function slugFor(index, tags) {
   const base = (tags[0] || 'photo').replace(/[^a-z0-9]/gi, '') || 'photo';
   return `${base}-${String(index).padStart(2, '0')}x${(index * 7919).toString(36)}`;
@@ -152,6 +168,7 @@ export function createSeed(now = Date.now()) {
       url: `/mock/photos/photo-${String(index + 1).padStart(2, '0')}.svg`,
       description,
       tags,
+      colors: photoColors[index] ?? [],
       authorId,
       createdAt: created,
       updatedAt: created,

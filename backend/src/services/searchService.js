@@ -21,7 +21,7 @@ const ratingStats = Prisma.sql`
 // q - GIN gin_trgm_ops на photos.description і tags.name; tag - UQ tags.name і
 // photo_tags(tag_id, photo_id); дати - photos(created_at, id); username - UQ users.username
 // і photos(author_id, created_at); ratingMin і sort=rating - ratings(photo_id, value)
-function conditions({ q, tag, ratingMin, dateFrom, dateTo, username }) {
+function conditions({ q, tag, ratingMin, dateFrom, dateTo, username, color }) {
   const list = [];
   if (q) {
     const pattern = likePattern(q);
@@ -46,6 +46,7 @@ function conditions({ q, tag, ratingMin, dateFrom, dateTo, username }) {
   if (username) {
     list.push(Prisma.sql`p.author_id = (SELECT id FROM users WHERE username = ${username})`);
   }
+  if (color) list.push(Prisma.sql`${color} = ANY(p.color_families)`);
   if (ratingMin !== undefined) list.push(Prisma.sql`r.avg >= ${ratingMin}`);
   return list;
 }

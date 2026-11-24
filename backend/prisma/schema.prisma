@@ -63,14 +63,16 @@ model User {
 }
 
 model Photo {
-  id          Int      @id @default(autoincrement())
-  slug        String   @unique @db.VarChar(12)
-  url         String
-  publicId    String   @unique @map("public_id")
-  description String   @db.VarChar(1000)
-  authorId    Int      @map("author_id")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id            Int      @id @default(autoincrement())
+  slug          String   @unique @db.VarChar(12)
+  url           String
+  publicId      String   @unique @map("public_id")
+  description   String   @db.VarChar(1000)
+  colors        String[] @default([])
+  colorFamilies String[] @default([]) @map("color_families")
+  authorId      Int      @map("author_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
   author           User              @relation(fields: [authorId], references: [id])
   comments         Comment[]
@@ -82,6 +84,7 @@ model Photo {
   @@index([createdAt(sort: Desc), id(sort: Desc)])
   @@index([authorId, createdAt(sort: Desc)])
   @@index([description(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@index([colorFamilies], type: Gin)
   @@map("photos")
 }
 
